@@ -1,0 +1,184 @@
+Contexte projet :
+Projet Laravel 12 + Inertia + React nommé e-commerce
+Authentification avec Laravel Breeze
+Rôles & permissions gérés par spatie/laravel-permission
+Gestion d’images via Intervention Image
+API & sécurisation avec Laravel Sanctum
+Helpers & migrations avancées via doctrine/dbal
+Front construit avec React + Inertia.js + Vite (ne pas toucher)
+DB : PostgreSQL via Supabase
+Structure projet Laravel :
+app/Enums
+app/Services
+app/DTOs
+app/Actions
+🔹 Remarque importante pour l’IA / expert backend :
+Les diagrammes UML ont déjà été validés. Il ne faut pas les recréer.
+Le backend doit être cohérent avec ces diagrammes finaux.
+Ne rien changer côté front (React/Inertia) mais préparer toutes les routes, controllers, models, migrations, seeders et API nécessaires pour que le front puisse se connecter immédiatement.
+Respecter strictement les fonctionnalités validées et les relations BDD.
+Ne rien ajouter ni supprimer dans les fonctionnalités.
+🔹 Diagrammes UML fournis (à utiliser directement) :
+Use Case (Cas d’utilisation) – Client, Admin, Visiteur, Service SMS, Pixel Ads
+Classes / Entités – Produits, Catégories, Sous-Catégories, Clients, Commandes, Panier, Codes promo, Points fidélité, Pixels, Société de livraison, Tarifs, etc.
+Séquence (Achat) – Ajout au panier, paiement, statut commande, génération pixel purchase
+Activité – Flux de commande, gestion livraison, utilisation points, génération facture / bon de livraison
+(tu dois utiliser ces diagrammes comme référence exacte pour coder le backend.)
+🔹 Instructions Backend
+Models & Migrations
+Créer toutes les tables en PostgreSQL via Supabase
+Inclure relations (OneToMany, ManyToMany, etc.) selon diagrammes
+Ajouter colonnes nécessaires pour tarification, fidélité, pixels, codes promo
+Controllers & Actions
+CRUD complet pour produits, catégories, sous-catégories
+Gestion commandes et panier
+Gestion points fidélité et réduction
+Gestion codes promo
+Gestion sociétés de livraison et tarifs par wilaya/type
+Services & Enums
+Statuts commandes, types livraison, pixel events, fidélité
+API & Sécurité
+Utiliser Sanctum pour sécuriser API
+Routes API pour coordination avec React/Inertia
+Seeds / Defaults
+Seed roles & permissions (Admin / Client)
+Seed wilayas / tarifs par défaut
+Seed statuts commandes, types livraison, pixels
+Image Uploads
+Gérer via Intervention Image pour produits
+Helpers & DTOs
+Préparer DTOs et actions pour faciliter logique métier
+Assurer que tout est prêt pour interaction front-back
+🔹 Objectif final
+Backend prêt à l’emploi, correspondant exactement aux diagrammes UML validés, pour un projet Laravel 12 + React/Inertia.
+Tout le front reste intact, mais backend fournit toutes les routes et logiques nécessaires pour que React puisse consommer les données immédiatement.
+Documentation interne des fichiers et classes pour coordination future.
+💡 Note pour l’expert IA / humain :
+"Ne modifie aucun diagramme UML ni aucune fonctionnalité front existante. Ton rôle est strictement backend, mais tu dois préparer tout ce qui est nécessaire pour que le front React/Inertia fonctionne avec le backend Laravel dès maintenant." voici les 4 diagramme de uml de site :1️⃣ Diagramme de Cas d’Utilisation (Use Case) — FINAL
+
+Visiteur
+├─ Consulter produits
+├─ Rechercher produits
+├─ Voir promotions
+├─ Commander produit (direct ou via panier)
+└─ Utiliser code promo
+
+Client
+├─ Commander produit (direct ou via panier)
+├─ Consulter / modifier profil
+├─ Réinitialiser mot de passe (SMS)
+├─ Vérifier téléphone (SMS)
+├─ Utiliser points fidélité
+├─ Voir historique commandes
+└─ Voir points / codes promo
+
+Admin
+├─ Dashboard (commandes, revenus, wilayas)
+├─ Gérer produits, catégories, sous-catégories, spécifications
+├─ Gérer commandes (statuts)
+├─ Gérer clients
+├─ Gérer fidélité (points, conversions)
+├─ Gérer livraison (tarifs, activer/masquer wilaya)
+├─ Gérer promotions (codes)
+└─ Configurer Pixels / Settings
+
+Service SMS
+├─ Envoyer OTP (inscription / numéro téléphone)
+└─ Envoyer code réinitialisation mot de passe
+
+Pixel
+└─ Track Purchase (après confirmation commande)
+2️⃣ Diagramme de Classes (Class Diagram) — FINAL
+
+User- id- phone- password- role- status
+1 ─ 0..1 Client
+
+Client- id- user_id- first_name- last_name- phone- wilaya_id- commune_id- address
+
+Category- id- name- active
+1 ─ * SubCategory
+
+SubCategory- id- category_id- name- active
+1 ─ * Specification
+
+Specification- id- subcategory_id- name- required
+
+Product- id- subcategory_id- name- description- price- stock- status (Actif / Hors stock)
+1 ─ * ProductSpecificationValue
+1 ─ * ProductImage
+
+ProductSpecificationValue- id- product_id- specification_id- value
+
+ProductImage- id- product_id- url
+
+Cart- id- client_id (nullable pour visiteur)
+1 ─ * CartItem
+
+CartItem- id- cart_id- product_id- quantity- price_snapshot
+
+Order- id- client_id (nullable pour visiteur)- first_name- last_name- phone- wilaya_name- commune_name- address- delivery_type- delivery_price- products_total- discount_total- total_price- status
+1 ─ * OrderItem
+
+OrderItem- id- order_id- product_id- quantity- price_snapshot
+
+Wilaya- id- name- is_active
+1 ─ * Commune
+1 ─ * DeliveryTariff
+
+Commune- id- name- wilaya_id
+
+DeliveryTariff- id- wilaya_id- type (DOMICILE / BUREAU)- price- is_active
+
+LoyaltyPoint- id- client_id- points- description
+
+PromoCode- id- code- type (partageable / personnel)- discount_value- max_use- expiry_date- is_active
+
+PixelSetting- id- meta_pixel_id- google_pixel_id- is_active
+Note : client_id nullable dans Cart et Order pour permettre aux visiteurs de commander.
+3️⃣ Diagramme de Séquence (Sequence Diagram) — Achat FINAL
+Scénario : Client ou Visiteur
+
+Client/Visiteur
+↓
+Frontend (Page produit / Panier)
+↓ remplir formulaire (obligatoire pour visiteur)
+Choix livraison (domicile / bureau)
+↓
+Backend OrderService
+↓ récupérer DeliveryTariff
+↓ calcul total
+↓ créer Order (snapshot)
+↓
+PixelService → déclenche Purchase (transparent)Order → statut En attente[Fin]
+Notes :
+
+Visiteur n’a pas de points fidélité
+Client connecté peut utiliser points (optionnel)
+Service SMS non utilisé pour commande
+4️⃣ Diagramme d’Activité (Activity Diagram) — Commande FINAL
+
+[Début]
+↓
+Client connecté ?
+├── Oui
+│ ↓ pré-remplir formulaire
+│ ↓ modifier si besoin (n’affecte pas valeurs par défaut)
+│
+└── Non
+↓ remplir formulaire (obligatoire)
+↓
+Choix livraison (domicile / bureau)
+↓
+Appliquer code promo si existe
+↓
+Calcul total :
+produits_total + livraison - réduction
+↓
+Créer commande (snapshot)
+↓
+Pixel Purchase déclenché
+↓
+Commande enregistrée (statut En attente)
+[Fin] 
+.ton travail est de annalyser bien ce message et au tant que un expert en
+ laravek 12 +inertia js +react
