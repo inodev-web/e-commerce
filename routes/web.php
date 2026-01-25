@@ -10,16 +10,44 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// Public Routes
+// MIGRATED REACT PAGES
+Route::get('/', function () {
+    return Inertia::render('HomePage');
+})->name('home');
+
+Route::get('/auth', function () {
+    return Inertia::render('AuthPage');
+})->name('auth');
+
+Route::get('/product/{id}', function ($id) {
+    return Inertia::render('ProductPage', ['id' => $id]);
+})->name('product.show');
+
+Route::get('/shop', function () {
+    return Inertia::render('ShopPage');
+})->name('shop');
+
+Route::get('/profile', function () {
+    return Inertia::render('Profile');
+})->name('profile');
+
+Route::get('/dashboard', function () {
+    return Inertia::render('DashboardPage');
+})->name('dashboard');
+
+
+// OLD ROUTES (Commented out/adapted for reference)
+/*
 Route::get('/', function () {
     return redirect()->route('products.index');
 });
-
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+*/
+
 Route::get('/wilayas', [\App\Http\Controllers\WilayaController::class, 'index'])->name('wilayas.index');
 
-// Cart Routes
+// Cart Routes (Might need refactoring for new frontend)
 Route::prefix('cart')->name('cart.')->group(function () {
     Route::get('/', [CartController::class, 'show'])->name('show');
     Route::post('/add', [CartController::class, 'addItem'])->name('add');
@@ -51,7 +79,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
 
     // Profile
-    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile/edit', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit'); // Changed URI to avoid conflict
     Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [\App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
 
