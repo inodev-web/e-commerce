@@ -24,10 +24,12 @@ class SmsService
             'otp_code' => $otp,
         ])->save();
 
+        /*
         $this->smsProvider->send(
             $user->phone,
             "Votre code de vérification est : {$otp}"
         );
+        */
 
         $this->hitRateLimiter($user);
     }

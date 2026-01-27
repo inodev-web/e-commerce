@@ -22,7 +22,7 @@ class UpdatePhoneAction
         DB::transaction(function () use ($user, $newPhone) {
             $user->update([
                 'phone' => $newPhone,
-                'phone_verified_at' => null, // Réinitialiser la vérification
+                'phone_verified_at' => now(), // TÂCHE 2 : Vérification automatique
             ]);
 
             // Synchroniser avec le modèle Client si présent
@@ -30,8 +30,8 @@ class UpdatePhoneAction
                 $user->client->update(['phone' => $newPhone]);
             }
 
-            // Envoyer le nouvel OTP
-            $this->smsService->sendOtp($user);
+            // Envoyer le nouvel OTP (Désactivé)
+            // $this->smsService->sendOtp($user);
         });
     }
 }

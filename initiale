@@ -85,7 +85,7 @@ Admin
 Service SMS
 ├─ Envoyer OTP (inscription / numéro téléphone)
 └─ Envoyer code réinitialisation mot de passe
-
+desactiver le service sms pour l'instant'
 Pixel
 └─ Track Purchase (après confirmation commande)
 2️⃣ Diagramme de Classes (Class Diagram) — FINAL

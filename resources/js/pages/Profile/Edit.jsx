@@ -1,0 +1,172 @@
+import React, { useState } from 'react';
+import { ShoppingCart, User, Gift, Award, Copy, Loader2 } from 'lucide-react';
+import { usePage, useForm, Head } from '@inertiajs/react';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+
+export default function UserProfile({ theme, toggleTheme }) {
+    const { auth } = usePage().props;
+    const user = auth.user;
+    const client = user.client || {};
+
+    const [activeTab, setActiveTab] = useState('personal');
+
+    const { data, setData, patch, processing, errors } = useForm({
+        name: user.name,
+        phone: user.phone,
+        email: user.email || '',
+    });
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        patch(route('profile.update'));
+    };
+
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text);
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 transition-colors duration-300">
+            <Head title="Mon Profil" />
+            <Header theme={theme} toggleTheme={toggleTheme} />
+
+            {/* Profile Header */}
+            <div className="bg-white dark:bg-neutral-900 border-b dark:border-neutral-800 transition-colors duration-300 pt-10">
+                <div className="max-w-4xl mx-auto px-4 py-8 text-center">
+                    <div className="relative inline-block mb-4">
+                        <div className="w-24 h-24 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
+                            <User size={48} className="text-white" />
+                        </div>
+                        <div className="absolute bottom-0 right-0 w-7 h-7 bg-teal-700 rounded-full flex items-center justify-center border-2 border-white dark:border-neutral-900">
+                            <Award size={14} className="text-white" />
+                        </div>
+                    </div>
+                    <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">{user.name}</h1>
+                    <div className="flex items-center justify-center gap-2">
+                        <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-500 px-3 py-1 rounded text-xs font-semibold border border-amber-200 dark:border-amber-800 uppercase">
+                            {client.points > 1000 ? 'GOLD MEMBER' : 'MEMBER'}
+                        </span>
+                        <span className="text-gray-500 dark:text-gray-400 text-sm">• {user.phone}</span>
+                    </div>
+                </div>
+
+                {/* Main Tabs */}
+                <div className="max-w-4xl mx-auto px-4">
+                    <div className="flex gap-1 border-b dark:border-neutral-800 overflow-x-auto no-scrollbar">
+                        <button
+                            onClick={() => setActiveTab('personal')}
+                            className={`flex-1 min-w-[120px] px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'personal'
+                                ? 'text-gray-900 dark:text-white border-b-2 border-gray-900 dark:border-white'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                                }`}
+                        >
+                            Infos Personnelles
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('loyalty')}
+                            className={`flex-1 min-w-[120px] px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'loyalty'
+                                ? 'text-gray-900 dark:text-white border-b-2 border-gray-900 dark:border-white'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                                }`}
+                        >
+                            Fidélité & Points
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="max-w-4xl mx-auto px-4 py-8">
+                {activeTab === 'personal' && (
+                    <form onSubmit={handleSubmit} className="bg-white dark:bg-neutral-900 rounded-lg shadow-sm p-6 transition-colors duration-300">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                            <div>
+                                <h2 className="text-xl font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
+                                    <User className="text-teal-600 dark:text-teal-400" size={24} />
+                                    Informations Personnelles
+                                </h2>
+                                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Gérez vos coordonnées.</p>
+                            </div>
+                            <div className="flex gap-2 w-full sm:w-auto">
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="flex-1 sm:flex-none px-6 py-2 bg-teal-600 dark:bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-500 transition-colors disabled:opacity-50"
+                                >
+                                    {processing ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Enregistrer'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nom Complet</label>
+                                <input
+                                    type="text"
+                                    value={data.name}
+                                    onChange={e => setData('name', e.target.value)}
+                                    className="w-full px-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-teal-500 outline-none transition-colors"
+                                />
+                                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Numéro de Téléphone</label>
+                                <input
+                                    type="tel"
+                                    value={data.phone}
+                                    onChange={e => setData('phone', e.target.value)}
+                                    className="w-full px-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-teal-500 outline-none transition-colors"
+                                />
+                                {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+                            </div>
+                        </div>
+                    </form>
+                )}
+
+                {activeTab === 'loyalty' && (
+                    <div className="space-y-6">
+                        {/* Loyalty Score Card */}
+                        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-sm p-6 transition-colors duration-300">
+                            <div className="flex flex-col md:flex-row items-start justify-between gap-6">
+                                <div className="flex-1 w-full">
+                                    <h2 className="text-xl font-semibold flex items-center gap-2 mb-2 text-gray-900 dark:text-white">
+                                        <Award className="text-teal-600 dark:text-teal-400" size={24} />
+                                        Score de Fidélité
+                                    </h2>
+                                    <div className="flex items-baseline gap-2 mb-4">
+                                        <span className="text-5xl font-bold text-gray-900 dark:text-white">{client.points || 0}</span>
+                                        <span className="text-gray-500 dark:text-gray-400">points</span>
+                                    </div>
+                                    <div className="mb-2">
+                                        <div className="flex items-center justify-between text-sm mb-1">
+                                            <span className="text-gray-600 dark:text-gray-400">Palier actuel</span>
+                                            <span className="text-teal-600 dark:text-teal-400 font-medium">{1000 - (client.points || 0)} pts pour le prochain palier</span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 dark:bg-neutral-700 rounded-full h-2">
+                                            <div className="bg-teal-600 dark:bg-teal-500 h-2 rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (client.points || 0) / 10)}%` }}></div>
+                                        </div>
+                                    </div>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">Gagnez 1 point pour chaque 100 DA dépensé.</p>
+                                </div>
+
+                                {/* Next Reward Card */}
+                                <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-4 w-full md:w-64 border border-teal-100 dark:border-teal-800/50">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Gift className="text-teal-600 dark:text-teal-400" size={20} />
+                                        <h3 className="font-semibold text-gray-900 dark:text-white">Prochaine Récompense</h3>
+                                    </div>
+                                    <p className="text-sm text-gray-900 dark:text-gray-200 font-medium mb-1">Bon d'achat de 500 DA</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Dès 1000 points atteints.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <Footer />
+        </div>
+    );
+}

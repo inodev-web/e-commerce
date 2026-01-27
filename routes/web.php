@@ -11,29 +11,18 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // MIGRATED REACT PAGES
-Route::get('/', function () {
-    return Inertia::render('HomePage');
-})->name('home');
+Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::get('/auth', function () {
-    return Inertia::render('AuthPage');
+    return Inertia::render('Auth/Login');
 })->name('auth');
 
-Route::get('/product/{id}', function ($id) {
-    return Inertia::render('ProductPage', ['id' => $id]);
-})->name('product.show');
-
-Route::get('/shop', function () {
-    return Inertia::render('ShopPage');
-})->name('shop');
+Route::get('/shop', [\App\Http\Controllers\ProductController::class, 'index'])->name('products.index');
+Route::get('/product/{product}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
 
 Route::get('/profile', function () {
-    return Inertia::render('Profile');
+    return Inertia::render('Profile/Edit');
 })->name('profile');
-
-Route::get('/dashboard', function () {
-    return Inertia::render('DashboardPage');
-})->name('dashboard');
 
 
 // OLD ROUTES (Commented out/adapted for reference)

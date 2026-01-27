@@ -47,13 +47,18 @@ class RegisteredUserController extends Controller
                 'password' => Hash::make($request->password),
             ]);
 
+            // TÂCHE 2 (Sans SMS) : Vérification automatique
+            $user->forceFill([
+                'phone_verified_at' => now(),
+            ])->save();
+
             Client::create([
                 'user_id' => $user->id,
                 'phone' => $user->phone,
                 // Les autres champs seront remplis plus tard dans le profil
             ]);
 
-            $this->smsService->sendOtp($user);
+            // $this->smsService->sendOtp($user);
 
             return $user;
         });

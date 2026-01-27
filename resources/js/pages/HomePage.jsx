@@ -4,6 +4,8 @@ import LogoLoop from '../components/LogoLoop';
 import ProductSection from '../components/ProductSection';
 import TopSellers from '../components/TopSellers';
 import Footer from '../components/Footer';
+import Header from '../components/Header';
+import { Link } from '@inertiajs/react';
 import {
     Carousel,
     CarouselContent,
@@ -12,10 +14,8 @@ import {
     CarouselPrevious,
 } from "../components/ui/carousel";
 
-const HomePage = () => {
+const HomePage = ({ featuredProducts, topSellers, categories, theme, toggleTheme }) => {
     const pharmaLogos = [
-        { src: '/saidalLogo.png', alt: 'Saidal' },
-        { src: '/toucheLogo.jpg', alt: 'Touche' },
         { src: '/saidalLogo.png', alt: 'Saidal' },
         { src: '/toucheLogo.jpg', alt: 'Touche' },
         { src: '/saidalLogo.png', alt: 'Saidal' },
@@ -24,8 +24,9 @@ const HomePage = () => {
 
     return (
         <>
+            <Header theme={theme} toggleTheme={toggleTheme} />
             <Hero />
-            <CategorySection />
+            <CategorySection categories={categories} />
             <LogoLoop
                 logos={pharmaLogos}
                 speed={100}
@@ -38,32 +39,47 @@ const HomePage = () => {
                 fadeOutColor="#ffffff"
                 ariaLabel="Marques partenaires"
             />
-            <ProductSection title="Recommandé pour vous" />
+            {featuredProducts && featuredProducts.length > 0 && (
+                <div className="w-full max-w-screen-xl mx-auto my-12 px-4">
+                    <h2 className="section-title mb-8">Nouveautés pour vous</h2>
+                    <Carousel className="w-full">
+                        <CarouselContent>
+                            {featuredProducts.map((product) => (
+                                <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/4">
+                                    <div className="p-1 h-full">
+                                        <Link href={route('products.show', product.id)} className="block h-full">
+                                            <div className="top-seller-card h-full flex flex-col">
+                                                <div className="seller-image bg-gray-50 flex-1 min-h-[200px] flex items-center justify-center">
+                                                    <img
+                                                        src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.png'}
+                                                        alt={product.name}
+                                                        className="seller-image-img object-contain p-4 max-h-[180px]"
+                                                    />
+                                                </div>
+                                                <div className="seller-info p-4">
+                                                    <div className="seller-brand text-xs uppercase tracking-wider text-teal-600 font-bold mb-1">
+                                                        {product.sub_category ? product.sub_category.name : 'Puréva'}
+                                                    </div>
+                                                    <h3 className="seller-name text-gray-800 font-semibold line-clamp-2 min-h-[3rem]">{product.name}</h3>
+                                                    <div className="seller-price mt-auto font-bold text-lg text-gray-900">
+                                                        {product.price.toLocaleString()} DA
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    </div>
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="hidden md:flex translate-x-12" />
+                        <CarouselNext className="hidden md:flex -translate-x-12" />
+                    </Carousel>
+                </div>
+            )}
 
-            <div className="w-full max-w-screen-xl mx-auto">
-                <Carousel className="w-full">
-                    <CarouselContent>
-                        {[
-                            "https://i.pinimg.com/736x/2f/1c/08/2f1c084ab70ad4ad916b0dc286bc1e4f.jpg",
-                            "https://i.pinimg.com/1200x/38/3d/5c/383d5c482b067804ad7d6eede12ff44a.jpg"
-                        ].map((src, index) => (
-                            <CarouselItem key={index}>
-                                <div className="p-1">
-                                    <img
-                                        src={src}
-                                        alt={`Slide ${index + 1}`}
-                                        className="w-full aspect-[21/9] object-cover rounded-xl shadow-sm"
-                                    />
-                                </div>
-                            </CarouselItem>
-                        ))}
-                    </CarouselContent>
-                    <CarouselPrevious className="translate-x-[3em] xl:translate-x-[5em] " />
-                    <CarouselNext className="translate-x-[-3em] xl:translate-x-[-5em]" />
-                </Carousel>
-            </div>
-
-            <TopSellers />
+            {topSellers && topSellers.length > 0 && (
+                <TopSellers products={topSellers} />
+            )}
             <Footer />
         </>
     );
