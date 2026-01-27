@@ -22,9 +22,9 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
         'phone',
         'password',
+        'role',
         'status',
     ];
 
@@ -53,9 +53,19 @@ class User extends Authenticatable
 
 
     // Relationships
-
-    public function client(): HasOne
+    
+    public function client(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(Client::class);
+    }
+
+    public function referrer(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'referrer_id');
+    }
+
+    public function referrals(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(User::class, 'referrer_id');
     }
 }

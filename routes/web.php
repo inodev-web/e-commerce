@@ -14,7 +14,9 @@ use Inertia\Inertia;
 Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::get('/auth', function () {
-    return Inertia::render('Auth/Login');
+    return Inertia::render('Auth/Login', [
+        'wilayas' => \App\Models\Wilaya::select('id', 'name')->orderBy('name')->get()
+    ]);
 })->name('auth');
 
 Route::get('/shop', [\App\Http\Controllers\ProductController::class, 'index'])->name('products.index');
@@ -35,6 +37,11 @@ Route::get('/products/{product}', [ProductController::class, 'show'])->name('pro
 */
 
 Route::get('/wilayas', [\App\Http\Controllers\WilayaController::class, 'index'])->name('wilayas.index');
+Route::get('/api/wilayas/{wilaya}/communes', function (\App\Models\Wilaya $wilaya) {
+    return \Illuminate\Support\Facades\Cache::rememberForever("wilaya_{$wilaya->id}_communes", function () use ($wilaya) {
+        return $wilaya->communes()->orderBy('name')->select('id', 'name')->get();
+    });
+});
 
 // Cart Routes (Might need refactoring for new frontend)
 Route::prefix('cart')->name('cart.')->group(function () {
@@ -48,6 +55,14 @@ Route::prefix('cart')->name('cart.')->group(function () {
 // Authenticated Routes
 Route::middleware(['auth:sanctum'])->group(function () {
     
+    // Dashboard Redirect
+    Route::get('/dashboard', function () {
+        if (auth()->user()->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+        return redirect()->route('products.index');
+    })->name('dashboard');
+
     // Profile & Phone Update
     Route::post('/profile/phone', function (Request $request, \App\Actions\Auth\UpdatePhoneAction $action) {
         $request->validate(['phone' => 'required|string|unique:users,phone,' . auth()->id()]);
@@ -66,8 +81,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Orders
     Route::resource('orders', OrderController::class)->only(['index', 'show']);
     Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::get('orders/{order}/track', [\App\Http\Controllers\OrderController::class, 'show'])->name('orders.track');
 
     // Profile
+    Route::get('/profile/referral', [\App\Http\Controllers\ProfileController::class, 'referral'])->name('profile.referral');
     Route::get('/profile/edit', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit'); // Changed URI to avoid conflict
     Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [\App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');

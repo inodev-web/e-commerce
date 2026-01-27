@@ -34,11 +34,13 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user() ? [
                     'id' => $request->user()->id,
-                    'name' => $request->user()->name,
+                    'first_name' => $request->user()->client?->first_name,
+                    'last_name' => $request->user()->client?->last_name,
+                    'full_name' => $request->user()->client ? ($request->user()->client->first_name . ' ' . $request->user()->client->last_name) : 'Utilisateur',
                     'phone' => $request->user()->phone,
-                    'roles' => $request->user()->getRoleNames(),
+                    'roles' => $request->user()->getRoleNames(), // Assurez-vous que Spatie est bien configuré
                     'status' => $request->user()->status,
-                    'client' => $request->user()->client,
+                    // Eviter de charger tout l'objet client si pas nécessaire, mais utile pour l'avatar etc.
                 ] : null,
             ],
         ];

@@ -1,24 +1,17 @@
 import { useState } from 'react';
 import { Sun, Moon, Truck, ShieldCheck, CheckCircle, Search, User, ShoppingCart, Menu, X } from 'lucide-react';
-import { Link, usePage } from '@inertiajs/react';
-
-const MOCK_PRODUCTS = [
-    { id: 1, name: 'Lotion Hydratante Quotidienne', image: 'https://i.pinimg.com/1200x/db/aa/c4/dbaac4e9b7c92cfd5d0fd33e1a2d8556.jpg', price: 2400, brand: 'Soin de la peau' },
-    { id: 2, name: 'Sérum Vitamine C 20%', image: 'https://i.pinimg.com/1200x/b4/13/1b/b4131b89326fdd62875c6e4fd30236d5.jpg', price: 4500, brand: 'Éclat' },
-    { id: 3, name: 'Nettoyant Visage Doux', image: 'https://i.pinimg.com/1200x/db/aa/c4/dbaac4e9b7c92cfd5d0fd33e1a2d8556.jpg', price: 1550, brand: 'Thérapie Cutanée' },
-];
+import { Link, usePage, router } from '@inertiajs/react';
 
 const Header = ({ theme, toggleTheme }) => {
     const { auth } = usePage().props;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-    const filteredProducts = MOCK_PRODUCTS.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    const showDropdown = searchQuery.length > 0 && isSearchFocused;
+    const handleSearch = (e) => {
+        if (e.key === 'Enter' && searchQuery.trim()) {
+            router.get(route('products.index'), { search: searchQuery });
+        }
+    };
 
     return (
         <header className="header">
@@ -52,32 +45,12 @@ const Header = ({ theme, toggleTheme }) => {
                     <Search className="search-icon" size={20} />
                     <input
                         type="text"
-                        placeholder="Rechercher des produits..."
+                        placeholder="Rechercher des produits... (Entrée)"
                         className="search-input"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        onFocus={() => setIsSearchFocused(true)}
-                        onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                        onKeyDown={handleSearch}
                     />
-
-                    {/* Search Dropdown */}
-                    {showDropdown && (
-                        <div className="search-dropdown">
-                            {filteredProducts.length > 0 ? (
-                                filteredProducts.map(product => (
-                                    <Link key={product.id} href={route('products.show', product.id)} className="search-result-item">
-                                        <img src={product.image} alt={product.name} className="search-result-img" />
-                                        <div className="search-result-info">
-                                            <div className="search-result-name">{product.name}</div>
-                                            <div className="search-result-price">{product.price} DA</div>
-                                        </div>
-                                    </Link>
-                                ))
-                            ) : (
-                                <div className="search-no-results">Aucun produit trouvé</div>
-                            )}
-                        </div>
-                    )}
                 </div>
 
                 {/* Navigation */}
@@ -98,6 +71,7 @@ const Header = ({ theme, toggleTheme }) => {
                     <Link href={route('cart.show')} className="nav-link cart-link">
                         <ShoppingCart className="nav-icon" size={22} />
                         <span>Panier</span>
+                        {/* If you have cart count in props, use it here */}
                         <span className="cart-badge">0</span>
                     </Link>
                 </nav>

@@ -23,7 +23,9 @@ class RegisteredUserController extends Controller
     ) {}
     public function create(): Response
     {
-        return Inertia::render('Auth/Register');
+        return Inertia::render('Auth/Login', [
+            'wilayas' => \App\Models\Wilaya::select('id', 'name')->orderBy('name')->get()
+        ]);
     }
 
     /**
@@ -34,17 +36,34 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         \Illuminate\Support\Facades\Log::info('Register request', $request->all());
+        // Optimisation : Charger les IDs valides depuis le cache pour éviter des requêtes DB lentes (exists)
+        $wilayaIds = \Illuminate\Support\Facades\Cache::rememberForever('wilaya_ids', function () {
+            return \App\Models\Wilaya::pluck('id')->toArray();
+        });
+
+        // Pour les communes, on peut soit charger toutes, soit valider dynamiquement si on avait l'ID wilaya, 
+        // mais ici on va simplifier en chargeant les IDs communes valides.
+        // Attention: charger toutes les IDs communes peut être lourd (1541 entrées), mais c'est mieux que 25s de latence.
+        $communeIds = \Illuminate\Support\Facades\Cache::rememberForever('commune_ids', function () {
+            return \App\Models\Commune::pluck('id')->toArray();
+        });
+
         $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'phone' => 'required|string|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'wilaya_id' => ['required', \Illuminate\Validation\Rule::in($wilayaIds)],
+            'commune_id' => ['required', \Illuminate\Validation\Rule::in($communeIds)],
+            'address' => 'nullable|string',
         ]);
 
         $user = DB::transaction(function () use ($request) {
             $user = User::create([
-                'name' => $request->name,
                 'phone' => $request->phone,
                 'password' => Hash::make($request->password),
+                'role' => 'client',
+                'status' => 'active',
             ]);
 
             // TÂCHE 2 (Sans SMS) : Vérification automatique
@@ -54,8 +73,12 @@ class RegisteredUserController extends Controller
 
             Client::create([
                 'user_id' => $user->id,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
                 'phone' => $user->phone,
-                // Les autres champs seront remplis plus tard dans le profil
+                'wilaya_id' => $request->wilaya_id,
+                'commune_id' => $request->commune_id,
+                'address' => $request->address,
             ]);
 
             // $this->smsService->sendOtp($user);
@@ -63,7 +86,7 @@ class RegisteredUserController extends Controller
             return $user;
         });
 
-        event(new Registered($user));
+        // event(new Registered($user));
 
         Auth::guard('web')->login($user);
 

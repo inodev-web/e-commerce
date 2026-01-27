@@ -4,6 +4,7 @@ import { router, Link } from '@inertiajs/react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../../components/ui/dialog';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import CartConfirmationModal from '../../components/CartConfirmationModal';
 import '../../../css/shopPage.css';
 
 const Index = ({ products, categories, filters, theme, toggleTheme }) => {
@@ -31,6 +32,26 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
 
     const clearFilters = () => {
         router.get(route('products.index'), {});
+    };
+
+
+    const [modalOpen, setModalOpen] = useState(false);
+    const [addedProduct, setAddedProduct] = useState(null);
+
+    const addToCart = (e, product) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        router.post(route('cart.add'), {
+            product_id: product.id,
+            quantity: 1
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setAddedProduct(product);
+                setModalOpen(true);
+            }
+        });
     };
 
     return (
@@ -199,7 +220,12 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                                 <h3 className="seller-name text-gray-800 font-semibold line-clamp-2 min-h-[3rem]">{product.name}</h3>
                                 <div className="seller-price mt-auto flex items-center justify-between font-bold text-lg text-gray-900">
                                     {product.price.toLocaleString()} DA
-                                    <button className="add-to-cart-btn bg-black text-white p-2 rounded-lg hover:bg-gray-800" aria-label="Add to cart">
+                                    <button
+                                        className="add-to-cart-btn bg-black text-white p-2 rounded-lg hover:bg-gray-800 transition-colors z-10"
+                                        aria-label="Add to cart"
+                                        onClick={(e) => addToCart(e, product)}
+                                        disabled={product.stock <= 0}
+                                    >
                                         <ShoppingCart size={18} />
                                     </button>
                                 </div>
@@ -228,8 +254,14 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
             </main>
 
             <Footer />
+            <CartConfirmationModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                product={addedProduct}
+            />
         </div>
     );
 };
 
 export default Index;
+

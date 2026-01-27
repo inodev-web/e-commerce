@@ -25,6 +25,26 @@ class ProfileController extends Controller
     }
 
     /**
+     * Display the user's referral info.
+     */
+    public function referral(Request $request): Response
+    {
+        return Inertia::render('Profile/Referral', [
+            'referral_code' => $request->user()->referral_code,
+            'referrals' => $request->user()->referrals()
+                ->with('client') // Charge le nom du client
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->client ? ($user->client->first_name . ' ' . $user->client->last_name) : 'Utilisateur',
+                        'joined_at' => $user->created_at->format('d/m/Y'),
+                    ];
+                }),
+        ]);
+    }
+
+    /**
      * Update the user's profile information.
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse

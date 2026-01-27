@@ -1,10 +1,12 @@
 import { router, useForm, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
-import { Star, ShoppingCart, Minus, Plus, ChevronLeft, Loader2 } from 'lucide-react';
+import { Star, ShoppingCart, Minus, Plus, ChevronLeft, Loader2, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import Link from '@inertiajs/react'; // Ensure Link is imported if needed, or stick to router
+import CartConfirmationModal from '../../components/CartConfirmationModal';
 import '../../productPage.css';
 
 const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
@@ -18,6 +20,25 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     const [shippingPrice, setShippingPrice] = useState(0);
     const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
 
+    // Cart Modal State
+    const [cartModalOpen, setCartModalOpen] = useState(false);
+    const [addingToCart, setAddingToCart] = useState(false);
+
+    const handleAddToCart = (e) => {
+        e.preventDefault();
+        setAddingToCart(true);
+        router.post(route('cart.add'), {
+            product_id: product.id,
+            quantity: data.quantity
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setCartModalOpen(true);
+                setAddingToCart(false);
+            },
+            onError: () => setAddingToCart(false)
+        });
+    };
     const { data, setData, post, processing, errors } = useForm({
         product_id: product.id,
         quantity: 1,
@@ -280,11 +301,19 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
                             <div className="product-actions mt-6 flex gap-2">
                                 <button
+                                    type="button"
+                                    onClick={handleAddToCart}
+                                    disabled={addingToCart || product.stock <= 0}
+                                    className="flex-1 bg-white border-2 border-teal-600 text-teal-600 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-teal-50 disabled:opacity-50"
+                                >
+                                    {addingToCart ? <Loader2 className="animate-spin" /> : <><ShoppingCart size={20} /> Ajouter au panier</>}
+                                </button>
+                                <button
                                     type="submit"
                                     disabled={processing || product.stock <= 0}
                                     className="add-to-cart-btn primary flex-1 bg-teal-600 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-teal-700 disabled:opacity-50"
                                 >
-                                    {processing ? <Loader2 className="animate-spin" /> : <><ShoppingCart size={20} /> Acheter maintenant</>}
+                                    {processing ? <Loader2 className="animate-spin" /> : <><CreditCard size={20} /> Acheter maintenant</>}
                                 </button>
                             </div>
                         </form>
@@ -314,6 +343,11 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
             </motion.div>
 
             <Footer />
+            <CartConfirmationModal
+                isOpen={cartModalOpen}
+                onClose={() => setCartModalOpen(false)}
+                product={product}
+            />
         </div>
     );
 };

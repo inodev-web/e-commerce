@@ -21,6 +21,7 @@ class AuthenticatedSessionController extends Controller
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
+            'wilayas' => \App\Models\Wilaya::select('id', 'name')->orderBy('name')->get()
         ]);
     }
 
@@ -32,6 +33,10 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+
+        if (Auth::user()->role === 'admin') {
+            return redirect()->intended(route('admin.dashboard'));
+        }
 
         return redirect()->intended(route('products.index', absolute: false));
     }

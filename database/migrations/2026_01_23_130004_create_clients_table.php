@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('commune_id')->nullable()->constrained()->restrictOnDelete();
             $table->text('address')->nullable();
             $table->timestamps();
-
+            
             $table->index('user_id');
             $table->index('phone');
             $table->index('wilaya_id');
