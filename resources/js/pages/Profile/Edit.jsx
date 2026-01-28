@@ -35,10 +35,10 @@ export default function UserProfile({ theme, toggleTheme }) {
             <div className="bg-white dark:bg-neutral-900 border-b dark:border-neutral-800 transition-colors duration-300 pt-10">
                 <div className="max-w-4xl mx-auto px-4 py-8 text-center">
                     <div className="relative inline-block mb-4">
-                        <div className="w-24 h-24 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
+                        <div className="w-24 h-24 bg-gradient-to-br from-[#F8E4E0] to-[#DB8B89] rounded-full flex items-center justify-center shadow-lg">
                             <User size={48} className="text-white" />
                         </div>
-                        <div className="absolute bottom-0 right-0 w-7 h-7 bg-teal-700 rounded-full flex items-center justify-center border-2 border-white dark:border-neutral-900">
+                        <div className="absolute bottom-0 right-0 w-7 h-7 bg-[#C07573] rounded-full flex items-center justify-center border-2 border-white dark:border-neutral-900">
                             <Award size={14} className="text-white" />
                         </div>
                     </div>
@@ -83,7 +83,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                             <div>
                                 <h2 className="text-xl font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
-                                    <User className="text-teal-600 dark:text-teal-400" size={24} />
+                                    <User className="text-[#DB8B89]" size={24} />
                                     Informations Personnelles
                                 </h2>
                                 <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Gérez vos coordonnées.</p>
@@ -92,7 +92,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="flex-1 sm:flex-none px-6 py-2 bg-teal-600 dark:bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 dark:hover:bg-teal-500 transition-colors disabled:opacity-50"
+                                    className="flex-1 sm:flex-none px-6 py-2 bg-[#DB8B89] text-white rounded-lg text-sm font-medium hover:bg-[#C07573] transition-colors disabled:opacity-50"
                                 >
                                     {processing ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Enregistrer'}
                                 </button>
@@ -106,7 +106,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                                     type="text"
                                     value={data.name}
                                     onChange={e => setData('name', e.target.value)}
-                                    className="w-full px-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-teal-500 outline-none transition-colors"
+                                    className="w-full px-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-colors"
                                 />
                                 {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                             </div>
@@ -117,7 +117,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                                     type="tel"
                                     value={data.phone}
                                     onChange={e => setData('phone', e.target.value)}
-                                    className="w-full px-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-teal-500 outline-none transition-colors"
+                                    className="w-full px-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-colors"
                                 />
                                 {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                             </div>
@@ -142,19 +142,19 @@ export default function UserProfile({ theme, toggleTheme }) {
                                     <div className="mb-2">
                                         <div className="flex items-center justify-between text-sm mb-1">
                                             <span className="text-gray-600 dark:text-gray-400">Palier actuel</span>
-                                            <span className="text-teal-600 dark:text-teal-400 font-medium">{1000 - (client.points || 0)} pts pour le prochain palier</span>
+                                    <span className="text-[#DB8B89] font-medium">{1000 - (client.points || 0)} pts pour le prochain palier</span>
                                         </div>
                                         <div className="w-full bg-gray-200 dark:bg-neutral-700 rounded-full h-2">
-                                            <div className="bg-teal-600 dark:bg-teal-500 h-2 rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (client.points || 0) / 10)}%` }}></div>
+                                    <div className="bg-[#DB8B89] h-2 rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (client.points || 0) / 10)}%` }}></div>
                                         </div>
                                     </div>
                                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">Gagnez 1 point pour chaque 100 DA dépensé.</p>
                                 </div>
 
                                 {/* Next Reward Card */}
-                                <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-4 w-full md:w-64 border border-teal-100 dark:border-teal-800/50">
+                                <div className="bg-pink-50 dark:bg-[#DB8B89]/10 rounded-lg p-4 w-full md:w-64 border border-pink-100 dark:border-[#DB8B89]/20">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <Gift className="text-teal-600 dark:text-teal-400" size={20} />
+                                        <Gift className="text-[#DB8B89]" size={20} />
                                         <h3 className="font-semibold text-gray-900 dark:text-white">Prochaine Récompense</h3>
                                     </div>
                                     <p className="text-sm text-gray-900 dark:text-gray-200 font-medium mb-1">Bon d'achat de 500 DA</p>

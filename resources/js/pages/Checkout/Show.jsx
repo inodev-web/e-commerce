@@ -216,7 +216,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes }) => {
                                     <div key={item.id} className="flex gap-3 text-sm">
                                         <div className="w-12 h-12 bg-gray-100 rounded md-1 flex-shrink-0 relative">
                                             <img
-                                                src={item.product && item.product.images[0] ? `/storage/${item.product.images[0].image_path}` : '/placeholder.png'}
+                                                src={item.product && item.product.images[0] ? `/storage/${item.product.images[0].image_path}` : '/placeholder.svg'}
                                                 className="w-full h-full object-cover rounded"
                                             />
                                             <span className="absolute -top-2 -right-2 bg-gray-900 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full">

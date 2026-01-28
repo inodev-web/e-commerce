@@ -51,7 +51,7 @@ const HomePage = ({ featuredProducts, topSellers, categories, theme, toggleTheme
                                             <div className="top-seller-card h-full flex flex-col">
                                                 <div className="seller-image bg-gray-50 flex-1 min-h-[200px] flex items-center justify-center">
                                                     <img
-                                                        src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.png'}
+                                                        src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.svg'}
                                                         alt={product.name}
                                                         className="seller-image-img object-contain p-4 max-h-[180px]"
                                                     />

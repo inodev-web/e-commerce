@@ -87,7 +87,7 @@ const Show = ({ order }) => {
                                     <div className="w-16 h-16 bg-gray-100 rounded md-1 flex-shrink-0">
                                         {/* Assuming product relationship is loaded via 'product' in item, or snapshot data */}
                                         <img
-                                            src={item.product && item.product.images ? `/storage/${item.product.images[0].image_path}` : '/placeholder.png'}
+                                            src={item.product && item.product.images ? `/storage/${item.product.images[0].image_path}` : '/placeholder.svg'}
                                             className="w-full h-full object-cover rounded"
                                             alt="Product"
                                         />

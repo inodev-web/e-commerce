@@ -4,6 +4,73 @@
 
 @theme {
     --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --radius-2xl: calc(var(--radius) + 8px);
+    --radius-3xl: calc(var(--radius) + 12px);
+    --radius-4xl: calc(var(--radius) + 16px);
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+
+    /* Semantic mapping for standard Tailwind classes */
+    --color-white: var(--white);
+    --color-gray-50: var(--bg-light);
+    --color-gray-100: var(--bg-light);
+    --color-gray-200: var(--border);
+    --color-gray-300: var(--text-gray);
+    --color-gray-400: var(--text-gray);
+    --color-gray-500: var(--text-gray);
+    --color-gray-600: var(--text-gray);
+    --color-gray-700: var(--text-gray);
+    --color-gray-800: var(--text-dark);
+    --color-gray-900: var(--text-dark);
+
+    --color-zinc-50: var(--bg-light);
+    --color-zinc-100: var(--bg-light);
+    --color-zinc-200: var(--border);
+    --color-zinc-300: var(--text-gray);
+    --color-zinc-400: var(--text-gray);
+    --color-zinc-500: var(--text-gray);
+    --color-zinc-600: var(--text-gray);
+    --color-zinc-700: var(--text-gray);
+    --color-zinc-800: var(--text-dark);
+    --color-zinc-900: var(--white);
+    /* zinc-900 is often the main dark bg */
+    --color-zinc-950: var(--background);
+
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -54,6 +121,62 @@
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0.015 259.02);
     --font-cursive: 'Dancing Script', 'Pacifico', cursive;
+}
+
+.dark {
+    --bg-light: #0a0a0a;
+    --white: #171717;
+    --text-dark: #ededed;
+    --text-gray: #a1a1aa;
+    --primary-blue: #DB8B89;
+    --primary-blue-dark: #C07573;
+    --primary-blue-light: #F8E4E0;
+    --primary-pink: #F8E4E0;
+    --primary-pink-light: rgba(219, 139, 137, 0.1);
+    --bg-hero: linear-gradient(135deg, #050505 0%, #0a0a0a 100%);
+    --footer-bg: #000000;
+
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.488 0.243 264.376);
+    --chart-2: oklch(0.696 0.17 162.48);
+    --chart-3: oklch(0.769 0.188 70.08);
+    --chart-4: oklch(0.627 0.265 303.9);
+    --chart-5: oklch(0.645 0.246 16.439);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
 }
 
 body {
@@ -349,6 +472,7 @@ body {
     display: flex;
     align-items: center;
     gap: 2rem;
+    position: relative;
 }
 
 .header-logo {
@@ -560,6 +684,60 @@ body {
 .mobile-menu-toggle svg {
     width: 24px;
     height: 24px;
+}
+
+/* Header responsive (mobile) */
+@media (max-width: 768px) {
+    .header-container {
+        padding: 0.75rem 1rem;
+        gap: 0.75rem;
+    }
+
+    .header-search {
+        display: none;
+    }
+
+    .header-nav {
+        display: none;
+    }
+
+    .header-nav.active {
+        display: flex;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        flex-direction: column;
+        padding: 0.75rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        gap: 0.25rem;
+    }
+
+    .dark .header-nav.active {
+        background: rgba(23, 23, 23, 0.95);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-link {
+        padding: 0.85rem 0.75rem;
+        border-radius: 12px;
+        justify-content: space-between;
+    }
+
+    .nav-link:hover {
+        background: rgba(219, 139, 137, 0.10);
+        color: var(--primary-blue);
+    }
+
+    .mobile-menu-toggle {
+        display: block;
+        margin-left: auto;
+    }
 }
 
 /* ========== SECTIONS ========== */

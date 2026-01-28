@@ -16,7 +16,7 @@ const CartConfirmationModal = ({ isOpen, onClose, product }) => {
 
                 <div className="flex items-start gap-4 py-4">
                     <img
-                        src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.png'}
+                        src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.svg'}
                         alt={product.name}
                         className="w-20 h-20 object-cover rounded-md bg-gray-100"
                     />

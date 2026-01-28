@@ -72,10 +72,10 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                             placeholder="Rechercher un produit..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 rounded-full border border-gray-200 focus:ring-2 focus:ring-teal-500 outline-none"
+                            className="w-full pl-12 pr-28 py-3 rounded-full border border-gray-200 bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-shadow"
                         />
-                        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                        <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-teal-600 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-teal-700">
+                        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-[#DB8B89]" size={20} />
+                        <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#DB8B89] text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-[#C07573] transition-colors">
                             Rechercher
                         </button>
                     </form>
@@ -175,7 +175,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                             <select
                                 className="bg-transparent outline-none cursor-pointer"
                                 onChange={(e) => handleFilterChange('sort', e.target.value)}
-                                value={filters.sort || ''}
+                                value={filters.sort ? String(filters.sort) : ''}
                             >
                                 <option value="">Pertinence</option>
                                 <option value="price_asc">Prix croissant</option>
@@ -208,7 +208,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                             </div>
                             <div className="seller-image bg-gray-50">
                                 <img
-                                    src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.png'}
+                                    src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.svg'}
                                     alt={product.name}
                                     className="seller-image-img object-contain p-4"
                                 />

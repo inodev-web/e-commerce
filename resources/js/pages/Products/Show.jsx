@@ -5,12 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
-import Link from '@inertiajs/react'; // Ensure Link is imported if needed, or stick to router
 import CartConfirmationModal from '../../components/CartConfirmationModal';
-import '../../productPage.css';
+import '../../../css/productPage.css';
 
 const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     const { auth } = usePage().props;
+    const fullName = auth?.user?.name ?? '';
+    const [first = '', ...rest] = fullName.split(' ');
+    const last = rest.join(' ');
     const [selectedImage, setSelectedImage] = useState(0);
     const [activeTab, setActiveTab] = useState('description');
 
@@ -42,9 +44,9 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     const { data, setData, post, processing, errors } = useForm({
         product_id: product.id,
         quantity: 1,
-        first_name: auth.user ? auth.user.name.split(' ')[0] : '',
-        last_name: auth.user ? (auth.user.name.split(' ').slice(1).join(' ') || '') : '',
-        phone: auth.user ? auth.user.phone : '',
+        first_name: auth?.user ? first : '',
+        last_name: auth?.user ? last : '',
+        phone: auth?.user?.phone ?? '',
         address: '',
         wilaya_id: '',
         commune_id: '',
@@ -60,27 +62,27 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
     const handleWilayaChange = (wilayaId) => {
         setData(d => ({ ...d, wilaya_id: wilayaId, commune_id: '' }));
-        const wilaya = wilayas.find(w => w.id == wilayaId);
-        if (wilaya) {
-            setCommunes(wilaya.communes || []);
-        } else {
-            setCommunes([]);
-        }
+        // Communes + delivery price will be loaded via calculate-shipping (authenticated users only)
+        setCommunes([]);
     };
 
     useEffect(() => {
+        // Checkout endpoints are behind auth middleware in this app.
+        if (!auth?.user) return;
+
         if (data.wilaya_id && data.delivery_type) {
             setIsCalculatingShipping(true);
             axios.post(route('checkout.shipping'), {
                 wilaya_id: data.wilaya_id,
                 delivery_type: data.delivery_type
             }).then(res => {
-                setShippingPrice(res.data.price);
+                setShippingPrice(res.data.delivery_price ?? 0);
+                setCommunes(res.data.communes ?? []);
             }).finally(() => {
                 setIsCalculatingShipping(false);
             });
         }
-    }, [data.wilaya_id, data.delivery_type]);
+    }, [auth?.user, data.wilaya_id, data.delivery_type]);
 
     const calculateTotal = () => {
         return (product.price * data.quantity) + shippingPrice;
@@ -88,9 +90,23 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
     const handlePlaceOrder = (e) => {
         e.preventDefault();
-        post(route('checkout.place'), {
-            onSuccess: (page) => {
-                // Success redirect logic handled by Laravel
+        if (!auth?.user) {
+            router.visit(route('auth'));
+            return;
+        }
+
+        // Ensure the product is in the cart (checkout.place uses cart items)
+        router.post(route('cart.add'), {
+            product_id: product.id,
+            quantity: data.quantity,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                post(route('checkout.place'), {
+                    onSuccess: () => {
+                        // Success redirect handled by Laravel
+                    }
+                });
             }
         });
     };
@@ -119,7 +135,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                             className="main-image-container"
                         >
                             <img
-                                src={product.images && product.images.length > 0 ? `/storage/${product.images[selectedImage].image_path}` : '/placeholder.png'}
+                                src={product.images && product.images.length > 0 ? `/storage/${product.images[selectedImage].image_path}` : '/placeholder.svg'}
                                 alt={product.name}
                                 className="main-product-image object-contain"
                             />
@@ -182,10 +198,27 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                             </div>
                         </div>
 
-                        {/* Order Form */}
-                        <form onSubmit={handlePlaceOrder} className="order-form-section">
-                            <h3 className="order-form-title">Complétez votre commande</h3>
-                            <div className="order-form-content">
+                        {/* Order Form (checkout is auth-only in this app) */}
+                        {!auth?.user ? (
+                            <div className="order-form-section">
+                                <h3 className="order-form-title">Finaliser votre commande</h3>
+                                <p className="text-sm text-gray-600 mt-2">
+                                    Connectez-vous pour calculer la livraison et passer commande.
+                                </p>
+                                <div className="mt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => router.visit(route('auth'))}
+                                        className="add-to-cart-btn primary w-full bg-teal-600 text-white py-4 rounded-xl font-bold hover:bg-teal-700"
+                                    >
+                                        Se connecter
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <form onSubmit={handlePlaceOrder} className="order-form-section">
+                                <h3 className="order-form-title">Complétez votre commande</h3>
+                                <div className="order-form-content">
                                 <div className="form-group grid grid-cols-2 gap-2">
                                     <div>
                                         <label className="form-label">Prénom *</label>
@@ -316,7 +349,8 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                     {processing ? <Loader2 className="animate-spin" /> : <><CreditCard size={20} /> Acheter maintenant</>}
                                 </button>
                             </div>
-                        </form>
+                            </form>
+                        )}
 
                         {/* Tabs */}
                         <div className="product-tabs mt-8">

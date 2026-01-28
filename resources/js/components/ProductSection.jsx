@@ -30,7 +30,7 @@ const ProductSection = ({ title, products = [] }) => {
                                 </div>
                                 <div className="seller-image bg-gray-50">
                                     <img
-                                        src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.png'}
+                                        src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.svg'}
                                         alt={product.name}
                                         className="seller-image-img object-contain p-4"
                                     />

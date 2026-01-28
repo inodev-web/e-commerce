@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import {
     LayoutDashboard,
@@ -16,18 +16,43 @@ import {
     LogOut
 } from 'lucide-react';
 
-const AdminLayout = ({ children, theme, toggleTheme }) => {
+const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleTheme }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const { url } = usePage();
+
+    // Internal state to handle theme if not managed by parent
+    const [internalTheme, setInternalTheme] = useState(() => {
+        return localStorage.getItem('theme') || 'light';
+    });
+
+    const theme = propsTheme || internalTheme;
+
+    const toggleTheme = () => {
+        if (propsToggleTheme) {
+            propsToggleTheme();
+        } else {
+            const newTheme = theme === 'dark' ? 'light' : 'dark';
+            setInternalTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+    };
+
+    useEffect(() => {
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [theme]);
 
     const navItems = [
         { name: 'Dashboard', path: route('admin.dashboard'), icon: LayoutDashboard },
         { name: 'Produits', path: '/admin/products', icon: Package },
         { name: 'Commandes', path: route('admin.orders.index'), icon: ShoppingCart },
-        { name: 'Catégories', path: route('admin.categories.index'), icon: Tags },
         { name: 'Livraison', path: route('admin.delivery.index'), icon: Truck },
-        // { name: 'Clients', path: '/admin/customers', icon: Users },
-        // { name: 'Fidélité', path: '/admin/loyalty', icon: Gift },
+        { name: 'Clients', path: route('admin.customers'), icon: Users },
+        { name: 'Fidélité', path: route('admin.loyalty'), icon: Gift },
+        { name: 'Promotions', path: route('admin.promotions'), icon: Tags },
         // { name: 'Paramètres', path: '/admin/settings', icon: Settings },
     ];
 

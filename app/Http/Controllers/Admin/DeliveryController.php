@@ -19,7 +19,6 @@ class DeliveryController extends Controller
     public function __construct(
         private readonly LocationService $locationService,
     ) {
-        $this->middleware(['auth:sanctum', 'role:admin']);
     }
 
     /**
@@ -29,9 +28,27 @@ class DeliveryController extends Controller
     {
         $wilayas = Wilaya::with('deliveryTariffs')
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function ($wilaya) {
+                $domicile = $wilaya->deliveryTariffs->firstWhere('type', \App\Enums\DeliveryType::DOMICILE);
+                $bureau = $wilaya->deliveryTariffs->firstWhere('type', \App\Enums\DeliveryType::BUREAU);
+                
+                return [
+                    'id' => $wilaya->id,
+                    'code' => $wilaya->code,
+                    'name' => $wilaya->name,
+                    'active' => $wilaya->is_active,
+                    'homePrice' => $domicile ? $domicile->price : 0,
+                    'homeActive' => $domicile ? $domicile->is_active : false,
+                    'deskPrice' => $bureau ? $bureau->price : 0,
+                    'deskActive' => $bureau ? $bureau->is_active : false,
+                    // IDs needed for updates
+                    'homeTariffId' => $domicile ? $domicile->id : null,
+                    'deskTariffId' => $bureau ? $bureau->id : null,
+                ];
+            });
         
-        return Inertia::render('Admin/Delivery/Index', [
+        return Inertia::render('Admin/Delivery', [
             'wilayas' => $wilayas,
         ]);
     }
@@ -105,5 +122,46 @@ class DeliveryController extends Controller
         $status = $deliveryTariff->is_active ? 'activé' : 'désactivé';
         
         return redirect()->back()->with('success', "Tarif {$status} avec succès");
+    }
+
+    /**
+     * Mise à jour en masse des tarifs
+     */
+    public function bulkUpdate(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'wilayas' => 'required|array',
+            'wilayas.*.id' => 'required|exists:wilayas,id',
+            'wilayas.*.active' => 'boolean',
+            'wilayas.*.homePrice' => 'nullable|numeric|min:0',
+            'wilayas.*.homeActive' => 'boolean',
+            'wilayas.*.deskPrice' => 'nullable|numeric|min:0',
+            'wilayas.*.deskActive' => 'boolean',
+        ]);
+
+        foreach ($data['wilayas'] as $wilayaData) {
+            $wilaya = Wilaya::find($wilayaData['id']);
+            $wilaya->update(['is_active' => $wilayaData['active']]);
+
+            // Update or Create Home Tariff
+            $wilaya->deliveryTariffs()->updateOrCreate(
+                ['type' => \App\Enums\DeliveryType::DOMICILE],
+                [
+                    'price' => $wilayaData['homePrice'] ?? 0,
+                    'is_active' => $wilayaData['homeActive']
+                ]
+            );
+
+            // Update or Create Desk Tariff
+            $wilaya->deliveryTariffs()->updateOrCreate(
+                ['type' => \App\Enums\DeliveryType::BUREAU],
+                [
+                    'price' => $wilayaData['deskPrice'] ?? 0,
+                    'is_active' => $wilayaData['deskActive']
+                ]
+            );
+        }
+
+        return back()->with('success', 'Tarifs mis à jour avec succès');
     }
 }

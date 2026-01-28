@@ -15,7 +15,16 @@ class ProductImage extends Model
     protected $fillable = [
         'product_id',
         'url',
+        'image_path',
         'is_primary',
+    ];
+
+    protected $appends = [
+        'image_path',
+    ];
+
+    protected $hidden = [
+        'url',
     ];
 
     protected function casts(): array
@@ -30,5 +39,17 @@ class ProductImage extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    // Accessors & Mutators
+
+    public function getImagePathAttribute(): ?string
+    {
+        return $this->url;
+    }
+
+    public function setImagePathAttribute(?string $value): void
+    {
+        $this->attributes['url'] = $value;
     }
 }

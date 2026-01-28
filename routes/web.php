@@ -103,15 +103,33 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'role:admin'
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Product Management
-    Route::resource('products', ProductController::class)->except(['index', 'show']);
+    Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
     
     // Category Management
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
     Route::post('categories/{category}/sub-categories', [\App\Http\Controllers\Admin\CategoryController::class, 'storeSubCategory'])->name('categories.sub-categories.store');
+    Route::patch('sub-categories/{subCategory}', [\App\Http\Controllers\Admin\CategoryController::class, 'updateSubCategory'])->name('sub-categories.update');
+    Route::delete('sub-categories/{subCategory}', [\App\Http\Controllers\Admin\CategoryController::class, 'destroySubCategory'])->name('sub-categories.destroy');
+
+    // Admin Pages
+    Route::get('/loyalty', function () {
+        return Inertia::render('Admin/Loyalty');
+    })->name('loyalty');
+
+    Route::get('/promotions', function () {
+        return Inertia::render('Admin/Promotions');
+    })->name('promotions');
+
+    Route::get('/customers', function () {
+        return Inertia::render('Admin/Customers');
+    })->name('customers');
+
+    // Specifications
+    Route::resource('specifications', \App\Http\Controllers\Admin\SpecificationController::class)->only(['store', 'update', 'destroy']);
 
     // Order Management
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::get('/orders', [\App\Http\Controllers\Admin\OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [\App\Http\Controllers\Admin\OrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}/status', function (\App\Models\Order $order, Request $request, \App\Services\OrderService $orderService) {
         $request->validate(['status' => 'required|string']);
         $orderService->updateStatus($order, \App\Enums\OrderStatus::from($request->status));
@@ -119,6 +137,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'role:admin'
     })->name('orders.status.update');
 
     // Delivery Tariffs CRUD
+    Route::post('delivery/bulk-update', [DeliveryController::class, 'bulkUpdate'])->name('delivery.bulk-update');
     Route::resource('delivery', DeliveryController::class);
     Route::post('delivery/{deliveryTariff}/toggle', [DeliveryController::class, 'toggleActive'])->name('delivery.toggle');
 });

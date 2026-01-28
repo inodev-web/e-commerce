@@ -20,7 +20,7 @@ class CategoryController extends Controller
     public function index(): Response
     {
         $categories = Category::with('subCategories')->get();
-        return Inertia::render('Admin/Categories/Index', [
+        return Inertia::render('Admin/Categories', [
             'categories' => $categories
         ]);
     }
@@ -82,5 +82,34 @@ class CategoryController extends Controller
         $category->subCategories()->create($validated);
 
         return back()->with('success', 'Sous-catégorie ajoutée avec succès.');
+    }
+
+    /**
+     * Mettre à jour une sous-catégorie
+     */
+    public function updateSubCategory(Request $request, SubCategory $subCategory): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:sub_categories,name,' . $subCategory->id . ',id,category_id,' . $subCategory->category_id,
+            'active' => 'boolean',
+        ]);
+
+        $subCategory->update($validated);
+
+        return back()->with('success', 'Sous-catégorie mise à jour avec succès.');
+    }
+
+    /**
+     * Supprimer une sous-catégorie
+     */
+    public function destroySubCategory(SubCategory $subCategory): RedirectResponse
+    {
+        if ($subCategory->products()->count() > 0) {
+            return back()->with('error', 'Impossible de supprimer une sous-catégorie contenant des produits.');
+        }
+
+        $subCategory->delete();
+
+        return back()->with('success', 'Sous-catégorie supprimée avec succès.');
     }
 }

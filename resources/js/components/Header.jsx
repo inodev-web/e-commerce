@@ -1,11 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sun, Moon, Truck, ShieldCheck, CheckCircle, Search, User, ShoppingCart, Menu, X } from 'lucide-react';
 import { Link, usePage, router } from '@inertiajs/react';
 
-const Header = ({ theme, toggleTheme }) => {
+const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
     const { auth } = usePage().props;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Internal state to handle theme if not managed by parent
+    const [internalTheme, setInternalTheme] = useState(() => {
+        return localStorage.getItem('theme') || 'light';
+    });
+
+    const theme = propsTheme || internalTheme;
+
+    const toggleTheme = () => {
+        if (propsToggleTheme) {
+            propsToggleTheme();
+        } else {
+            const newTheme = theme === 'dark' ? 'light' : 'dark';
+            setInternalTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+    };
+
+    useEffect(() => {
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [theme]);
 
     const handleSearch = (e) => {
         if (e.key === 'Enter' && searchQuery.trim()) {

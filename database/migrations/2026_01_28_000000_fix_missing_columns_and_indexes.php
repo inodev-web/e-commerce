@@ -104,11 +104,11 @@ return new class extends Migration
                     FROM pg_indexes 
                     WHERE schemaname = 'public' 
                     AND tablename = 'orders' 
-                    AND indexname = 'orders_user_id_index'
+                    AND indexname = 'orders_client_id_index'
                 ");
                 
                 if (empty($indexExists)) {
-                   $table->index('user_id', 'orders_user_id_index');
+                   $table->index('client_id', 'orders_client_id_index');
                 }
             });
         }

@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use App\DTOs\ProductFilterDTO;
+use App\Http\Controllers\Controller;
 use App\Enums\ProductStatus;
 use App\Models\Category;
 use App\Models\Product;
-use App\Services\ProductService;
 use App\Models\ProductImage;
 use App\Models\ProductSpecificationValue;
 use App\Models\Specification;
@@ -20,80 +19,85 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use Intervention\Image\Laravel\Facades\Image;
+// Image processing is optional; we fall back to storing originals if Intervention is not installed.
 
 class ProductController extends Controller
 {
-    public function __construct(
-        private readonly ProductService $productService,
-    ) {}
-
     /**
-     * Lister les produits avec filtres
+     * Display admin products page
      */
     public function index(Request $request): Response
     {
-        $filterDTO = ProductFilterDTO::fromRequest($request->all());
-        
-        $products = $this->productService->list($filterDTO, 20);
-        
-        $categories = Category::active()
-            ->with('subCategories')
+        $query = Product::with(['images', 'subCategory.category', 'specificationValues.specification'])
+            ->orderBy('created_at', 'desc');
+
+        // Apply search filter
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'ILIKE', '%' . $request->search . '%')
+                  ->orWhere('description', 'ILIKE', '%' . $request->search . '%');
+            });
+        }
+
+        // Apply category filter
+        if ($request->filled('category_id')) {
+            $query->whereHas('subCategory', function ($q) use ($request) {
+                $q->where('category_id', $request->category_id);
+            });
+        }
+
+        // Apply subcategory filter
+        if ($request->filled('sub_category_id')) {
+            $query->where('sub_category_id', $request->sub_category_id);
+        }
+
+        // Apply status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $products = $query->paginate(20)->withQueryString();
+
+        $categories = Category::with('subCategories.specifications')
             ->orderBy('name')
             ->get();
-        
-        return Inertia::render('Products/Index', [
+
+        return Inertia::render('Admin/Products', [
             'products' => $products,
             'categories' => $categories,
-            'filters' => $request->only([
-                'category_id',
-                'sub_category_id',
-                'min_price',
-                'max_price',
-                'search',
-                'in_stock_only',
-            ]),
+            'filters' => $request->only(['search', 'category_id', 'sub_category_id', 'status']),
         ]);
     }
 
     /**
-     * Afficher un produit
-     */
-    public function show(Product $product): Response
-    {
-        $product = $this->productService->getWithDetails($product->id);
-        
-        // Produits similaires
-        $relatedProducts = Product::where('sub_category_id', $product->sub_category_id)
-            ->where('id', '!=', $product->id)
-            ->active()
-            ->with('images')
-            ->limit(4)
-            ->get();
-        
-        return Inertia::render('Products/Show', [
-            'product' => $product,
-            'relatedProducts' => $relatedProducts,
-        ]);
-    }
-
-    /**
-     * Enregistrer un nouveau produit (Admin)
+     * Store a new product
      */
     public function store(Request $request): RedirectResponse
     {
-        $validator = Validator::make($request->all(), [
+        \Log::info('Product Store Request Data:', $request->all());
+        \Log::info('Product Store Files:', $request->allFiles());
+        \Log::info('Has images file:', [$request->hasFile('images')]);
+        \Log::info('Product Store DB:', [
+            'default' => config('database.default'),
+            'database' => DB::connection()->getDatabaseName(),
+        ]);
+        
+        $rules = [
             'sub_category_id' => 'required|exists:sub_categories,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'status' => ['required', Rule::enum(ProductStatus::class)],
-            'images.*' => 'nullable|image|max:2048',
+            'images' => 'nullable|array',
+            // 5MB per image (Laravel uses KB)
+            'images.*' => 'nullable|image|max:5120',
             'specifications' => 'nullable|array',
             'specifications.*.id' => 'required|exists:specifications,id',
             'specifications.*.value' => 'nullable|string',
-        ]);
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
 
         $validator->after(function ($validator) use ($request) {
             $specifications = collect($request->input('specifications', []));
@@ -109,59 +113,94 @@ class ProductController extends Controller
                 $specId = $spec['id'] ?? null;
                 $value = $spec['value'] ?? null;
 
-                if ($specId && !in_array($specId, $allowedSpecIds, true)) {
+                // IDs can arrive as strings from the frontend; normalize to int for strict comparisons.
+                $normalizedSpecId = is_numeric($specId) ? (int) $specId : $specId;
+
+                if ($specId && !in_array($normalizedSpecId, $allowedSpecIds, true)) {
                     $validator->errors()->add("specifications.$index.id", "La spécification sélectionnée n'appartient pas à la sous-catégorie.");
                     continue;
                 }
 
-                if ($specId && ($specMap[$specId]->required ?? false) && ($value === null || $value === '')) {
-                    $validator->errors()->add("specifications.$index.value", 'Cette spécification est obligatoire.');
+                if ($specId) {
+                    $mapKey = is_numeric($specId) ? (int) $specId : $specId;
+                    if (($specMap[$mapKey]->required ?? false) && ($value === null || $value === '')) {
+                        $validator->errors()->add("specifications.$index.value", 'Cette spécification est obligatoire.');
+                    }
                 }
             }
         });
 
-        $validated = $validator->validate();
+        if ($validator->fails()) {
+            \Log::warning('Product Store Validation Failed', [
+                'errors' => $validator->errors()->toArray(),
+            ]);
+            return back()
+                ->withErrors($validator)
+                ->withInput();
+        }
 
-        DB::transaction(function () use ($validated, $request) {
-            $product = Product::create($validated);
+        $validated = $validator->validated();
+        \Log::info('Product Store Validation Passed', [
+            'keys' => array_keys($validated),
+        ]);
 
-            // Gérer les images
-            if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $index => $imageFile) {
-                    $filename = uniqid() . '.webp';
-                    $path = 'products/' . $filename;
-                    
-                    // Optimisation avec Intervention Image v3
-                    $image = Image::read($imageFile);
-                    $image->cover(800, 800);
-                    
-                    Storage::disk('public')->put($path, (string) $image->encodeByMediaType('image/webp', quality: 80));
+        try {
+            DB::transaction(function () use ($validated, $request) {
+                $product = Product::create($validated);
+                \Log::info('Product Created', ['id' => $product->id]);
 
-                    ProductImage::create([
-                        'product_id' => $product->id,
-                        'image_path' => $path,
-                        'is_primary' => $index === 0,
-                    ]);
+                // Handle images
+                if ($request->hasFile('images')) {
+                    foreach ($request->file('images') as $index => $imageFile) {
+                        $path = null;
+
+                        // If Intervention Image is available, convert/resize to webp; otherwise store original.
+                        if (class_exists(\Intervention\Image\Laravel\Facades\Image::class)) {
+                            $filename = uniqid() . '.webp';
+                            $path = 'products/' . $filename;
+
+                            $image = \Intervention\Image\Laravel\Facades\Image::read($imageFile);
+                            $image->cover(800, 800);
+
+                            Storage::disk('public')->put($path, (string) $image->encodeByMediaType('image/webp', quality: 80));
+                        } else {
+                            $ext = strtolower($imageFile->getClientOriginalExtension() ?: 'jpg');
+                            $filename = uniqid() . '.' . $ext;
+                            $path = $imageFile->storeAs('products', $filename, 'public');
+                        }
+
+                        ProductImage::create([
+                            'product_id' => $product->id,
+                            'image_path' => $path,
+                            'is_primary' => $index === 0,
+                        ]);
+                    }
                 }
-            }
 
-            // Gérer les spécifications
-            if (!empty($validated['specifications'])) {
-                foreach ($validated['specifications'] as $spec) {
-                    ProductSpecificationValue::create([
-                        'product_id' => $product->id,
-                        'specification_id' => $spec['id'],
-                        'value' => $spec['value'],
-                    ]);
+                // Handle specifications
+                if (!empty($validated['specifications'])) {
+                    foreach ($validated['specifications'] as $spec) {
+                        ProductSpecificationValue::create([
+                            'product_id' => $product->id,
+                            'specification_id' => $spec['id'],
+                            'value' => $spec['value'],
+                        ]);
+                    }
                 }
-            }
-        });
+            });
+        } catch (\Throwable $e) {
+            \Log::error('Product Store Failed', [
+                'exception' => get_class($e),
+                'message' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
 
-        return redirect()->route('admin.dashboard')->with('success', 'Produit créé avec succès.');
+        return redirect()->route('admin.products.index')->with('success', 'Produit créé avec succès.');
     }
 
     /**
-     * Mettre à jour un produit (Admin)
+     * Update a product
      */
     public function update(Request $request, Product $product): RedirectResponse
     {
@@ -208,7 +247,7 @@ class ProductController extends Controller
         DB::transaction(function () use ($validated, $request, $product) {
             $product->update($validated);
 
-            // Gérer les nouvelles images
+            // Handle new images
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $imageFile) {
                     $filename = uniqid() . '.webp';
@@ -227,7 +266,7 @@ class ProductController extends Controller
                 }
             }
 
-            // Mettre à jour les spécifications
+            // Update specifications
             if (isset($validated['specifications'])) {
                 $product->specificationValues()->delete();
                 foreach ($validated['specifications'] as $spec) {
@@ -244,12 +283,12 @@ class ProductController extends Controller
     }
 
     /**
-     * Supprimer un produit (Admin)
+     * Delete a product
      */
     public function destroy(Product $product): RedirectResponse
     {
         DB::transaction(function () use ($product) {
-            // Optionnel: supprimer les images du stockage
+            // Delete images from storage
             foreach ($product->images as $image) {
                 Storage::disk('public')->delete($image->image_path);
             }

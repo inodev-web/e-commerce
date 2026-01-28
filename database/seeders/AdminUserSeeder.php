@@ -13,17 +13,24 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
+        $phone = '0540225128';
+        
         // Créer l'admin s'il n'existe pas déjà
-        if (!User::where('phone', '0000000000')->exists()) {
-            $admin = User::create([
-                'phone' => '0540225128',
-                'password' => Hash::make('password'), // Mot de passe par défaut sécurisé en prod
-                'role' => 'admin',
-                'status' => 'active', // Assurez-vous que UserStatus::ACTIVE correspond à 'active' ou utilisez l'enum
-            ]);
-            
-            // Si vous utilisez Spatie Laravel Permission
-            // $admin->assignRole('admin'); 
+        if (!User::where('phone', $phone)->exists()) {
+            try {
+                $admin = User::create([
+                    'phone' => $phone,
+                    'password' => Hash::make('password'),
+                    'role' => 'admin',
+                    'status' => 'active',
+                ]);
+                $this->command->info("Admin user created: {$phone}");
+            } catch (\Exception $e) {
+                $this->command->error("Failed to create admin user: " . $e->getMessage());
+                throw $e;
+            }
+        } else {
+            $this->command->info("Admin user already exists: {$phone}");
         }
     }
 }

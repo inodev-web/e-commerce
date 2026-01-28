@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, router } from '@inertiajs/react';
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, ShieldCheck } from 'lucide-react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 
@@ -30,7 +30,7 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
 
             <main className="flex-grow container mx-auto px-4 py-8 max-w-6xl">
                 <h1 className="text-3xl font-bold mb-8 flex items-center gap-3">
-                    <ShoppingBag className="text-teal-600" />
+                    <ShoppingBag className="text-[#DB8B89]" />
                     Votre Panier
                 </h1>
 
@@ -39,7 +39,7 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
                         <ShoppingBag size={64} className="mx-auto text-gray-300 mb-4" />
                         <h2 className="text-xl font-semibold text-gray-700 mb-2">Votre panier est vide</h2>
                         <p className="text-gray-500 mb-6">Découvrez nos produits et commencez votre shopping !</p>
-                        <Link href={route('products.index')} className="bg-teal-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-teal-700 transition-colors">
+                        <Link href={route('products.index')} className="bg-[#DB8B89] text-white px-6 py-3 rounded-xl font-medium hover:bg-[#C07573] transition-colors">
                             Parcourir la boutique
                         </Link>
                     </div>
@@ -53,14 +53,14 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
                                         <img
                                             src={item.product && item.product.images && item.product.images.length > 0
                                                 ? `/storage/${item.product.images[0].image_path}`
-                                                : '/placeholder.png'}
+                                                : '/placeholder.svg'}
                                             alt={item.product.name}
                                             className="w-full h-full object-cover"
                                         />
                                     </div>
                                     <div className="flex-grow">
                                         <h3 className="font-semibold text-lg text-gray-800">{item.product.name}</h3>
-                                        <p className="text-teal-600 font-bold mb-2">{item.price_snapshot.toLocaleString()} DA</p>
+                                        <p className="text-[#DB8B89] font-bold mb-2">{item.price_snapshot.toLocaleString()} DA</p>
 
                                         <div className="flex items-center gap-4">
                                             <div className="flex items-center border rounded-lg">
@@ -92,7 +92,7 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
                             ))}
 
                             <div className="flex justify-between items-center mt-6">
-                                <Link href={route('products.index')} className="text-gray-600 hover:text-teal-600 font-medium flex items-center gap-2">
+                                <Link href={route('products.index')} className="text-gray-600 hover:text-[#DB8B89] font-medium flex items-center gap-2">
                                     ← Continuer vos achats
                                 </Link>
                                 <button onClick={clearCart} className="text-red-500 hover:text-red-700 text-sm font-medium">
@@ -123,7 +123,7 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
 
                                 <Link
                                     href={route('checkout.show')}
-                                    className="w-full bg-teal-600 text-white py-3 rounded-xl font-bold text-center block hover:bg-teal-700 transition-all flex items-center justify-center gap-2"
+                                    className="w-full bg-[#DB8B89] text-white py-3 rounded-xl font-bold text-center block hover:bg-[#C07573] transition-all flex items-center justify-center gap-2"
                                 >
                                     Commander <ArrowRight size={20} />
                                 </Link>
