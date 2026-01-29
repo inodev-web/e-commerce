@@ -19,6 +19,7 @@ readonly class CreateOrderDTO
         public int $communeId,
         public DeliveryType $deliveryType,
         public ?string $promoCode = null,
+        public int $loyaltyPointsUsed = 0,
     ) {}
 
     public static function fromRequest(array $data): self
@@ -34,6 +35,7 @@ readonly class CreateOrderDTO
             communeId: (int) $data['commune_id'],
             deliveryType: DeliveryType::from($data['delivery_type']),
             promoCode: $data['promo_code'] ?? null,
+            loyaltyPointsUsed: (int) ($data['use_loyalty_points'] ?? 0),
         );
     }
 }

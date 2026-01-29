@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Translatable\HasTranslations;
 
 class Specification extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTranslations;
 
     protected $fillable = [
         'sub_category_id',
@@ -19,9 +20,12 @@ class Specification extends Model
         'required',
     ];
 
+    public array $translatable = ['name'];
+
     protected function casts(): array
     {
         return [
+            'name' => 'array',
             'required' => 'boolean',
         ];
     }

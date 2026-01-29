@@ -10,10 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Translatable\HasTranslations;
 
 class Product extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasTranslations;
 
     protected $fillable = [
         'sub_category_id',
@@ -22,14 +23,20 @@ class Product extends Model
         'price',
         'stock',
         'status',
+        'free_shipping',
     ];
+
+    public array $translatable = ['name', 'description'];
 
     protected function casts(): array
     {
         return [
+            'name' => 'array',
+            'description' => 'array',
             'price' => 'decimal:2',
             'stock' => 'integer',
             'status' => ProductStatus::class,
+            'free_shipping' => 'boolean',
         ];
     }
 

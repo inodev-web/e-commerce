@@ -14,12 +14,7 @@ class WilayaController extends Controller
      */
     public function index(): JsonResponse
     {
-        $wilayas = Wilaya::active()
-            ->with(['deliveryTariffs' => function ($query) {
-                $query->active();
-            }])
-            ->orderBy('code')
-            ->get();
+        $wilayas = app(\App\Services\LocationService::class)->getWilayasWithTariffs();
 
         return response()->json([
             'data' => $wilayas

@@ -78,8 +78,21 @@ class OrderService
                 }
             }
             
+            // 4.5. Appliquer points de fidélité si demandé
+            $loyaltyDiscount = 0;
+            if ($dto->loyaltyPointsUsed > 0 && $dto->clientId) {
+                try {
+                    $loyaltyDiscount = $this->loyaltyService->convertToDiscount(
+                        $dto->clientId,
+                        $dto->loyaltyPointsUsed
+                    );
+                } catch (\Exception $e) {
+                    throw new \Exception("Erreur points fidélité: " . $e->getMessage());
+                }
+            }
+            
             // 5. Calculer le total final
-            $totalPrice = $productsTotal - $discountTotal + $deliveryTariff->price;
+            $totalPrice = $productsTotal - $discountTotal - $loyaltyDiscount + $deliveryTariff->price;
             
             // 6. Créer la commande avec SNAPSHOTS
             $order = Order::create([
@@ -93,7 +106,7 @@ class OrderService
                 'delivery_type' => $dto->deliveryType,
                 'delivery_price' => $deliveryTariff->price,   // SNAPSHOT PRICE
                 'products_total' => $productsTotal,
-                'discount_total' => $discountTotal,
+                'discount_total' => $discountTotal + $loyaltyDiscount,
                 'total_price' => $totalPrice,
                 'status' => OrderStatus::PENDING,
             ]);

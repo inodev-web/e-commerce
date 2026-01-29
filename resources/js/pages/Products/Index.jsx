@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Star, Filter, Search as SearchIcon } from 'lucide-react';
 import { router, Link } from '@inertiajs/react';
+import { getTranslated } from '@/utils/translation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../../components/ui/dialog';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
@@ -107,7 +108,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                                                     onChange={() => handleFilterChange('category_id', filters.category_id == cat.id ? null : cat.id)}
                                                     className="rounded border-gray-300"
                                                 />
-                                                <span>{cat.name}</span>
+                                                <span>{getTranslated(cat, 'name')}</span>
                                             </div>
                                             {cat.sub_categories && cat.sub_categories.map(sub => (
                                                 <div key={sub.id} className="flex items-center gap-2 pl-6">
@@ -117,7 +118,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                                                         onChange={() => handleFilterChange('sub_category_id', filters.sub_category_id == sub.id ? null : sub.id)}
                                                         className="rounded border-gray-300"
                                                     />
-                                                    <label className="text-sm">{sub.name}</label>
+                                                    <label className="text-sm">{getTranslated(sub, 'name')}</label>
                                                 </div>
                                             ))}
                                         </div>
@@ -209,15 +210,15 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                             <div className="seller-image bg-gray-50">
                                 <img
                                     src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.svg'}
-                                    alt={product.name}
+                                    alt={getTranslated(product, 'name')}
                                     className="seller-image-img object-contain p-4"
                                 />
                             </div>
                             <div className="seller-info">
                                 <div className="seller-brand text-xs uppercase tracking-wider text-teal-600 font-bold mb-1">
-                                    {product.sub_category ? product.sub_category.name : 'Puréva'}
+                                    {product.sub_category ? getTranslated(product.sub_category, 'name') : 'Puréva'}
                                 </div>
-                                <h3 className="seller-name text-gray-800 font-semibold line-clamp-2 min-h-[3rem]">{product.name}</h3>
+                                <h3 className="seller-name text-gray-800 font-semibold line-clamp-2 min-h-[3rem]">{getTranslated(product, 'name')}</h3>
                                 <div className="seller-price mt-auto flex items-center justify-between font-bold text-lg text-gray-900">
                                     {product.price.toLocaleString()} DA
                                     <button

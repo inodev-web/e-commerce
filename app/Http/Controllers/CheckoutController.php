@@ -48,6 +48,9 @@ class CheckoutController extends Controller
                 ['value' => DeliveryType::DOMICILE->value, 'label' => DeliveryType::DOMICILE->label()],
                 ['value' => DeliveryType::BUREAU->value, 'label' => DeliveryType::BUREAU->label()],
             ],
+            'loyaltyBalance' => auth()->check() && auth()->user()->client 
+                ? app(\App\Services\LoyaltyService::class)->getBalance(auth()->user()->client->id) 
+                : 0,
         ]);
     }
 
@@ -58,21 +61,68 @@ class CheckoutController extends Controller
     {
         try {
             $data = $request->validated();
+            $wilayaId = (int) $data['wilaya_id'];
+            $deliveryType = DeliveryType::from($data['delivery_type']);
             
-            $deliveryPrice = $this->locationService->getDeliveryPrice(
-                (int) $data['wilaya_id'],
-                DeliveryType::from($data['delivery_type'])
-            );
+            // 1. Toujours charger les communes (critique pour le front)
+            $communes = $this->locationService->getCommunesByWilaya($wilayaId);
             
-            $communes = $this->locationService->getCommunesByWilaya((int) $data['wilaya_id']);
+            // 2. Tenter de calculer le prix (optionnel pour le chargement des communes)
+            $deliveryPrice = 0;
+            $error = null;
+            
+            try {
+                $deliveryPrice = $this->locationService->getDeliveryPrice($wilayaId, $deliveryType);
+            } catch (\Exception $e) {
+                // Log l'erreur ou ignorer si c'est juste un tarif manquant
+                $error = $e->getMessage();
+            }
             
             return response()->json([
                 'delivery_price' => $deliveryPrice,
                 'communes' => $communes,
+                'shipping_error' => $error,
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
+    }
+
+    /**
+     * Valider un code promo (AJAX)
+     */
+    public function validatePromoCode(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate(['code' => 'required|string']);
+        
+        $promoCode = \App\Models\PromoCode::where('code', $request->code)
+            ->where('is_active', true)
+            ->first();
+        
+        if (!$promoCode) {
+            return response()->json(['error' => 'Code promo invalide ou expiré'], 404);
+        }
+        
+        $clientId = auth()->check() ? auth()->user()->client?->id : null;
+        
+        if (!$promoCode->isValid($clientId)) {
+            return response()->json(['error' => 'Ce code promo ne peut pas être utilisé'], 403);
+        }
+        
+        // Get cart total to calculate discount
+        $cart = $this->cartService->getOrCreate(
+            $clientId,
+            session()->getId()
+        );
+        $cartTotal = $this->cartService->getTotal($cart);
+        $discount = $promoCode->calculateDiscount($cartTotal);
+        
+        return response()->json([
+            'code' => $promoCode->code,
+            'discount' => $discount,
+            'type' => $promoCode->type->value,
+            'discount_value' => $promoCode->discount_value,
+        ]);
     }
 
     /**

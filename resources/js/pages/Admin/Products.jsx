@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import AdminLayout from '../../Components/AdminLayout';
 import { Link, router, useForm } from '@inertiajs/react';
+import { getTranslated } from '@/utils/translation';
 
 const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleTheme }) => {
     const [activeTab, setActiveTab] = useState('products');
@@ -63,8 +64,8 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
 
     const productForm = useForm({
         sub_category_id: '',
-        name: '',
-        description: '',
+        name: { fr: '', ar: '' },
+        description: { fr: '', ar: '' },
         price: '',
         stock: '',
         status: 'ACTIF',
@@ -72,19 +73,19 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     });
 
     const categoryForm = useForm({
-        name: '',
+        name: { fr: '', ar: '' },
         active: true,
     });
 
     const subCategoryForm = useForm({
         category_id: '',
-        name: '',
+        name: { fr: '', ar: '' },
         active: true,
     });
 
     const specificationForm = useForm({
         sub_category_id: '',
-        name: '',
+        name: { fr: '', ar: '' },
         required: false,
     });
 
@@ -140,6 +141,13 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         router.get(route('admin.products.index'), {});
     };
 
+    const ensureBilingual = (value) => {
+        if (typeof value === 'object' && value !== null) {
+            return { fr: value.fr || '', ar: value.ar || '' };
+        }
+        return { fr: value || '', ar: '' };
+    };
+
     const openCreateProduct = () => {
         setEditingProduct(null);
         setProductCategoryId('');
@@ -157,8 +165,8 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         const subCategory = allSubCategories.find((sub) => sub.id == subCategoryId);
         productForm.setData({
             sub_category_id: subCategoryId,
-            name: product.name || '',
-            description: product.description || '',
+            name: ensureBilingual(product.name),
+            description: ensureBilingual(product.description),
             price: product.price ?? '',
             stock: product.stock ?? '',
             status: product.status || 'ACTIF',
@@ -239,7 +247,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     const openEditCategory = (category) => {
         setEditingCategory(category);
         categoryForm.setData({
-            name: category.name || '',
+            name: ensureBilingual(category.name),
             active: !!category.active,
         });
         categoryForm.clearErrors();
@@ -286,7 +294,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         setEditingSubCategory(subCategory);
         subCategoryForm.setData({
             category_id: subCategory.category_id || '',
-            name: subCategory.name || '',
+            name: ensureBilingual(subCategory.name),
             active: !!subCategory.active,
         });
         subCategoryForm.clearErrors();
@@ -346,7 +354,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         setEditingSpecification(specification);
         specificationForm.setData({
             sub_category_id: specification.sub_category_id || '',
-            name: specification.name || '',
+            name: ensureBilingual(specification.name),
             required: !!specification.required,
         });
         specificationForm.clearErrors();
@@ -530,9 +538,9 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
                                         {products?.data?.length ? products.data.map((product) => (
                                             <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
-                                                <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">{product.name}</td>
+                                                <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">{getTranslated(product, 'name')}</td>
                                                 <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
-                                                    {product.sub_category?.category?.name || '—'}
+                                                    {getTranslated(product.sub_category?.category, 'name') || '—'}
                                                 </td>
                                                 <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-medium">{Number(product.price).toLocaleString()} DA</td>
                                                 <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{product.stock}</td>
@@ -621,7 +629,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                             >
                                                                 {expandedCategories.has(category.id) ? '▾' : '▸'}
                                                             </button>
-                                                            <span className="font-medium text-gray-900 dark:text-gray-100">{category.name}</span>
+                                                            <span className="font-medium text-gray-900 dark:text-gray-100">{getTranslated(category, 'name')}</span>
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
@@ -661,7 +669,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                 {expandedCategories.has(category.id) && category.sub_categories?.map((subCategory) => (
                                                     <tr key={subCategory.id} className="bg-gray-50/50 dark:bg-zinc-800/20">
                                                         <td className="px-6 py-3 pl-16 text-sm text-gray-600 dark:text-gray-400">
-                                                            → {subCategory.name}
+                                                            → {getTranslated(subCategory, 'name')}
                                                         </td>
                                                         <td className="px-6 py-3 text-gray-400 text-sm">—</td>
                                                         <td className="px-6 py-3">
@@ -788,8 +796,8 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
                                         {allSpecifications.length ? allSpecifications.map((spec) => (
                                             <tr key={spec.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50">
-                                                <td className="px-6 py-4 font-medium dark:text-gray-100">{spec.name}</td>
-                                                <td className="px-6 py-4 dark:text-gray-400">{spec.sub_category?.name || '—'}</td>
+                                                <td className="px-6 py-4 font-medium dark:text-gray-100">{getTranslated(spec, 'name')}</td>
+                                                <td className="px-6 py-4 dark:text-gray-400">{getTranslated(spec.sub_category, 'name') || '—'}</td>
                                                 <td className="px-6 py-4">
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${spec.required
                                                         ? 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-[#DB8B89]'
@@ -838,15 +846,25 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                         <form onSubmit={submitProduct} className="grid gap-4 py-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Nom du produit</label>
+                                    <label className="text-sm font-medium">Nom (FR)</label>
                                     <input
-                                        value={productForm.data.name}
-                                        onChange={(e) => productForm.setData('name', e.target.value)}
+                                        value={productForm.data.name.fr}
+                                        onChange={(e) => productForm.setData('name', { ...productForm.data.name, fr: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
-                                        placeholder="Ex: T-Shirt Basic"
+                                        placeholder="Nom en français"
                                         required
                                     />
-                                    {productForm.errors.name && <p className="text-xs text-red-500">{productForm.errors.name}</p>}
+                                    {productForm.errors['name.fr'] && <p className="text-xs text-red-500">{productForm.errors['name.fr']}</p>}
+                                </div>
+                                <div className="space-y-2" dir="rtl">
+                                    <label className="text-sm font-medium">الاسم (AR)</label>
+                                    <input
+                                        value={productForm.data.name.ar}
+                                        onChange={(e) => productForm.setData('name', { ...productForm.data.name, ar: e.target.value })}
+                                        className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 text-right"
+                                        placeholder="الاسم بالعربية"
+                                    />
+                                    {productForm.errors['name.ar'] && <p className="text-xs text-red-500">{productForm.errors['name.ar']}</p>}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Catégorie</label>
@@ -857,7 +875,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     >
                                         <option value="">Toutes</option>
                                         {categories.map((category) => (
-                                            <option key={category.id} value={category.id}>{category.name}</option>
+                                            <option key={category.id} value={category.id}>{getTranslated(category, 'name')}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -871,7 +889,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     >
                                         <option value="">Sélectionner...</option>
                                         {subCategoriesForProduct.map((subCategory) => (
-                                            <option key={subCategory.id} value={subCategory.id}>{subCategory.name}</option>
+                                            <option key={subCategory.id} value={subCategory.id}>{getTranslated(subCategory, 'name')}</option>
                                         ))}
                                     </select>
                                     {productForm.errors.sub_category_id && <p className="text-xs text-red-500">{productForm.errors.sub_category_id}</p>}
@@ -918,15 +936,27 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     {productForm.errors.stock && <p className="text-xs text-red-500">{productForm.errors.stock}</p>}
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Description</label>
-                                <textarea
-                                    value={productForm.data.description}
-                                    onChange={(e) => productForm.setData('description', e.target.value)}
-                                    className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 min-h-[100px]"
-                                    placeholder="Description du produit..."
-                                />
-                                {productForm.errors.description && <p className="text-xs text-red-500">{productForm.errors.description}</p>}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Description (FR)</label>
+                                    <textarea
+                                        value={productForm.data.description.fr}
+                                        onChange={(e) => productForm.setData('description', { ...productForm.data.description, fr: e.target.value })}
+                                        className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 min-h-[100px]"
+                                        placeholder="Description en français..."
+                                    />
+                                    {productForm.errors['description.fr'] && <p className="text-xs text-red-500">{productForm.errors['description.fr']}</p>}
+                                </div>
+                                <div className="space-y-2" dir="rtl">
+                                    <label className="text-sm font-medium text-right block">الوصف (AR)</label>
+                                    <textarea
+                                        value={productForm.data.description.ar}
+                                        onChange={(e) => productForm.setData('description', { ...productForm.data.description, ar: e.target.value })}
+                                        className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 min-h-[100px] text-right"
+                                        placeholder="الوصف بالعربية..."
+                                    />
+                                    {productForm.errors['description.ar'] && <p className="text-xs text-red-500">{productForm.errors['description.ar']}</p>}
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Images</label>
@@ -1009,16 +1039,27 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                         <form onSubmit={submitCategory}>
                             <div className="grid gap-4 py-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Nom de la catégorie</label>
+                                    <label className="text-sm font-medium">Nom (FR)</label>
                                     <input
                                         type="text"
-                                        value={categoryForm.data.name}
-                                        onChange={(e) => categoryForm.setData('name', e.target.value)}
+                                        value={categoryForm.data.name.fr}
+                                        onChange={(e) => categoryForm.setData('name', { ...categoryForm.data.name, fr: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
-                                        placeholder="Ex: Vêtements"
+                                        placeholder="Nom en français"
                                         required
                                     />
-                                    {categoryForm.errors.name && <p className="text-xs text-red-500">{categoryForm.errors.name}</p>}
+                                    {categoryForm.errors['name.fr'] && <p className="text-xs text-red-500">{categoryForm.errors['name.fr']}</p>}
+                                </div>
+                                <div className="space-y-2" dir="rtl">
+                                    <label className="text-sm font-medium text-right block">الاسم (AR)</label>
+                                    <input
+                                        type="text"
+                                        value={categoryForm.data.name.ar}
+                                        onChange={(e) => categoryForm.setData('name', { ...categoryForm.data.name, ar: e.target.value })}
+                                        className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 text-right"
+                                        placeholder="الاسم بالعربية"
+                                    />
+                                    {categoryForm.errors['name.ar'] && <p className="text-xs text-red-500">{categoryForm.errors['name.ar']}</p>}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <input
@@ -1061,22 +1102,33 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     >
                                         <option value="">Sélectionner...</option>
                                         {categories.map((category) => (
-                                            <option key={category.id} value={category.id}>{category.name}</option>
+                                            <option key={category.id} value={category.id}>{getTranslated(category, 'name')}</option>
                                         ))}
                                     </select>
                                     {subCategoryForm.errors.category_id && <p className="text-xs text-red-500">{subCategoryForm.errors.category_id}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Nom de la sous-catégorie</label>
+                                    <label className="text-sm font-medium">Nom (FR)</label>
                                     <input
                                         type="text"
-                                        value={subCategoryForm.data.name}
-                                        onChange={(e) => subCategoryForm.setData('name', e.target.value)}
+                                        value={subCategoryForm.data.name.fr}
+                                        onChange={(e) => subCategoryForm.setData('name', { ...subCategoryForm.data.name, fr: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
-                                        placeholder="Ex: T-Shirts"
+                                        placeholder="Nom en français"
                                         required
                                     />
-                                    {subCategoryForm.errors.name && <p className="text-xs text-red-500">{subCategoryForm.errors.name}</p>}
+                                    {subCategoryForm.errors['name.fr'] && <p className="text-xs text-red-500">{subCategoryForm.errors['name.fr']}</p>}
+                                </div>
+                                <div className="space-y-2" dir="rtl">
+                                    <label className="text-sm font-medium text-right block">الاسم (AR)</label>
+                                    <input
+                                        type="text"
+                                        value={subCategoryForm.data.name.ar}
+                                        onChange={(e) => subCategoryForm.setData('name', { ...subCategoryForm.data.name, ar: e.target.value })}
+                                        className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 text-right"
+                                        placeholder="الاسم بالعربية"
+                                    />
+                                    {subCategoryForm.errors['name.ar'] && <p className="text-xs text-red-500">{subCategoryForm.errors['name.ar']}</p>}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <input
@@ -1120,22 +1172,33 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     >
                                         <option value="">Sélectionner...</option>
                                         {allSubCategories.map((subCategory) => (
-                                            <option key={subCategory.id} value={subCategory.id}>{subCategory.name}</option>
+                                            <option key={subCategory.id} value={subCategory.id}>{getTranslated(subCategory, 'name')}</option>
                                         ))}
                                     </select>
                                     {specificationForm.errors.sub_category_id && <p className="text-xs text-red-500">{specificationForm.errors.sub_category_id}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Nom de la spécification</label>
+                                    <label className="text-sm font-medium">Nom (FR)</label>
                                     <input
                                         type="text"
-                                        value={specificationForm.data.name}
-                                        onChange={(e) => specificationForm.setData('name', e.target.value)}
+                                        value={specificationForm.data.name.fr}
+                                        onChange={(e) => specificationForm.setData('name', { ...specificationForm.data.name, fr: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
-                                        placeholder="Ex: Taille, Couleur"
+                                        placeholder="Nom en français"
                                         required
                                     />
-                                    {specificationForm.errors.name && <p className="text-xs text-red-500">{specificationForm.errors.name}</p>}
+                                    {specificationForm.errors['name.fr'] && <p className="text-xs text-red-500">{specificationForm.errors['name.fr']}</p>}
+                                </div>
+                                <div className="space-y-2" dir="rtl">
+                                    <label className="text-sm font-medium text-right block">الاسم (AR)</label>
+                                    <input
+                                        type="text"
+                                        value={specificationForm.data.name.ar}
+                                        onChange={(e) => specificationForm.setData('name', { ...specificationForm.data.name, ar: e.target.value })}
+                                        className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 text-right"
+                                        placeholder="الاسم بالعربية"
+                                    />
+                                    {specificationForm.errors['name.ar'] && <p className="text-xs text-red-500">{specificationForm.errors['name.ar']}</p>}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <input

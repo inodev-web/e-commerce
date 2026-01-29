@@ -1,12 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Lock, Eye, EyeOff, Loader2, Play, Phone, MapPin, Building, User } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2, Play, Phone, MapPin, Building, User, Sun, Moon } from 'lucide-react';
 import { Link, useForm } from '@inertiajs/react';
+import LanguageSwitcher from '@/Components/LanguageSwitcher';
 
 const AuthPage = ({ wilayas }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
     const [communes, setCommunes] = useState([]);
     const [loadingCommunes, setLoadingCommunes] = useState(false);
+    const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+
+    useEffect(() => {
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        localStorage.setItem('theme', theme);
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(prev => prev === 'light' ? 'dark' : 'light');
+    };
 
     const { data, setData, post, processing, errors, reset } = useForm({
         // Champs communs / Login
@@ -79,12 +94,12 @@ const AuthPage = ({ wilayas }) => {
                 {/* Content over image */}
                 <div className="absolute inset-0 p-8 lg:p-12 flex flex-col justify-between text-white z-10 pointer-events-none lg:pointer-events-auto">
                     {/* Logo area */}
-                    <div className="flex items-center gap-2">
+                    <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity pointer-events-auto">
                         <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">
                             <div className="w-4 h-4 bg-white rounded-full"></div>
                         </div>
                         <span className="text-xl font-semibold tracking-wide">Puréva</span>
-                    </div>
+                    </Link>
 
                     <div className="hidden lg:block mb-12">
                         <h1 className="text-5xl font-bold leading-tight mb-4">
@@ -108,10 +123,20 @@ const AuthPage = ({ wilayas }) => {
             <div className="relative z-10 w-full lg:w-1/2 flex flex-col min-h-screen lg:min-h-0 lg:h-auto items-center justify-center p-4 lg:p-8 lg:bg-white lg:dark:bg-neutral-950 lg:rounded-l-[30px] lg:order-2">
 
                 {/* Top Right Button */}
-                <div className="absolute top-6 right-6 lg:top-10 lg:right-10">
+                <div className="absolute top-6 right-6 lg:top-10 lg:right-10 flex items-center gap-3">
+                    <LanguageSwitcher className="text-white lg:text-gray-900 lg:dark:text-white hover:bg-white/20 lg:hover:bg-gray-100 lg:dark:hover:bg-neutral-800" />
+
+                    <button
+                        onClick={toggleTheme}
+                        className="p-2.5 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/20 lg:bg-gray-100 lg:text-gray-900 lg:hover:bg-gray-200 lg:border-transparent lg:dark:bg-neutral-800 lg:dark:text-white lg:dark:hover:bg-neutral-700 transition-all"
+                        aria-label="Toggle Theme"
+                    >
+                        {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                    </button>
+
                     <button
                         onClick={toggleMode}
-                        className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/20 lg:bg-black lg:text-white lg:hover:bg-gray-800 lg:border-transparent dark:lg:bg-white dark:lg:text-black px-6 py-2.5 rounded-full text-sm font-medium transition-all"
+                        className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/20 lg:bg-black lg:text-white lg:hover:bg-gray-800 lg:border-transparent lg:dark:bg-white lg:dark:text-black px-6 py-2.5 rounded-full text-sm font-medium transition-all"
                     >
                         {isLogin ? "S'inscrire" : 'Se connecter'}
                     </button>

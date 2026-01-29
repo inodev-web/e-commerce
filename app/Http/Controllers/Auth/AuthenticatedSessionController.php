@@ -13,6 +13,10 @@ use Inertia\Response;
 
 class AuthenticatedSessionController extends Controller
 {
+    public function __construct(
+        private readonly \App\Services\LocationService $locationService
+    ) {}
+
     /**
      * Display the login view.
      */
@@ -21,7 +25,8 @@ class AuthenticatedSessionController extends Controller
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
-            'wilayas' => \App\Models\Wilaya::select('id', 'name')->orderBy('name')->get()
+            'wilayas' => $this->locationService->getActiveWilayas()
+                ->map(fn($w) => ['id' => $w->id, 'name' => $w->name])
         ]);
     }
 
@@ -34,7 +39,14 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        if (Auth::user()->role === 'admin') {
+        $user = Auth::user();
+
+        // Sync Spatie role if missing (Self-healing permissions)
+        if ($user->role === 'admin' && ! $user->hasRole('admin')) {
+            $user->assignRole('admin');
+        }
+
+        if ($user->role === 'admin') {
             return redirect()->route('admin.dashboard');
         }
 

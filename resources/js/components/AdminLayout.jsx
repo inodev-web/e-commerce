@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
+import LanguageSwitcher from '@/Components/LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 import {
     LayoutDashboard,
     Package,
@@ -17,6 +19,7 @@ import {
 } from 'lucide-react';
 
 const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleTheme }) => {
+    const { t } = useTranslation();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const { url } = usePage();
 
@@ -46,14 +49,14 @@ const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleThem
     }, [theme]);
 
     const navItems = [
-        { name: 'Dashboard', path: route('admin.dashboard'), icon: LayoutDashboard },
-        { name: 'Produits', path: '/admin/products', icon: Package },
-        { name: 'Commandes', path: route('admin.orders.index'), icon: ShoppingCart },
-        { name: 'Livraison', path: route('admin.delivery.index'), icon: Truck },
-        { name: 'Clients', path: route('admin.customers'), icon: Users },
-        { name: 'Fidélité', path: route('admin.loyalty'), icon: Gift },
-        { name: 'Promotions', path: route('admin.promotions'), icon: Tags },
-        // { name: 'Paramètres', path: '/admin/settings', icon: Settings },
+        { name: t('admin.dashboard', 'Dashboard'), path: route('admin.dashboard'), icon: LayoutDashboard },
+        { name: t('admin.products', 'Produits'), path: route('admin.products.index'), icon: Package },
+        { name: t('admin.orders', 'Commandes'), path: route('admin.orders.index'), icon: ShoppingCart },
+        { name: t('admin.delivery', 'Livraison'), path: route('admin.delivery.index'), icon: Truck },
+        { name: t('admin.customers', 'Clients'), path: route('admin.customers.index'), icon: Users },
+        { name: t('admin.loyalty', 'Fidélité'), path: route('admin.loyalty.index'), icon: Gift },
+        { name: t('admin.promotions', 'Promotions'), path: route('admin.promo-codes.index'), icon: Tags },
+        { name: t('admin.settings', 'Paramètres'), path: route('admin.settings.pixel'), icon: Settings },
     ];
 
     return (
@@ -94,15 +97,13 @@ const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleThem
                 </nav>
 
                 <div className="absolute bottom-0 w-full p-4 border-t border-gray-200 dark:border-zinc-800">
-                    <Link
-                        href={route('logout')}
-                        method="post"
-                        as="button"
+                    <button
+                        onClick={() => router.post(route('logout'))}
                         className="flex w-full items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
                     >
                         <LogOut size={18} />
-                        Déconnexion
-                    </Link>
+                        {t('nav.logout', 'Déconnexion')}
+                    </button>
                 </div>
             </aside>
 
@@ -120,6 +121,7 @@ const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleThem
                     <div className="flex-1 lg:flex-none"></div>
 
                     <div className="flex items-center gap-4">
+                        <LanguageSwitcher />
                         <button
                             onClick={toggleTheme}
                             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 border border-gray-200 dark:border-zinc-700 transition-colors"
@@ -127,7 +129,7 @@ const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleThem
                             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                         </button>
                         <Link href={route('home')} className="text-sm text-teal-600 font-bold hover:underline">
-                            Voir la boutique
+                            {t('admin.view_shop', 'Voir la boutique')}
                         </Link>
                         <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-[#DB8B89] to-[#F8E4E0]"></div>
                     </div>

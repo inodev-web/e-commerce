@@ -31,7 +31,9 @@ class CategoryController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name',
+            'name' => 'required|array',
+            'name.fr' => 'required|string|max:255',
+            'name.ar' => 'nullable|string|max:255',
             'active' => 'boolean',
         ]);
 
@@ -46,7 +48,9 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+            'name' => 'required|array',
+            'name.fr' => 'required|string|max:255',
+            'name.ar' => 'nullable|string|max:255',
             'active' => 'boolean',
         ]);
 
@@ -75,7 +79,9 @@ class CategoryController extends Controller
     public function storeSubCategory(Request $request, Category $category): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|array',
+            'name.fr' => 'required|string|max:255',
+            'name.ar' => 'nullable|string|max:255',
             'active' => 'boolean',
         ]);
 
@@ -90,7 +96,9 @@ class CategoryController extends Controller
     public function updateSubCategory(Request $request, SubCategory $subCategory): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:sub_categories,name,' . $subCategory->id . ',id,category_id,' . $subCategory->category_id,
+            'name' => 'required|array',
+            'name.fr' => 'required|string|max:255',
+            'name.ar' => 'nullable|string|max:255',
             'active' => 'boolean',
         ]);
 

@@ -1,7 +1,10 @@
 import { Facebook, Twitter, Instagram, Linkedin, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
+    const { t } = useTranslation();
+
     return (
         <motion.footer
             initial={{ opacity: 0, y: 50 }}
@@ -20,35 +23,35 @@ const Footer = () => {
                         <span className="logo-text">Puréva</span>
                     </div>
                     <p className="footer-description">
-                        Votre partenaire de confiance pour tous vos besoins médicaux et cosmétiques. Qualité et soin livrés à votre porte.
+                        {t('footer.description', 'Votre partenaire de confiance pour tous vos besoins médicaux et cosmétiques. Qualité et soin livrés à votre porte.')}
                     </p>
                 </div>
 
                 {/* Quick Links */}
                 <div className="footer-section">
-                    <h3 className="footer-heading">Liens Rapides</h3>
+                    <h3 className="footer-heading">{t('footer.quick_links', 'Liens Rapides')}</h3>
                     <ul className="footer-links">
-                        <li><a href="#">À Propos</a></li>
-                        <li><a href="#">Contact</a></li>
-                        <li><a href="#">FAQ</a></li>
-                        <li><a href="#">Politique de Livraison</a></li>
+                        <li><a href="#">{t('footer.about', 'À Propos')}</a></li>
+                        <li><a href="#">{t('footer.contact', 'Contact')}</a></li>
+                        <li><a href="#">{t('footer.faq', 'FAQ')}</a></li>
+                        <li><a href="#">{t('footer.shipping_policy', 'Politique de Livraison')}</a></li>
                     </ul>
                 </div>
 
                 {/* Categories */}
                 <div className="footer-section">
-                    <h3 className="footer-heading">Catégories</h3>
+                    <h3 className="footer-heading">{t('footer.categories', 'Catégories')}</h3>
                     <ul className="footer-links">
-                        <li><a href="#">Soins de la Peau</a></li>
-                        <li><a href="#">Soins Capillaires</a></li>
-                        <li><a href="#">Soins Bébé</a></li>
-                        <li><a href="#">Vitamines</a></li>
+                        <li><a href="#">{t('footer.skin_care', 'Soins de la Peau')}</a></li>
+                        <li><a href="#">{t('footer.hair_care', 'Soins Capillaires')}</a></li>
+                        <li><a href="#">{t('footer.baby_care', 'Soins Bébé')}</a></li>
+                        <li><a href="#">{t('footer.vitamins', 'Vitamines')}</a></li>
                     </ul>
                 </div>
 
                 {/* Contact Us */}
                 <div className="footer-section">
-                    <h3 className="footer-heading">Contactez-nous</h3>
+                    <h3 className="footer-heading">{t('footer.contact_us', 'Contactez-nous')}</h3>
                     <ul className="footer-links">
                         <li><a href="#">support@pureva.dz</a></li>
                         <li><a href="#">+213 555 123 456</a></li>
@@ -60,7 +63,7 @@ const Footer = () => {
             {/* Bottom Bar */}
             <div className="footer-bottom">
                 <div className="footer-container">
-                    <p className="copyright">© 2024 Puréva. Tous droits réservés.</p>
+                    <p className="copyright">{t('footer.copyright', '© 2024 Puréva. Tous droits réservés.')}</p>
                     <div className="social-links">
                         <a href="#"><Facebook /></a>
                         <a href="#"><Twitter /></a>

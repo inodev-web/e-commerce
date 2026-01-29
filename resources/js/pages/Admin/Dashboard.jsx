@@ -1,9 +1,32 @@
 import React from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
-import { DollarSign, ShoppingBag, MapPin, TrendingUp, Users, AlertTriangle } from 'lucide-react';
+import { Head, Link } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
+import { getTranslated } from '@/utils/translation';
 import AdminLayout from '../../Components/AdminLayout';
+import {
+    DollarSign,
+    ShoppingBag,
+    AlertTriangle,
+    MapPin,
+    ArrowUpRight,
+    ArrowDownRight
+} from 'lucide-react';
+import {
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    BarChart,
+    Bar,
+    Cell
+} from 'recharts';
 
-const Dashboard = ({ stats, salesByWilaya, recentOrders, revenueByDay, topProducts, theme, toggleTheme }) => {
+const Dashboard = ({ auth, stats, salesByWilaya, recentOrders, revenueByDay, topProducts }) => {
+    const { t, i18n } = useTranslation();
+    const isAr = i18n.language === 'ar';
 
     const revenueData = revenueByDay.map(day => ({
         name: new Date(day.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
@@ -35,38 +58,39 @@ const Dashboard = ({ stats, salesByWilaya, recentOrders, revenueByDay, topProduc
     );
 
     return (
-        <AdminLayout theme={theme} toggleTheme={toggleTheme}>
+        <AdminLayout user={auth.user}>
+            <Head title={t('admin.dashboard', 'Tableau de Bord')} />
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Tableau de Bord</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">{t('admin.dashboard_title', 'Tableau de Bord')}</h1>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                        État actuel du système
+                        {t('admin.system_status', 'État actuel du système')}
                     </div>
                 </div>
 
                 {/* Stats Grid */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <StatCard
-                        title="Revenu Total (Livré)"
+                        title={t('admin.total_revenue_delivered', 'Revenu Total (Livré)')}
                         value={`${stats.totalRevenue} DA`}
                         icon={DollarSign}
                     />
                     <StatCard
-                        title="Commandes En attente"
+                        title={t('admin.pending_orders', 'Commandes En attente')}
                         value={stats.pendingOrders}
                         icon={ShoppingBag}
-                        trend={`${stats.totalOrders} commandes au total`}
+                        trend={`${stats.totalOrders} ${t('admin.total_orders', 'commandes au total')}`}
                         trendColor="text-blue-500"
                     />
                     <StatCard
-                        title="Stock Alerte"
+                        title={t('admin.low_stock', 'Stock Alerte')}
                         value={stats.lowStockProducts}
                         icon={AlertTriangle}
-                        trend="Produits < 10 unités"
+                        trend={t('admin.low_stock_desc', 'Produits < 10 unités')}
                         trendColor="text-orange-500"
                     />
                     <StatCard
-                        title="Top Wilaya"
+                        title={t('admin.top_wilaya', 'Top Wilaya')}
                         value={salesByWilaya[0]?.wilaya_name || 'N/A'}
                         icon={MapPin}
                     />
@@ -75,12 +99,12 @@ const Dashboard = ({ stats, salesByWilaya, recentOrders, revenueByDay, topProduc
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
                     {/* Revenue Chart */}
                     <div className="col-span-4 bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm p-6">
-                        <h3 className="text-lg font-semibold mb-6 text-gray-900 dark:text-gray-100">Revenus (7 derniers jours)</h3>
+                        <h3 className="text-lg font-semibold mb-6 text-gray-900 dark:text-gray-100">{t('admin.revenue_last_7_days', 'Revenus (7 derniers jours)')}</h3>
                         <div className="h-[350px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={revenueData}>
-                                    <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                                    <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                                    <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} orientation={isAr ? 'right' : 'left'} />
+                                    <YAxis fontSize={12} tickLine={false} axisLine={false} orientation={isAr ? 'right' : 'left'} />
                                     <Tooltip />
                                     <Area type="monotone" dataKey="revenue" stroke="#DB8B89" fill="#DB8B89" fillOpacity={0.1} />
                                 </AreaChart>
@@ -90,14 +114,14 @@ const Dashboard = ({ stats, salesByWilaya, recentOrders, revenueByDay, topProduc
 
                     {/* Top Wilayas Chart */}
                     <div className="col-span-3 bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm p-6">
-                        <h3 className="text-lg font-semibold mb-6 text-gray-900 dark:text-gray-100">Ventes par Wilaya</h3>
+                        <h3 className="text-lg font-semibold mb-6 text-gray-900 dark:text-gray-100">{t('admin.sales_by_wilaya', 'Ventes par Wilaya')}</h3>
                         <div className="h-[350px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={wilayaData} layout="vertical">
                                     <XAxis type="number" hide />
-                                    <YAxis dataKey="name" type="category" fontSize={12} width={80} axisLine={false} tickLine={false} />
+                                    <YAxis dataKey="name" type="category" fontSize={12} width={80} axisLine={false} tickLine={false} orientation={isAr ? 'right' : 'left'} />
                                     <Tooltip />
-                                    <Bar dataKey="value" fill="#DB8B89" radius={[0, 4, 4, 0]} />
+                                    <Bar dataKey="value" fill="#DB8B89" radius={isAr ? [4, 0, 0, 4] : [0, 4, 4, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -106,7 +130,7 @@ const Dashboard = ({ stats, salesByWilaya, recentOrders, revenueByDay, topProduc
 
                 {/* Recent Orders Table */}
                 <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm p-6">
-                    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Commandes Récentes</h3>
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">{t('admin.recent_orders', 'Commandes Récentes')}</h3>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                             <thead>
@@ -121,15 +145,16 @@ const Dashboard = ({ stats, salesByWilaya, recentOrders, revenueByDay, topProduc
                             <tbody>
                                 {recentOrders.map((order) => (
                                     <tr key={order.id} className="border-b dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800/50">
-                                        <td className="py-3 px-4 font-mono">#{order.id}</td>
+                                        <td className="py-3 px-4 font-mono font-medium">#{order.code || order.id}</td>
                                         <td className="py-3 px-4">{order.first_name} {order.last_name}</td>
                                         <td className="py-3 px-4">{order.wilaya_name}</td>
                                         <td className="py-3 px-4 font-bold">{order.total_price.toLocaleString()} DA</td>
                                         <td className="py-3 px-4">
-                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === 'DELIVERED' ? 'bg-green-100 text-green-700' :
-                                                    order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
-                                                }`}>
-                                                {order.status}
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium 
+                                                ${order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                                                    order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'}
+                                            `}>
+                                                {t(`status.${order.status}`, order.status)}
                                             </span>
                                         </td>
                                     </tr>

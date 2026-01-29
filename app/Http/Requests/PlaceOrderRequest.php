@@ -26,6 +26,7 @@ class PlaceOrderRequest extends FormRequest
             'commune_id' => ['required', 'integer', 'exists:communes,id'],
             'delivery_type' => ['required', Rule::enum(DeliveryType::class)],
             'promo_code' => ['nullable', 'string', 'exists:promo_codes,code'],
+            'use_loyalty_points' => ['nullable', 'integer', 'min:0'],
         ];
     }
 

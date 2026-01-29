@@ -19,12 +19,9 @@ class SpecificationController extends Controller
     {
         $validated = $request->validate([
             'sub_category_id' => ['required', 'exists:sub_categories,id'],
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('specifications', 'name')->where('sub_category_id', $request->sub_category_id),
-            ],
+            'name' => 'required|array',
+            'name.fr' => 'required|string|max:255',
+            'name.ar' => 'nullable|string|max:255',
             'required' => 'boolean',
         ]);
 
@@ -39,14 +36,9 @@ class SpecificationController extends Controller
     public function update(Request $request, Specification $specification): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('specifications', 'name')
-                    ->where('sub_category_id', $specification->sub_category_id)
-                    ->ignore($specification->id),
-            ],
+            'name' => 'required|array',
+            'name.fr' => 'required|string|max:255',
+            'name.ar' => 'nullable|string|max:255',
             'required' => 'boolean',
         ]);
 
