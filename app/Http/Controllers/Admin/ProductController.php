@@ -34,8 +34,11 @@ class ProductController extends Controller
         // Apply search filter
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
-                $q->where('name', 'ILIKE', '%' . $request->search . '%')
-                  ->orWhere('description', 'ILIKE', '%' . $request->search . '%');
+                $search = $request->search;
+                $q->where('name->fr', 'ILIKE', "%{$search}%")
+                  ->orWhere('name->ar', 'ILIKE', "%{$search}%")
+                  ->orWhere('description->fr', 'ILIKE', "%{$search}%")
+                  ->orWhere('description->ar', 'ILIKE', "%{$search}%");
             });
         }
 
@@ -84,8 +87,12 @@ class ProductController extends Controller
         
         $rules = [
             'sub_category_id' => 'required|exists:sub_categories,id',
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'name' => 'required|array',
+            'name.fr' => 'required|string|max:255',
+            'name.ar' => 'nullable|string|max:255',
+            'description' => 'required|array',
+            'description.fr' => 'nullable|string',
+            'description.ar' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'status' => ['required', Rule::enum(ProductStatus::class)],
@@ -207,8 +214,12 @@ class ProductController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'sub_category_id' => 'required|exists:sub_categories,id',
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'name' => 'required|array',
+            'name.fr' => 'required|string|max:255',
+            'name.ar' => 'nullable|string|max:255',
+            'description' => 'required|array',
+            'description.fr' => 'nullable|string',
+            'description.ar' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'status' => ['required', Rule::enum(ProductStatus::class)],
