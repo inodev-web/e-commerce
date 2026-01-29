@@ -39,7 +39,7 @@ class ProductController extends Controller
         
         $categories = Category::active()
             ->with('subCategories')
-            ->orderByRaw("name->>'fr' ASC")
+            ->orderByName('asc')
             ->get();
         
         return Inertia::render('Products/Index', [

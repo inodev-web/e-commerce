@@ -19,7 +19,13 @@ export function getTranslated(model, field, locale = null) {
     const currentLocale = locale || document.documentElement.lang || 'fr';
 
     // Return the translated value or fallback to 'fr' or first available
-    return value[currentLocale] || value['fr'] || Object.values(value)[0] || '';
+    const result = value[currentLocale] || value['fr'] || Object.values(value)[0] || '';
+
+    if (typeof result === 'object') {
+        return JSON.stringify(result);
+    }
+
+    return result;
 }
 
 /**

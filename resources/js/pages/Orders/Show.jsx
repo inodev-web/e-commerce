@@ -3,12 +3,23 @@ import { Link, router } from '@inertiajs/react';
 import { Package, ArrowLeft, MapPin, Phone, CreditCard, XCircle } from 'lucide-react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import { getTranslated } from '@/utils/translation';
 
 const Show = ({ order }) => {
     const handleCancel = () => {
         if (confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) {
             router.post(route('orders.cancel', order.id));
         }
+    };
+
+    const resolveItemName = (item) => {
+        const snapshotName = item?.metadata_snapshot?.name;
+        if (snapshotName) {
+            return typeof snapshotName === 'object'
+                ? getTranslated({ name: snapshotName }, 'name')
+                : snapshotName;
+        }
+        return item?.product ? getTranslated(item.product, 'name') : 'Produit supprimé';
     };
 
     return (
@@ -93,7 +104,7 @@ const Show = ({ order }) => {
                                         />
                                     </div>
                                     <div className="flex-grow">
-                                        <p className="font-medium text-gray-900">{item.product ? item.product.name : 'Produit supprimé'}</p>
+                                        <p className="font-medium text-gray-900">{resolveItemName(item)}</p>
                                         <p className="text-sm text-gray-500">
                                             {item.quantity} x {item.price_snapshot} DA
                                         </p>

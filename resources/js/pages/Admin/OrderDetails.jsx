@@ -16,9 +16,19 @@ import {
 } from 'lucide-react';
 import AdminLayout from '../../Components/AdminLayout';
 import { Button } from "@/components/ui/button";
+import { getTranslated } from '@/utils/translation';
 
 const AdminOrderDetails = ({ auth, order }) => {
     const { t } = useTranslation();
+    const resolveItemName = (item) => {
+        const snapshotName = item?.metadata_snapshot?.name;
+        if (snapshotName) {
+            return typeof snapshotName === 'object'
+                ? getTranslated({ name: snapshotName }, 'name')
+                : snapshotName;
+        }
+        return getTranslated(item?.product, 'name');
+    };
 
     const StatusBadge = ({ status }) => {
         let styles = '';
@@ -125,7 +135,7 @@ const AdminOrderDetails = ({ auth, order }) => {
                                             {item.product?.images?.[0] ? (
                                                 <img
                                                     src={`/storage/${item.product.images[0].image_path}`}
-                                                    alt={item.metadata_snapshot?.name || item.product.name}
+                                                    alt={resolveItemName(item)}
                                                     className="w-full h-full object-cover"
                                                 />
                                             ) : (
@@ -136,7 +146,7 @@ const AdminOrderDetails = ({ auth, order }) => {
                                         </div>
                                         <div className="flex-grow min-w-0">
                                             <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                                                {item.metadata_snapshot?.name || item.product?.name}
+                                                {resolveItemName(item)}
                                             </h3>
                                             <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                                 {item.quantity} x {item.price_snapshot.toLocaleString()} DA

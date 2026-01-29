@@ -11,7 +11,7 @@ const Hero = () => {
         <section className="hero">
             <div className="hero-content" style={{ position: 'relative', zIndex: 10, marginTop: '-2rem' }}>
                 <div className="hero-badge">
-                    {t('hero.badge', 'FOURNISSEUR MÉDICAL DE CONFIANCE')}
+                    {t('hero.badge', 'FOURNISSEUR PARAPHARMACEUTIQUE DE CONFIANCE')}
                 </div>
                 {/* Branding Title */}
                 <h1 className="hero-title !mb-4">

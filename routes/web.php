@@ -26,9 +26,7 @@ Route::get('/auth', function () {
 Route::get('/shop', [\App\Http\Controllers\ProductController::class, 'index'])->name('products.index');
 Route::get('/product/{product}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
 
-Route::get('/profile', function () {
-    return Inertia::render('Profile/Edit');
-})->name('profile');
+// Profile route is defined under auth middleware (see below).
 
 
 // OLD ROUTES (Commented out/adapted for reference)
@@ -88,6 +86,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('orders/{order}/track', [\App\Http\Controllers\OrderController::class, 'show'])->name('orders.track');
 
     // Profile
+    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile');
     Route::get('/profile/referral', [\App\Http\Controllers\ProfileController::class, 'referral'])->name('profile.referral');
     Route::get('/profile/edit', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit'); // Changed URI to avoid conflict
     Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
@@ -119,6 +118,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'role:admin'
     Route::get('loyalty', [\App\Http\Controllers\Admin\LoyaltyController::class, 'index'])->name('loyalty.index');
     Route::post('loyalty/adjust', [\App\Http\Controllers\Admin\LoyaltyController::class, 'manualAdjustment'])->name('loyalty.adjust');
     Route::get('loyalty/client/{client}', [\App\Http\Controllers\Admin\LoyaltyController::class, 'clientHistory'])->name('loyalty.client');
+    Route::put('loyalty/settings', [\App\Http\Controllers\Admin\LoyaltyController::class, 'updateSettings'])->name('loyalty.settings.update');
     
     Route::get('loyalty/client/{client}', [\App\Http\Controllers\Admin\LoyaltyController::class, 'clientHistory'])->name('loyalty.client');
     
@@ -132,6 +132,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'role:admin'
 
     // Category Management
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
+    Route::post('categories/{category}', [\App\Http\Controllers\Admin\CategoryController::class, 'update']);
     Route::post('categories/{category}/sub-categories', [\App\Http\Controllers\Admin\CategoryController::class, 'storeSubCategory'])->name('categories.sub-categories.store');
     Route::patch('sub-categories/{subCategory}', [\App\Http\Controllers\Admin\CategoryController::class, 'updateSubCategory'])->name('sub-categories.update');
     Route::delete('sub-categories/{subCategory}', [\App\Http\Controllers\Admin\CategoryController::class, 'destroySubCategory'])->name('sub-categories.destroy');

@@ -1,6 +1,6 @@
 ﻿import React, { useMemo, useState } from 'react';
 import { Plus, Search, Edit, Trash2, Filter } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import AdminLayout from '../../Components/AdminLayout';
 import { Link, router, useForm } from '@inertiajs/react';
@@ -69,12 +69,14 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         price: '',
         stock: '',
         status: 'ACTIF',
+        images: [],
         specifications: [],
     });
 
     const categoryForm = useForm({
         name: { fr: '', ar: '' },
         active: true,
+        image: null,
     });
 
     const subCategoryForm = useForm({
@@ -240,6 +242,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     const openCreateCategory = () => {
         setEditingCategory(null);
         categoryForm.reset();
+        categoryForm.setData('image', null);
         categoryForm.clearErrors();
         setIsCategoryModalOpen(true);
     };
@@ -249,6 +252,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         categoryForm.setData({
             name: ensureBilingual(category.name),
             active: !!category.active,
+            image: null,
         });
         categoryForm.clearErrors();
         setIsCategoryModalOpen(true);
@@ -256,22 +260,39 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
 
     const submitCategory = (e) => {
         e.preventDefault();
+        categoryForm.transform((data) => {
+            const payload = { ...data };
+            if (!payload.image) {
+                delete payload.image;
+            }
+            return payload;
+        });
 
         if (editingCategory) {
-            categoryForm.put(route('admin.categories.update', editingCategory.id), {
+            categoryForm.setData('_method', 'put');
+            categoryForm.post(route('admin.categories.update', editingCategory.id), {
+                forceFormData: true,
                 onSuccess: () => {
                     setIsCategoryModalOpen(false);
                     setEditingCategory(null);
                     categoryForm.reset();
+                },
+                onFinish: () => {
+                    categoryForm.setData('_method', undefined);
+                    categoryForm.transform((data) => data);
                 },
             });
             return;
         }
 
         categoryForm.post(route('admin.categories.store'), {
+            forceFormData: true,
             onSuccess: () => {
                 setIsCategoryModalOpen(false);
                 categoryForm.reset();
+            },
+            onFinish: () => {
+                categoryForm.transform((data) => data);
             },
         });
     };
@@ -458,6 +479,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                             <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
                                 <DialogHeader>
                                     <DialogTitle>Filtres produits</DialogTitle>
+                                    <DialogDescription className="sr-only">Options de filtrage pour les produits</DialogDescription>
                                 </DialogHeader>
                                 <div className="grid gap-4 py-4">
                                     <div className="space-y-2">
@@ -475,7 +497,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         >
                                             <option value="">Toutes</option>
                                             {categories.map((category) => (
-                                                <option key={category.id} value={category.id}>{category.name}</option>
+                                                <option key={category.id} value={category.id}>{getTranslated(category, 'name')}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -488,7 +510,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         >
                                             <option value="">Toutes</option>
                                             {subCategoriesForFilters.map((subCategory) => (
-                                                <option key={subCategory.id} value={subCategory.id}>{subCategory.name}</option>
+                                                <option key={subCategory.id} value={subCategory.id}>{getTranslated(subCategory, 'name')}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -730,9 +752,10 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
                                         {allSubCategories.length ? allSubCategories.map((subCategory) => (
                                             <tr key={subCategory.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50">
-                                                <td className="px-6 py-4 font-medium dark:text-gray-100">{subCategory.name}</td>
+                                                <td className="px-6 py-4 font-medium dark:text-gray-100">{getTranslated(subCategory, 'name')}</td>
                                                 <td className="px-6 py-4 dark:text-gray-400">
-                                                    {categoryById[subCategory.category_id]?.name || '—'}
+                                                    {getTranslated(categoryById[subCategory.category_id], 'name') || '—'}
+
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${subCategory.active
@@ -842,6 +865,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                     <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>{editingProduct ? 'Modifier le produit' : 'Ajouter un nouveau produit'}</DialogTitle>
+                            <DialogDescription className="sr-only">Formulaire de création ou modification de produit</DialogDescription>
                         </DialogHeader>
                         <form onSubmit={submitProduct} className="grid gap-4 py-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -960,17 +984,33 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Images</label>
-                                <input
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    onChange={(e) => {
-                                        if (e.target.files && e.target.files.length > 0) {
-                                            productForm.setData('images', e.target.files);
-                                        }
-                                    }}
-                                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-[#DB8B89] file:text-white hover:file:bg-[#C07573]"
-                                />
+                                    <input
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                        const files = Array.from(e.target.files || []);
+                                        if (!files.length) return;
+                                        const existing = Array.isArray(productForm.data.images)
+                                            ? productForm.data.images
+                                            : [];
+                                        productForm.setData('images', [...existing, ...files]);
+                                        e.target.value = '';
+                                        }}
+                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-[#DB8B89] file:text-white hover:file:bg-[#C07573]"
+                                    />
+                                    {Array.isArray(productForm.data.images) && productForm.data.images.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {productForm.data.images.map((file, index) => (
+                                                <span
+                                                    key={`${file.name}-${index}`}
+                                                    className="text-xs px-2 py-1 rounded-full bg-pink-50 text-[#DB8B89] border border-pink-100"
+                                                >
+                                                    {file.name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 {(productForm.errors.images || productForm.errors['images.0']) && (
                                     <div className="space-y-1">
                                         {productForm.errors.images && (
@@ -1001,7 +1041,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         {productForm.data.specifications.map((spec, index) => (
                                             <div key={spec.id} className="space-y-1">
                                                 <label className="text-xs font-medium text-gray-600 dark:text-gray-300">
-                                                    {spec.name}{spec.required ? ' *' : ''}
+                                                    {getTranslated(spec, 'name')}{spec.required ? ' *' : ''}
                                                 </label>
                                                 <input
                                                     value={spec.value}
@@ -1035,6 +1075,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                     <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>{editingCategory ? 'Modifier la catégorie' : 'Ajouter une catégorie'}</DialogTitle>
+                            <DialogDescription className="sr-only">Formulaire de gestion des catégories</DialogDescription>
                         </DialogHeader>
                         <form onSubmit={submitCategory}>
                             <div className="grid gap-4 py-4">
@@ -1071,6 +1112,30 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     />
                                     <label htmlFor="category-active" className="text-sm font-medium">Active</label>
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Image</label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0] || null;
+                                            categoryForm.setData('image', file);
+                                        }}
+                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-[#DB8B89] file:text-white hover:file:bg-[#C07573]"
+                                    />
+                                    {categoryForm.errors.image && (
+                                        <p className="text-xs text-red-500">{categoryForm.errors.image}</p>
+                                    )}
+                                    {editingCategory?.image_path && (
+                                        <div className="mt-2 w-24 h-24 rounded-md overflow-hidden border border-gray-200 dark:border-zinc-700">
+                                            <img
+                                                src={`/storage/${editingCategory.image_path}`}
+                                                alt={getTranslated(editingCategory, 'name')}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsCategoryModalOpen(false)}>
@@ -1089,6 +1154,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                     <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>{editingSubCategory ? 'Modifier la sous-catégorie' : 'Ajouter une sous-catégorie'}</DialogTitle>
+                            <DialogDescription className="sr-only">Formulaire de gestion des sous-catégories</DialogDescription>
                         </DialogHeader>
                         <form onSubmit={submitSubCategory}>
                             <div className="grid gap-4 py-4">
@@ -1158,6 +1224,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                     <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>{editingSpecification ? 'Modifier la spécification' : 'Ajouter une spécification'}</DialogTitle>
+                            <DialogDescription className="sr-only">Formulaire de gestion des spécifications</DialogDescription>
                         </DialogHeader>
                         <form onSubmit={submitSpecification}>
                             <div className="grid gap-4 py-4">

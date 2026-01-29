@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\SubCategory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -31,13 +32,27 @@ class CategoryController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|array',
-            'name.fr' => 'required|string|max:255',
+            'name' => 'required',
+            'name.fr' => 'nullable|string|max:255',
             'name.ar' => 'nullable|string|max:255',
             'active' => 'boolean',
+            'image' => 'nullable|image|max:4096',
         ]);
 
-        Category::create($validated);
+        $name = is_array($validated['name'] ?? null)
+            ? $validated['name']
+            : ['fr' => (string) ($validated['name'] ?? ''), 'ar' => ''];
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('categories', 'public');
+        }
+
+        Category::create([
+            'name' => $name,
+            'active' => $validated['active'] ?? true,
+            'image_path' => $imagePath,
+        ]);
 
         return back()->with('success', 'Catégorie créée avec succès.');
     }
@@ -48,13 +63,30 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|array',
-            'name.fr' => 'required|string|max:255',
+            'name' => 'required',
+            'name.fr' => 'nullable|string|max:255',
             'name.ar' => 'nullable|string|max:255',
             'active' => 'boolean',
+            'image' => 'nullable|image|max:4096',
         ]);
 
-        $category->update($validated);
+        $name = is_array($validated['name'] ?? null)
+            ? $validated['name']
+            : ['fr' => (string) ($validated['name'] ?? ''), 'ar' => ''];
+
+        $imagePath = $category->image_path;
+        if ($request->hasFile('image')) {
+            if ($imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
+            $imagePath = $request->file('image')->store('categories', 'public');
+        }
+
+        $category->update([
+            'name' => $name,
+            'active' => $validated['active'] ?? $category->active,
+            'image_path' => $imagePath,
+        ]);
 
         return back()->with('success', 'Catégorie mise à jour avec succès.');
     }
@@ -64,11 +96,19 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category): RedirectResponse
     {
-        if ($category->subCategories()->count() > 0) {
+        $hasSubCategories = $category->subCategories()->count() > 0;
+        $hasProducts = \App\Models\Product::withTrashed()
+            ->whereHas('subCategory', fn ($q) => $q->where('category_id', $category->id))
+            ->exists();
+
+        if ($hasSubCategories || $hasProducts) {
             return back()->with('error', 'Impossible de supprimer une catégorie contenant des sous-catégories.');
         }
 
         $category->delete();
+        if ($category->image_path) {
+            Storage::disk('public')->delete($category->image_path);
+        }
 
         return back()->with('success', 'Catégorie supprimée avec succès.');
     }
@@ -112,7 +152,7 @@ class CategoryController extends Controller
      */
     public function destroySubCategory(SubCategory $subCategory): RedirectResponse
     {
-        if ($subCategory->products()->count() > 0) {
+        if ($subCategory->products()->withTrashed()->count() > 0) {
             return back()->with('error', 'Impossible de supprimer une sous-catégorie contenant des produits.');
         }
 

@@ -15,6 +15,7 @@ class Category extends Model
 
     protected $fillable = [
         'name',
+        'image_path',
         'active',
     ];
 
@@ -40,5 +41,16 @@ class Category extends Model
     public function scopeActive($query)
     {
         return $query->where('active', true);
+    }
+
+    public function scopeOrderByName($query, string $direction = 'asc', ?string $locale = null)
+    {
+        $locale = $locale ?: app()->getLocale();
+        $allowedLocales = ['fr', 'ar', 'en'];
+        if (!in_array($locale, $allowedLocales, true)) {
+            $locale = 'fr';
+        }
+
+        return $query->orderByRaw("name->>'{$locale}' {$direction}");
     }
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { Truck, MapPin, Phone, CreditCard, ShoppingBag, Loader2 } from 'lucide-react';
+import { Truck, MapPin, Phone, CreditCard, ShoppingBag, Loader2, X } from 'lucide-react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { useTranslation } from 'react-i18next';
@@ -78,7 +78,8 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
 
         try {
             const response = await axios.post(route('checkout.validate-promo'), {
-                code: promoInput
+                code: promoInput,
+                amount: productsTotal,
             });
 
             setPromoDiscount(response.data.discount);
@@ -115,19 +116,19 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
     const total = productsTotal + shippingPrice - promoDiscount - loyaltyDiscount;
 
     return (
-        <div className={`min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-gray-900 text-white' : 'bg-gray-50'}`}>
+        <div className={`checkout-page min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-gray-900 text-white' : 'bg-gray-50'}`}>
             <Header theme={theme} toggleTheme={toggleTheme} />
 
             <main className="flex-grow container mx-auto px-4 py-8 max-w-6xl">
                 <h1 className="text-3xl font-bold mb-8 flex items-center gap-3">
-                    <CreditCard className="text-teal-600" />
+                    <CreditCard className="text-[#DB8B89]" />
                     Finaliser la commande
                 </h1>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Checkout Form */}
                     <div className="lg:col-span-2">
-                        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl shadow-sm space-y-6">
+                        <form onSubmit={handleSubmit} className="checkout-card bg-white p-6 rounded-2xl shadow-sm space-y-6">
 
                             {/* Contact Info */}
                             <div className="space-y-4">
@@ -141,7 +142,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                             type="text"
                                             value={data.last_name}
                                             onChange={e => setData('last_name', e.target.value)}
-                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-teal-500 ${errors.last_name ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.last_name ? 'border-red-500' : 'border-gray-300'}`}
                                             required
                                         />
                                         {errors.last_name && <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>}
@@ -152,7 +153,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                             type="text"
                                             value={data.first_name}
                                             onChange={e => setData('first_name', e.target.value)}
-                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-teal-500 ${errors.first_name ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.first_name ? 'border-red-500' : 'border-gray-300'}`}
                                             required
                                         />
                                         {errors.first_name && <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>}
@@ -163,7 +164,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                             type="tel"
                                             value={data.phone}
                                             onChange={e => setData('phone', e.target.value)}
-                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-teal-500 ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
                                             required
                                         />
                                         {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
@@ -186,7 +187,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                         <select
                                             value={data.wilaya_id}
                                             onChange={e => setData('wilaya_id', e.target.value)}
-                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-teal-500 ${errors.wilaya_id ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.wilaya_id ? 'border-red-500' : 'border-gray-300'}`}
                                             required
                                         >
                                             <option value="">{t('checkout.select_wilaya', 'Sélectionner une wilaya')}</option>
@@ -203,7 +204,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                         <select
                                             value={data.commune_id}
                                             onChange={e => setData('commune_id', e.target.value)}
-                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-teal-500 ${errors.commune_id ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.commune_id ? 'border-red-500' : 'border-gray-300'}`}
                                             required
                                             disabled={!data.wilaya_id}
                                         >
@@ -222,7 +223,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                             value={data.address}
                                             onChange={e => setData('address', e.target.value)}
                                             rows="2"
-                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-teal-500 ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
                                             placeholder="Quartier, N° rue, Bâtiment..."
                                             required
                                         ></textarea>
@@ -236,7 +237,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                             {deliveryTypes.map(type => (
                                                 <label
                                                     key={type.value}
-                                                    className={`border rounded-xl p-4 cursor-pointer flex items-center justify-between transition-all ${data.delivery_type === type.value ? 'border-teal-600 bg-teal-50 ring-1 ring-teal-600' : 'hover:border-gray-400'}`}
+                                                    className={`border rounded-xl p-4 cursor-pointer flex items-center justify-between transition-all ${data.delivery_type === type.value ? 'border-[#DB8B89] bg-[#F8E4E0] ring-1 ring-[#DB8B89]' : 'hover:border-gray-400'}`}
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         <input
@@ -245,11 +246,11 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                                             value={type.value}
                                                             checked={data.delivery_type === type.value}
                                                             onChange={e => setData('delivery_type', e.target.value)}
-                                                            className="text-teal-600 focus:ring-teal-500"
+                                                            className="text-[#DB8B89] focus:ring-[#DB8B89]"
                                                         />
                                                         <span className="font-medium">{type.label}</span>
                                                     </div>
-                                                    <Truck size={18} className={data.delivery_type === type.value ? 'text-teal-600' : 'text-gray-400'} />
+                                                    <Truck size={18} className={data.delivery_type === type.value ? 'text-[#DB8B89]' : 'text-gray-400'} />
                                                 </label>
                                             ))}
                                         </div>
@@ -261,7 +262,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
 
                     {/* Order Summary */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white p-6 rounded-2xl shadow-sm sticky top-24">
+                        <div className="checkout-card checkout-summary bg-white p-6 rounded-2xl shadow-sm sticky top-24">
                             <h3 className="text-xl font-bold mb-6">Récapitulatif</h3>
 
                             <div className="max-h-60 overflow-y-auto space-y-3 mb-6 pr-2">
@@ -277,7 +278,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                             </span>
                                         </div>
                                         <div className="flex-grow">
-                                            <p className="font-medium line-clamp-1">{item.product.name}</p>
+                                            <p className="font-medium line-clamp-1">{getTranslated(item.product, 'name')}</p>
                                             <p className="text-gray-500">{item.price_snapshot.toLocaleString()} DA</p>
                                         </div>
                                     </div>
@@ -312,13 +313,13 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                             value={promoInput}
                                             onChange={e => setPromoInput(e.target.value.toUpperCase())}
                                             placeholder={t('checkout.promo_placeholder', 'Entrer le code')}
-                                            className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-teal-500"
+                                            className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89]"
                                         />
                                         <button
                                             type="button"
                                             onClick={validatePromoCode}
                                             disabled={isValidatingPromo || !promoInput.trim()}
-                                            className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900 disabled:opacity-50"
+                                            className="px-4 py-2 bg-[#DB8B89] text-white rounded-lg text-sm font-medium hover:bg-[#C07573] disabled:opacity-50"
                                         >
                                             {isValidatingPromo ? t('common.loading', 'Vérification...') : t('common.apply', 'Appliquer')}
                                         </button>
@@ -341,12 +342,12 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                             placeholder="0"
                                             min="0"
                                             max={Math.min(loyaltyBalance, productsTotal)}
-                                            className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-teal-500"
+                                            className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89]"
                                         />
                                         <button
                                             type="button"
                                             onClick={() => handleLoyaltyPointsChange(Math.min(loyaltyBalance, productsTotal))}
-                                            className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700"
+                                            className="px-4 py-2 bg-[#DB8B89] text-white rounded-lg text-sm font-medium hover:bg-[#C07573]"
                                         >
                                             {t('loyalty.use_all', 'Utiliser tout')}
                                         </button>
@@ -395,7 +396,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                             <button
                                 onClick={handleSubmit}
                                 disabled={processing || isLoadingShipping || !data.wilaya_id}
-                                className="w-full bg-teal-600 text-white py-3 rounded-xl font-bold text-center block hover:bg-teal-700 transition-all shadow-lg shadow-teal-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full bg-[#DB8B89] text-white py-3 rounded-xl font-bold text-center block hover:bg-[#C07573] transition-all shadow-lg shadow-[rgba(219,139,137,0.25)] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {processing ? t('common.processing', 'Traitement...') : t('checkout.place_order', 'Confirmer la commande')}
                             </button>

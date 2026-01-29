@@ -25,7 +25,23 @@ class PlaceOrderRequest extends FormRequest
             'wilaya_id' => ['required', 'integer', 'exists:wilayas,id'],
             'commune_id' => ['required', 'integer', 'exists:communes,id'],
             'delivery_type' => ['required', Rule::enum(DeliveryType::class)],
-            'promo_code' => ['nullable', 'string', 'exists:promo_codes,code'],
+            'promo_code' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (!$value) {
+                        return;
+                    }
+
+                    $code = strtoupper(trim((string) $value));
+                    $promoExists = \App\Models\PromoCode::where('code', $code)->exists();
+                    $referralExists = \App\Models\User::where('referral_code', $code)->exists();
+
+                    if (!$promoExists && !$referralExists) {
+                        $fail('Le code promo est invalide.');
+                    }
+                },
+            ],
             'use_loyalty_points' => ['nullable', 'integer', 'min:0'],
         ];
     }

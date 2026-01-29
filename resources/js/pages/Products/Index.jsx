@@ -211,7 +211,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                                 <img
                                     src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.svg'}
                                     alt={getTranslated(product, 'name')}
-                                    className="seller-image-img object-contain p-4"
+                                    className="seller-image-img object-cover"
                                 />
                             </div>
                             <div className="seller-info">
@@ -222,7 +222,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                                 <div className="seller-price mt-auto flex items-center justify-between font-bold text-lg text-gray-900">
                                     {product.price.toLocaleString()} DA
                                     <button
-                                        className="add-to-cart-btn bg-black text-white p-2 rounded-lg hover:bg-gray-800 transition-colors z-10"
+                                        className="add-to-cart-btn"
                                         aria-label="Add to cart"
                                         onClick={(e) => addToCart(e, product)}
                                         disabled={product.stock <= 0}
@@ -265,4 +265,3 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
 };
 
 export default Index;
-

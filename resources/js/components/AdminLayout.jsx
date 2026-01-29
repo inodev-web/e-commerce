@@ -60,7 +60,7 @@ const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleThem
     ];
 
     return (
-        <div className={`flex h-screen bg-gray-100 dark:bg-zinc-950 text-gray-900 dark:text-gray-100 overflow-hidden font-sans ${theme}`}>
+        <div className={`admin-app flex h-screen bg-gray-100 dark:bg-zinc-950 text-gray-900 dark:text-gray-100 overflow-hidden font-sans ${theme}`}>
             {/* Sidebar */}
             <aside
                 className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 shadow-xl lg:shadow-none ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}

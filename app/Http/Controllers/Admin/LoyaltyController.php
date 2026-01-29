@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\LoyaltyPoint;
+use App\Models\LoyaltySetting;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,13 +17,15 @@ class LoyaltyController extends Controller
         $totalPointsDistributed = LoyaltyPoint::where('points', '>', 0)->sum('points');
         $totalPointsUsed = LoyaltyPoint::where('points', '<', 0)->sum('points') * -1;
         $activeClientsCount = Client::whereHas('loyaltyPoints')->count();
+        $settings = LoyaltySetting::first();
 
         return Inertia::render('Admin/Loyalty', [
             'stats' => [
                 'distributed' => $totalPointsDistributed,
                 'used' => $totalPointsUsed,
                 'clients' => $activeClientsCount,
-            ]
+            ],
+            'settings' => $settings,
         ]);
     }
 
@@ -61,6 +64,23 @@ class LoyaltyController extends Controller
         return back()->with('success', 'Ajustement des points effectué avec succès.');
     }
 
+    public function updateSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'referral_discount_amount' => 'required|numeric|min:0',
+            'referral_reward_points' => 'required|integer|min:0',
+        ]);
+
+        $settings = LoyaltySetting::first();
+        if ($settings) {
+            $settings->update($validated);
+        } else {
+            LoyaltySetting::create($validated);
+        }
+
+        return back()->with('success', 'Paramètres de fidélité mis à jour.');
+    }
+
     public function clientHistory(Client $client)
     {
         return response()->json([
@@ -69,3 +89,4 @@ class LoyaltyController extends Controller
         ]);
     }
 }
+

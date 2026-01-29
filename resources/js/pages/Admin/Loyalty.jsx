@@ -1,12 +1,12 @@
 import React from 'react';
-import { Save, Gift, ArrowRight } from 'lucide-react';
+import { Save, Gift } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import AdminLayout from '../../Components/AdminLayout';
 
 import { useTranslation } from 'react-i18next';
 import { useForm } from '@inertiajs/react';
 
-const AdminLoyalty = ({ auth, stats }) => {
+const AdminLoyalty = ({ auth, stats, settings }) => {
     const { t } = useTranslation();
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
@@ -14,12 +14,27 @@ const AdminLoyalty = ({ auth, stats }) => {
         points: '',
         description: ''
     });
+    const {
+        data: settingsData,
+        setData: setSettingsData,
+        put: putSettings,
+        processing: settingsProcessing,
+        errors: settingsErrors,
+    } = useForm({
+        referral_discount_amount: settings?.referral_discount_amount || 0,
+        referral_reward_points: settings?.referral_reward_points || 0,
+    });
 
     const handleAdjust = (e) => {
         e.preventDefault();
         post(route('admin.loyalty.adjust'), {
             onSuccess: () => reset()
         });
+    };
+
+    const handleSettingsSave = (e) => {
+        e.preventDefault();
+        putSettings(route('admin.loyalty.settings.update'));
     };
 
     return (
@@ -44,47 +59,50 @@ const AdminLoyalty = ({ auth, stats }) => {
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
-                    {/* Conversion Settings */}
+                    {/* Referral Settings */}
                     <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 p-6 shadow-sm space-y-6">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-pink-100 dark:bg-[#DB8B89]/20 rounded-lg">
                                 <Gift className="w-5 h-5 text-[#DB8B89]" />
                             </div>
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('admin.conversion_rules', 'Règles de Conversion')}</h2>
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('admin.referral_settings', 'Paramètres Parrainage')}</h2>
                         </div>
 
-                        <div className="space-y-4">
-                            <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg border border-gray-200 dark:border-zinc-800 flex items-center justify-between gap-4">
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('common.amount', 'Montant')} (DA)</label>
-                                    <input type="number" defaultValue={100} className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700" />
-                                </div>
-                                <ArrowRight className="w-5 h-5 text-gray-400 mt-6" />
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('admin.points_earned', 'Points Gagnés')}</label>
-                                    <input type="number" defaultValue={1} className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700" />
-                                </div>
+                        <form onSubmit={handleSettingsSave} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                                    {t('admin.referral_discount', 'Réduction acheteur')} (DA)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={settingsData.referral_discount_amount}
+                                    onChange={e => setSettingsData('referral_discount_amount', e.target.value)}
+                                    className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
+                                />
+                                {settingsErrors.referral_discount_amount && <p className="text-red-500 text-xs">{settingsErrors.referral_discount_amount}</p>}
                             </div>
 
-                            <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg border border-gray-200 dark:border-zinc-800 flex items-center justify-between gap-4">
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('admin.points_used_label', 'Points Utilisés')}</label>
-                                    <input type="number" defaultValue={100} className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700" />
-                                </div>
-                                <ArrowRight className="w-5 h-5 text-gray-400 mt-6" />
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('cart.discount', 'Réduction')} (DA)</label>
-                                    <input type="number" defaultValue={50} className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700" />
-                                </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                                    {t('admin.referral_points', 'Points par parrainage')}
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={settingsData.referral_reward_points}
+                                    onChange={e => setSettingsData('referral_reward_points', e.target.value)}
+                                    className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
+                                />
+                                {settingsErrors.referral_reward_points && <p className="text-red-500 text-xs">{settingsErrors.referral_reward_points}</p>}
                             </div>
-                        </div>
 
-                        <Button className="w-full bg-[#DB8B89] text-white hover:bg-[#C07573]">
-                            <Save className="w-4 h-4 mr-2" />
-                            {t('admin.save_rules', 'Sauvegarder les règles')}
-                        </Button>
+                            <Button type="submit" disabled={settingsProcessing} className="w-full bg-[#DB8B89] text-white hover:bg-[#C07573]">
+                                <Save className="w-4 h-4 mr-2" />
+                                {settingsProcessing ? t('common.processing', 'Traitement...') : t('admin.save_rules', 'Sauvegarder')}
+                            </Button>
+                        </form>
                     </div>
-
                     {/* Manual Adjustment */}
                     <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 p-6 shadow-sm space-y-6">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('admin.manual_adjustment', 'Ajustement Manuel')}</h2>
@@ -153,3 +171,4 @@ const AdminLoyalty = ({ auth, stats }) => {
 };
 
 export default AdminLoyalty;
+

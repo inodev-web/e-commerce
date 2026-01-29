@@ -22,6 +22,12 @@ const CategorySection = ({ categories: propCategories }) => {
     ];
 
     const displayCategories = propCategories && propCategories.length > 0 ? propCategories : staticCategories;
+    const getCategoryImage = (category) => {
+        if (category?.image_path) {
+            return `/storage/${category.image_path}`;
+        }
+        return category?.image || '/placeholder.svg';
+    };
 
     return (
         <motion.section
@@ -47,7 +53,7 @@ const CategorySection = ({ categories: propCategories }) => {
                                         {/* Background Image */}
                                         <div
                                             className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-                                            style={{ backgroundImage: `url(${category.image || '/placeholder.svg'})` }}
+                                            style={{ backgroundImage: `url(${getCategoryImage(category)})` }}
                                         />
                                         {/* Overlay */}
                                         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300" />
@@ -71,4 +77,3 @@ const CategorySection = ({ categories: propCategories }) => {
 };
 
 export default CategorySection;
-

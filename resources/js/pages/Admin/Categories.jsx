@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import AdminLayout from '../../Components/AdminLayout';
 import { useForm } from '@inertiajs/react';
+import { getTranslated } from '@/utils/translation';
 
 const AdminCategories = ({ categories, theme, toggleTheme }) => {
     const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
@@ -14,6 +15,7 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
     const categoryForm = useForm({
         name: '',
         active: true,
+        image: null,
     });
 
     const subCategoryForm = useForm({
@@ -33,11 +35,23 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
 
     const handleAddCategory = (e) => {
         e.preventDefault();
+        categoryForm.transform((data) => {
+            const payload = { ...data };
+            if (!payload.image) {
+                delete payload.image;
+            }
+            return payload;
+        });
         categoryForm.post(route('admin.categories.store'), {
+            forceFormData: true,
             onSuccess: () => {
                 setIsAddCategoryOpen(false);
                 categoryForm.reset();
-            }
+                categoryForm.setData('image', null);
+            },
+            onFinish: () => {
+                categoryForm.transform((data) => data);
+            },
         });
     };
 
@@ -100,8 +114,17 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                                             <ChevronRight className="w-4 h-4" />
                                                         )}
                                                     </button>
+                                                    {category.image_path && (
+                                                        <div className="w-10 h-10 rounded-md overflow-hidden border border-gray-200 dark:border-zinc-700">
+                                                            <img
+                                                                src={`/storage/${category.image_path}`}
+                                                                alt={getTranslated(category, 'name')}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        </div>
+                                                    )}
                                                     <span className="font-medium text-gray-900 dark:text-gray-100">
-                                                        {category.name}
+                                                        {getTranslated(category, 'name')}
                                                     </span>
                                                 </div>
                                             </td>
@@ -144,7 +167,7 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                             <tr key={subCategory.id} className="bg-gray-50/50 dark:bg-zinc-800/20">
                                                 <td className="px-6 py-3 pl-16">
                                                     <span className="text-sm text-gray-600 dark:text-gray-400">
-                                                        → {subCategory.name}
+                                                        → {getTranslated(subCategory, 'name')}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-3 text-gray-400 text-sm">-</td>
@@ -203,6 +226,21 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                         className="rounded"
                                     />
                                     <label htmlFor="active" className="text-sm font-medium">Active</label>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Image</label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0] || null;
+                                            categoryForm.setData('image', file);
+                                        }}
+                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-[#DB8B89] file:text-white hover:file:bg-[#C07573]"
+                                    />
+                                    {categoryForm.errors.image && (
+                                        <p className="text-xs text-red-500">{categoryForm.errors.image}</p>
+                                    )}
                                 </div>
                             </div>
                             <DialogFooter>

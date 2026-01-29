@@ -28,21 +28,21 @@ const Success = ({ order }) => {
     }, []);
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50">
+        <div className="checkout-page min-h-screen flex flex-col bg-gray-50">
             <Header theme="light" toggleTheme={() => { }} />
 
             <main className="flex-grow flex items-center justify-center p-4">
-                <div className="bg-white p-8 md:p-12 rounded-3xl shadow-lg max-w-2xl w-full text-center">
-                    <div className="w-24 h-24 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-6 text-teal-600">
+                <div className="checkout-card bg-white p-8 md:p-12 rounded-3xl shadow-lg max-w-2xl w-full text-center">
+                    <div className="w-24 h-24 bg-[#F8E4E0] rounded-full flex items-center justify-center mx-auto mb-6 text-[#DB8B89]">
                         <CheckCircle size={48} />
                     </div>
 
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Commande Confirmée !</h1>
                     <p className="text-gray-500 text-lg mb-8">
-                        Merci <span className="font-semibold text-teal-700">{order.first_name}</span>, votre commande <span className="font-mono bg-gray-100 px-2 py-1 rounded">#{order.id}</span> a été enregistrée avec succès.
+                        Merci <span className="font-semibold text-[#DB8B89]">{order.first_name}</span>, votre commande <span className="font-mono bg-[#F8E4E0] px-2 py-1 rounded text-[#DB8B89]">#{order.id}</span> a été enregistrée avec succès.
                     </p>
 
-                    <div className="bg-gray-50 p-6 rounded-2xl mb-8 text-left">
+                    <div className="bg-[#FDF6F5] p-6 rounded-2xl mb-8 text-left border border-[#F3CFCB]">
                         <h3 className="font-bold text-gray-800 mb-4 border-b pb-2">Détails de la livraison</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
@@ -52,7 +52,7 @@ const Success = ({ order }) => {
                             </div>
                             <div>
                                 <p className="text-gray-500">Montant Total</p>
-                                <p className="font-bold text-lg text-teal-600">{order.total_price.toLocaleString()} DA</p>
+                                <p className="font-bold text-lg text-[#DB8B89]">{order.total_price.toLocaleString()} DA</p>
                                 <p className="text-gray-500 mt-2">Mode de paiement</p>
                                 <p className="font-medium">Paiement à la livraison</p>
                             </div>
@@ -62,14 +62,14 @@ const Success = ({ order }) => {
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
                             href={route('products.index')}
-                            className="bg-gray-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+                            className="bg-[#DB8B89] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#C07573] transition-colors flex items-center justify-center gap-2"
                         >
                             <ShoppingBag size={20} /> Continuer les achats
                         </Link>
                         {/* If you have an order tracking page, link there */}
                         <Link
                             href={route('orders.show', order.id)}
-                            className="bg-white border-2 border-gray-200 text-gray-700 px-8 py-3 rounded-xl font-bold hover:border-teal-600 hover:text-teal-600 transition-colors flex items-center justify-center gap-2"
+                            className="bg-white border-2 border-[#DB8B89] text-[#DB8B89] px-8 py-3 rounded-xl font-bold hover:bg-[#F8E4E0] transition-colors flex items-center justify-center gap-2"
                         >
                             Suivre ma commande <ArrowRight size={20} />
                         </Link>

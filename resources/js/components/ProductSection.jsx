@@ -39,7 +39,7 @@ const ProductSection = ({ title, products = [] }) => {
                                     <img
                                         src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.svg'}
                                         alt={getTranslated(product, 'name')}
-                                        className="seller-image-img object-contain p-4"
+                                        className="seller-image-img object-cover"
                                     />
                                 </div>
                                 <div className="seller-info">
@@ -51,7 +51,7 @@ const ProductSection = ({ title, products = [] }) => {
                                     </h3>
                                     <div className="seller-price mt-auto flex items-center justify-between font-bold text-lg text-gray-900">
                                         {product.price.toLocaleString()} {t('currency.symbol', 'DA')}
-                                        <button className="add-to-cart-btn bg-black text-white p-2 rounded-lg hover:bg-gray-800" aria-label={t('product.add_to_cart')} onClick={(e) => e.preventDefault()}>
+                                        <button className="add-to-cart-btn" aria-label={t('product.add_to_cart')} onClick={(e) => e.preventDefault()}>
                                             <ShoppingCart size={18} />
                                         </button>
                                     </div>

@@ -9,10 +9,13 @@ use App\Enums\OrderStatus;
 use App\Models\Cart;
 use App\Models\Commune;
 use App\Models\DeliveryTariff;
+use App\Models\LoyaltyPoint;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\PromoCode;
+use App\Models\LoyaltySetting;
+use App\Models\User;
 use App\Models\Wilaya;
 use Illuminate\Support\Facades\DB;
 
@@ -66,18 +69,39 @@ class OrderService
                 ];
             }
             
-            // 4. Appliquer promo code si présent
+            // 4. Appliquer code promo (admin) ou parrainage si présent
             $discountTotal = 0;
+            $referrerId = null;
+            $referrerClientId = null;
+            $referralCode = null;
+            $settings = null;
+
             if ($dto->promoCode) {
-                $promo = PromoCode::where('code', $dto->promoCode)
+                $code = strtoupper(trim($dto->promoCode));
+
+                $promo = PromoCode::where('code', $code)
                     ->where('is_active', true)
                     ->first();
-                    
+
                 if ($promo && $promo->isValid($dto->clientId)) {
-                    $discountTotal = $promo->calculateDiscount($productsTotal);
+                    $discountTotal = min($promo->calculateDiscount($productsTotal), $productsTotal);
+                } else {
+                    $referrer = User::where('referral_code', $code)->first();
+
+                    if ($referrer && $referrer->client) {
+                        $referrerClientId = $referrer->client->id;
+                        if (!$dto->clientId || $referrerClientId !== $dto->clientId) {
+                            $settings = LoyaltySetting::first();
+                            $discountAmount = $settings?->referral_discount_amount ?? 0;
+                            if ($discountAmount > 0) {
+                                $discountTotal = min((float) $discountAmount, $productsTotal);
+                                $referrerId = $referrer->id;
+                                $referralCode = $code;
+                            }
+                        }
+                    }
                 }
             }
-            
             // 4.5. Appliquer points de fidélité si demandé
             $loyaltyDiscount = 0;
             if ($dto->loyaltyPointsUsed > 0 && $dto->clientId) {
@@ -97,6 +121,8 @@ class OrderService
             // 6. Créer la commande avec SNAPSHOTS
             $order = Order::create([
                 'client_id' => $dto->clientId,
+                'referrer_id' => $referrerId,
+                'referral_code' => $referralCode,
                 'first_name' => $dto->firstName,
                 'last_name' => $dto->lastName,
                 'phone' => $dto->phone,
@@ -139,6 +165,14 @@ class OrderService
                 $product->decrementStock($item['quantity']);
             }
             
+            // 9. Ajouter des points de parrainage si code utilisé
+            if ($referrerClientId && $settings && $settings->referral_reward_points > 0) {
+                LoyaltyPoint::create([
+                    'client_id' => $referrerClientId,
+                    'points' => (int) $settings->referral_reward_points,
+                    'description' => 'Parrainage: code ' . $referralCode,
+                ]);
+            }
             // 9. Ajouter des points de fidélité si client connecté
             if ($dto->clientId) {
                 $this->loyaltyService->awardPoints($dto->clientId, $totalPrice);
@@ -194,3 +228,7 @@ class OrderService
         });
     }
 }
+
+
+
+

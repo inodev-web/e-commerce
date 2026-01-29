@@ -62,7 +62,7 @@ class ProductController extends Controller
         $products = $query->paginate(20)->withQueryString();
 
         $categories = Category::with('subCategories.specifications')
-            ->orderBy('name')
+            ->orderByName('asc')
             ->get();
 
         return Inertia::render('Admin/Products', [

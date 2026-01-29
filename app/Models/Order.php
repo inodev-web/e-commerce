@@ -17,6 +17,8 @@ class Order extends Model
 
     protected $fillable = [
         'client_id',
+        'referrer_id',
+        'referral_code',
         'first_name',
         'last_name',
         'phone',
@@ -48,6 +50,11 @@ class Order extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function referrer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'referrer_id');
     }
 
     public function items(): HasMany

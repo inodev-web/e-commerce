@@ -106,7 +106,7 @@ const resources = {
             'home.shop_by_category': 'Acheter par catégorie',
 
             // Hero
-            'hero.badge': 'FOURNISSEUR MÉDICAL DE CONFIANCE',
+            'hero.badge': 'FOURNISSEUR PARAPHARMACEUTIQUE DE CONFIANCE',
             'hero.tagline_start': 'Au service de votre',
             'hero.tagline_highlight': 'beauté & bien être',
             'hero.cta': 'Découvrir la collection',

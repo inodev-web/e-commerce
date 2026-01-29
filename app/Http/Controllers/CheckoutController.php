@@ -91,40 +91,73 @@ class CheckoutController extends Controller
     /**
      * Valider un code promo (AJAX)
      */
-    public function validatePromoCode(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+            public function validatePromoCode(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
     {
-        $request->validate(['code' => 'required|string']);
-        
-        $promoCode = \App\Models\PromoCode::where('code', $request->code)
+        $request->validate([
+            'code' => 'required|string',
+            'amount' => 'nullable|numeric|min:0',
+        ]);
+
+        $code = strtoupper(trim($request->code));
+        $amount = $request->amount;
+
+        if ($amount === null || $amount <= 0) {
+            $clientId = auth()->check() ? auth()->user()->client?->id : null;
+            $cart = $this->cartService->getOrCreate(
+                $clientId,
+                session()->getId()
+            );
+            $amount = $this->cartService->getTotal($cart);
+        }
+
+        // 1) Promo codes from admin
+        $promoCode = \App\Models\PromoCode::where('code', $code)
             ->where('is_active', true)
             ->first();
-        
-        if (!$promoCode) {
+
+        if ($promoCode) {
+            $clientId = auth()->check() ? auth()->user()->client?->id : null;
+            if (!$promoCode->isValid($clientId)) {
+                return response()->json(['error' => 'Ce code promo ne peut pas être utilisé'], 403);
+            }
+
+            $discount = min($promoCode->calculateDiscount((float) $amount), (float) $amount);
+
+            return response()->json([
+                'code' => $promoCode->code,
+                'discount' => $discount,
+                'type' => $promoCode->type->value,
+                'discount_value' => $promoCode->discount_value,
+            ]);
+        }
+
+        // 2) Referral codes from clients
+        $referrer = \App\Models\User::where('referral_code', $code)->first();
+
+        if (!$referrer || !$referrer->client) {
             return response()->json(['error' => 'Code promo invalide ou expiré'], 404);
         }
-        
-        $clientId = auth()->check() ? auth()->user()->client?->id : null;
-        
-        if (!$promoCode->isValid($clientId)) {
-            return response()->json(['error' => 'Ce code promo ne peut pas être utilisé'], 403);
+
+        $currentUserId = auth()->id();
+        if ($currentUserId && $referrer->id === $currentUserId) {
+            return response()->json(['error' => 'Vous ne pouvez pas utiliser votre propre code'], 403);
         }
-        
-        // Get cart total to calculate discount
-        $cart = $this->cartService->getOrCreate(
-            $clientId,
-            session()->getId()
-        );
-        $cartTotal = $this->cartService->getTotal($cart);
-        $discount = $promoCode->calculateDiscount($cartTotal);
-        
+
+        $settings = \App\Models\LoyaltySetting::first();
+        $discountAmount = $settings?->referral_discount_amount ?? 0;
+        if ($discountAmount <= 0) {
+            return response()->json(['error' => 'Code promo invalide ou expiré'], 404);
+        }
+
+        $discount = min((float) $discountAmount, (float) $amount);
+
         return response()->json([
-            'code' => $promoCode->code,
+            'code' => $code,
             'discount' => $discount,
-            'type' => $promoCode->type->value,
-            'discount_value' => $promoCode->discount_value,
+            'type' => 'REFERRAL',
+            'discount_value' => $discountAmount,
         ]);
     }
-
     /**
      * Passer la commande avec validation et redirection Inertia
      */
@@ -146,6 +179,8 @@ class CheckoutController extends Controller
             return redirect()->route('checkout.success', $order)
                 ->with('success', "Commande #{$order->id} créée avec succès!");
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Checkout Error: ' . $e->getMessage());
+            file_put_contents(storage_path('logs/checkout_error.log'), $e->getMessage() . PHP_EOL . $e->getTraceAsString());
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
@@ -180,3 +215,7 @@ class CheckoutController extends Controller
         return $items;
     }
 }
+
+
+
+

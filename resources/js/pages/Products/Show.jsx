@@ -25,9 +25,17 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     const [shippingPrice, setShippingPrice] = useState(0);
     const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
 
+    // Promo code state
+    const [showPromo, setShowPromo] = useState(false);
+    const [promoInput, setPromoInput] = useState('');
+    const [promoDiscount, setPromoDiscount] = useState(0);
+    const [promoError, setPromoError] = useState('');
+    const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+
     // Cart Modal State
     const [cartModalOpen, setCartModalOpen] = useState(false);
     const [addingToCart, setAddingToCart] = useState(false);
+    const [placingOrder, setPlacingOrder] = useState(false);
 
     const handleAddToCart = (e) => {
         e.preventDefault();
@@ -85,26 +93,64 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     }, [data.wilaya_id, data.delivery_type]);
 
     const calculateTotal = () => {
-        return (product.price * data.quantity) + shippingPrice;
+        const subtotal = product.price * data.quantity;
+        const total = subtotal + shippingPrice - promoDiscount;
+        return Math.max(0, total);
     };
 
-    const handlePlaceOrder = (e) => {
-        e.preventDefault();
+    const validatePromoCode = async () => {
+        if (!promoInput.trim()) return;
 
-        // Ensure the product is in the cart (checkout.place uses cart items)
-        router.post(route('cart.add'), {
-            product_id: product.id,
-            quantity: data.quantity,
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                post(route('checkout.place'), {
-                    onSuccess: () => {
-                        // Success redirect handled by Laravel
-                    }
-                });
-            }
-        });
+        setIsValidatingPromo(true);
+        setPromoError('');
+
+        try {
+            const response = await axios.post(route('checkout.validate-promo'), {
+                code: promoInput,
+                amount: product.price * data.quantity,
+            });
+
+            setPromoDiscount(response.data.discount);
+            setData('promo_code', response.data.code);
+            setPromoError('');
+        } catch (error) {
+            setPromoDiscount(0);
+            setData('promo_code', '');
+            setPromoError(error.response?.data?.error || t('checkout.invalid_code', 'Code invalide'));
+        } finally {
+            setIsValidatingPromo(false);
+        }
+    };
+
+    const removePromoCode = () => {
+        setPromoInput('');
+        setPromoDiscount(0);
+        setData('promo_code', '');
+        setPromoError('');
+    };
+
+    const handlePlaceOrder = async (e) => {
+        e.preventDefault();
+        setPlacingOrder(true);
+
+        try {
+            // CRITICAL: Clear existing cart to prevent "hidden items" charge
+            await axios.post(route('cart.clear'));
+
+            // Add the current product to cart
+            await axios.post(route('cart.add'), {
+                product_id: product.id,
+                quantity: data.quantity,
+            });
+
+            // Submit the order logic (validation happens here via Inertia)
+            post(route('checkout.place'), {
+                onFinish: () => setPlacingOrder(false)
+            });
+        } catch (error) {
+            console.error("Error preparing order:", error);
+            setPlacingOrder(false);
+        }
     };
 
     return (
@@ -299,6 +345,12 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                             <span>{t('cart.subtotal', 'Sous-total')}</span>
                                             <span>{(product.price * data.quantity).toLocaleString()} {t('currency.symbol', 'DA')}</span>
                                         </div>
+                                        {promoDiscount > 0 && (
+                                            <div className="summary-row flex justify-between text-green-600 text-sm">
+                                                <span>{t('admin.promo_codes', 'Code promo')}</span>
+                                                <span>-{promoDiscount.toLocaleString()} {t('currency.symbol', 'DA')}</span>
+                                            </div>
+                                        )}
                                         <div className="summary-row flex justify-between">
                                             <span>{t('cart.shipping', 'Livraison')}</span>
                                             <span>{isCalculatingShipping ? '...' : `${shippingPrice.toLocaleString()} ${t('currency.symbol', 'DA')}`}</span>
@@ -307,25 +359,86 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                             <span>{t('cart.total', 'Total à payer')}</span>
                                             <span>{calculateTotal().toLocaleString()} {t('currency.symbol', 'DA')}</span>
                                         </div>
+
+                                        {/* Promo code section */}
+                                        <div className="mt-4">
+                                            {!showPromo ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPromo(true)}
+                                                    className="text-sm text-red-500 underline"
+                                                >
+                                                    {t('checkout.promo_link', 'code promo ?')}
+                                                </button>
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    <label className="block text-sm font-medium text-gray-700">
+                                                        {t('checkout.promo_label', 'Code promo')}
+                                                    </label>
+                                                    {data.promo_code ? (
+                                                        <div className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded-lg text-sm">
+                                                            <div>
+                                                                <p className="font-medium text-green-800">{data.promo_code}</p>
+                                                                <p className="text-xs text-green-600">
+                                                                    -{promoDiscount.toLocaleString()} {t('currency.symbol', 'DA')}
+                                                                </p>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={removePromoCode}
+                                                                className="text-red-500 hover:text-red-700 text-xs font-medium"
+                                                            >
+                                                                {t('common.remove', 'Retirer')}
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex gap-2">
+                                                            <input
+                                                                type="text"
+                                                                value={promoInput}
+                                                                onChange={e => setPromoInput(e.target.value.toUpperCase())}
+                                                                placeholder={t('checkout.promo_placeholder', 'Entrez votre code')}
+                                                                className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89]"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={validatePromoCode}
+                                                                disabled={isValidatingPromo || !promoInput.trim()}
+                                                                className="px-4 py-2 bg-[#DB8B89] text-white rounded-lg text-sm font-medium hover:bg-[#C07573] disabled:opacity-50"
+                                                            >
+                                                                {isValidatingPromo
+                                                                    ? t('common.loading', 'Vérification...')
+                                                                    : t('common.apply', 'Appliquer')}
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                    {promoError && (
+                                                        <p className="text-xs text-red-500">
+                                                            {promoError}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
 
                             <div className="product-actions mt-6 flex gap-2">
                                 <button
+                                    type="submit"
+                                    disabled={processing || placingOrder || product.stock <= 0}
+                                    className="add-to-cart-btn primary flex-1 bg-[#DB8B89] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#C07573] disabled:opacity-50"
+                                >
+                                    {processing || placingOrder ? <Loader2 className="animate-spin" /> : <><CreditCard size={20} /> {t('checkout.place_order', 'Acheter maintenant')}</>}
+                                </button>                                
+                                <button
                                     type="button"
                                     onClick={handleAddToCart}
                                     disabled={addingToCart || product.stock <= 0}
-                                    className="flex-1 bg-white border-2 border-teal-600 text-teal-600 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-teal-50 disabled:opacity-50"
+                                    className="flex-1 bg-white border-2 border-[#DB8B89] py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#F8E4E0] disabled:opacity-50 text-[#DB8B89]"
                                 >
                                     {addingToCart ? <Loader2 className="animate-spin" /> : <><ShoppingCart size={20} /> {t('product.add_to_cart', 'Ajouter au panier')}</>}
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={processing || product.stock <= 0}
-                                    className="add-to-cart-btn primary flex-1 bg-teal-600 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-teal-700 disabled:opacity-50"
-                                >
-                                    {processing ? <Loader2 className="animate-spin" /> : <><CreditCard size={20} /> {t('checkout.place_order', 'Acheter maintenant')}</>}
                                 </button>
                             </div>
                         </form>
