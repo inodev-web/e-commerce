@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { ShoppingCart, User, Gift, Award, Copy, Loader2 } from 'lucide-react';
-import { usePage, useForm, Head } from '@inertiajs/react';
+import { usePage, useForm, Head, Link } from '@inertiajs/react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import { useTranslation } from 'react-i18next';
 
 export default function UserProfile({ theme, toggleTheme }) {
+    const { t } = useTranslation();
     const { auth } = usePage().props;
     const user = auth.user;
     const client = user.client || {};
@@ -61,7 +63,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                                 }`}
                         >
-                            Infos Personnelles
+                            {t('profile.personal_info', 'Infos Personnelles')}
                         </button>
                         <button
                             onClick={() => setActiveTab('loyalty')}
@@ -70,8 +72,20 @@ export default function UserProfile({ theme, toggleTheme }) {
                                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                                 }`}
                         >
-                            Fidélité & Points
+                            {t('profile.loyalty_points', 'Fidélité & Points')}
                         </button>
+                        <Link
+                            href={route('orders.index')}
+                            className="flex-1 min-w-[120px] px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                        >
+                            {t('nav.orders', 'Mes Commandes')}
+                        </Link>
+                        <Link
+                            href={route('profile.referral')}
+                            className="flex-1 min-w-[120px] px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                        >
+                            {t('profile.referral', 'Parrainage')}
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -142,10 +156,10 @@ export default function UserProfile({ theme, toggleTheme }) {
                                     <div className="mb-2">
                                         <div className="flex items-center justify-between text-sm mb-1">
                                             <span className="text-gray-600 dark:text-gray-400">Palier actuel</span>
-                                    <span className="text-[#DB8B89] font-medium">{1000 - (client.points || 0)} pts pour le prochain palier</span>
+                                            <span className="text-[#DB8B89] font-medium">{1000 - (client.points || 0)} pts pour le prochain palier</span>
                                         </div>
                                         <div className="w-full bg-gray-200 dark:bg-neutral-700 rounded-full h-2">
-                                    <div className="bg-[#DB8B89] h-2 rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (client.points || 0) / 10)}%` }}></div>
+                                            <div className="bg-[#DB8B89] h-2 rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (client.points || 0) / 10)}%` }}></div>
                                         </div>
                                     </div>
                                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">Gagnez 1 point pour chaque 100 DA dépensé.</p>

@@ -1,24 +1,19 @@
-# 🚀 Plan d'Implémentation - Intégrations Manquantes
+## 📋 Scope du Plan & État d'Avancement
 
-**Date:** 28 Janvier 2026  
-**Objectif:** Compléter les intégrations backend critiques pour rendre le projet pleinement fonctionnel  
-**Durée Estimée:** 2-3 jours
+### ✅ Travail Récemment Terminé (28-29 Janvier 2026)
+- **Tableau de Bord Admin** : Intégration Recharts, statistiques réelles, support RTL pour l'Arabe.
+- **Gestion des Commandes** : Liste paginée, recherche, filtres par wilaya/statut, page détails commande, mise à jour des statuts.
+- **Support Multi-langue (FR/AR)** : Internationalisation complète de l'interface admin et du checkout client via `react-i18next`.
+- **Intégration Checkout** : Calcul des réductions (Codes Promo + Points Fidélité) et finalisation de la commande.
 
----
+### 🎯 Prochaines Étapes Techniques
+- **Livraison Gratuite par Produit** : Ajout d'un champ `free_shipping` dans la base de données.
+- **Gestion des Produits** : Finalisation de l'interface CRUD admin (images, spécifications).
+- **Gestion des Tarifs Livraison** : Interface admin pour configurer les tarifs par Wilaya.
 
-## 📋 Scope du Plan
-
-Ce plan couvre **uniquement les intégrations backend critiques** :
-- ✅ Gestion des Codes Promo (Admin)
-- ✅ Programme de Fidélité (Admin)
-- ✅ Gestion des Clients (Admin)
-- ✅ Paramètres Pixel (Admin)
-- ✅ Intégration Checkout (Codes Promo + Points Fidélité)
-
-**Exclusions:**
-- ❌ Pages client (historique points, suivi commande)
-- ❌ Statistiques dashboard avancées
-- ❌ Exports CSV
+### ❌ Exclusions Restantes
+- Pages client avancées (suivi temps réel complexe).
+- Statistiques dashboard prédictives.
 
 ---
 
@@ -344,14 +339,28 @@ resources/js/pages/
 
 ---
 
-## 🚀 Après Implémentation
+## Phase 3 : Nouvelles Fonctionnalités & Améliorations (En cours)
 
-Une fois ce plan complété, le projet sera **100% fonctionnel** pour :
-- ✅ Gestion complète des codes promo (admin)
-- ✅ Gestion du programme de fidélité (admin)
-- ✅ Vue d'ensemble des clients (admin)
-- ✅ Configuration des pixels publicitaires (admin)
-- ✅ Application des réductions au checkout (client)
-- ✅ Utilisation des points de fidélité (client)
+### 3.1 Livraison Gratuite par Produit 🚚
+**Objectif :** Permettre de définir certains produits comme bénéficiant de la livraison gratuite.
 
-**Statut Final:** Projet prêt pour la production ✨
+**Actions :**
+- [x] Créer une migration pour ajouter `free_shipping` (boolean, default: false) à la table `products`.
+- [x] Mettre à jour le modèle `Product.php` (`$fillable` et `$casts`).
+- [x] Modifier `ProductController.php` pour gérer ce nouveau champ lors de la création/modification.
+- [ ] (Plus tard) Intégrer cette logique dans le calcul des frais de port du `CheckoutController`.
+
+---
+
+## 📁 Structure des Fichiers (Mise à jour)
+```
+app/Http/Controllers/Admin/
+├── OrderController.php            ✅ Connecté (Listing + Détails)
+├── DashboardController.php        ✅ Connecté (Stats + Charts)
+├── ProductController.php          ⚠️ À finaliser (Migration free_shipping)
+```
+
+---
+
+## 🎯 Statut Final (Estimé)
+Projet prêt pour la production sous peu. Le socle admin et checkout est désormais robuste et multi-langue. ✨

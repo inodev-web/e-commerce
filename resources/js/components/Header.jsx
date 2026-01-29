@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Sun, Moon, Truck, ShieldCheck, CheckCircle, Search, User, ShoppingCart, Menu, X } from 'lucide-react';
+import { Sun, Moon, Truck, ShieldCheck, CheckCircle, Search, User, ShoppingCart, Menu, X, LogOut } from 'lucide-react';
 import { Link, usePage, router } from '@inertiajs/react';
+import LanguageSwitcher from '@/Components/LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 
 const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
+    const { t } = useTranslation();
     const { auth } = usePage().props;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -45,11 +48,11 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                 <div className="header-container" style={{ padding: '0.5rem 2rem', minHeight: 'auto', display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '2rem', fontSize: '0.85rem', fontWeight: 500 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <ShieldCheck size={16} />
-                        <span>Paiement à la livraison</span>
+                        <span>{t('common.cash_on_delivery', 'Paiement à la livraison')}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <CheckCircle size={16} />
-                        <span>Qualité Garantie</span>
+                        <span>{t('common.quality_guaranteed', 'Qualité Garantie')}</span>
                     </div>
                 </div>
             </div>
@@ -70,7 +73,7 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                     <Search className="search-icon" size={20} />
                     <input
                         type="text"
-                        placeholder="Rechercher des produits... (Entrée)"
+                        placeholder={t('common.search_placeholder', 'Rechercher des produits... (Entrée)')}
                         className="search-input"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -88,17 +91,26 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                         {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                     </button>
 
+                    <LanguageSwitcher />
+
                     <Link href={auth.user ? route('profile.edit') : route('auth')} className="nav-link">
                         <User className="nav-icon" size={22} />
-                        <span>{auth.user ? 'Profil' : 'Connexion'}</span>
+                        <span>{auth.user ? t('nav.account', 'Profil') : t('nav.login', 'Connexion')}</span>
                     </Link>
 
                     <Link href={route('cart.show')} className="nav-link cart-link">
                         <ShoppingCart className="nav-icon" size={22} />
-                        <span>Panier</span>
+                        <span>{t('nav.cart', 'Panier')}</span>
                         {/* If you have cart count in props, use it here */}
                         <span className="cart-badge">0</span>
                     </Link>
+
+                    {auth.user && (
+                        <Link href={route('logout')} method="post" as="button" className="nav-link logout-link text-red-500 hover:text-red-700">
+                            <LogOut className="nav-icon" size={22} />
+                            <span>{t('nav.logout', 'Déconnexion')}</span>
+                        </Link>
+                    )}
                 </nav>
 
                 {/* Mobile Menu Toggle */}

@@ -89,6 +89,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'status' => ['required', Rule::enum(ProductStatus::class)],
+            'free_shipping' => 'nullable|boolean',
             'images' => 'nullable|array',
             // 5MB per image (Laravel uses KB)
             'images.*' => 'nullable|image|max:5120',
@@ -211,6 +212,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'status' => ['required', Rule::enum(ProductStatus::class)],
+            'free_shipping' => 'nullable|boolean',
             'images.*' => 'nullable|image|max:2048',
             'specifications' => 'nullable|array',
             'specifications.*.id' => 'required|exists:specifications,id',

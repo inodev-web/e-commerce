@@ -7,8 +7,11 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import CartConfirmationModal from '../../components/CartConfirmationModal';
 import '../../../css/productPage.css';
+import { useTranslation } from 'react-i18next';
+import { getTranslated, isRTL } from '@/utils/translation';
 
 const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
+    const { t, i18n } = useTranslation();
     const { auth } = usePage().props;
     const fullName = auth?.user?.name ?? '';
     const [first = '', ...rest] = fullName.split(' ');
@@ -44,12 +47,12 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     const { data, setData, post, processing, errors } = useForm({
         product_id: product.id,
         quantity: 1,
-        first_name: auth?.user ? first : '',
-        last_name: auth?.user ? last : '',
-        phone: auth?.user?.phone ?? '',
-        address: '',
-        wilaya_id: '',
-        commune_id: '',
+        first_name: auth?.user?.client?.first_name || '',
+        last_name: auth?.user?.client?.last_name || '',
+        phone: auth?.user?.phone || auth?.user?.client?.phone || '',
+        address: auth?.user?.client?.address || '',
+        wilaya_id: auth?.user?.client?.wilaya_id || '',
+        commune_id: auth?.user?.client?.commune_id || '',
         delivery_type: 'DOMICILE',
         promo_code: '',
     });
@@ -67,9 +70,6 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     };
 
     useEffect(() => {
-        // Checkout endpoints are behind auth middleware in this app.
-        if (!auth?.user) return;
-
         if (data.wilaya_id && data.delivery_type) {
             setIsCalculatingShipping(true);
             axios.post(route('checkout.shipping'), {
@@ -82,7 +82,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                 setIsCalculatingShipping(false);
             });
         }
-    }, [auth?.user, data.wilaya_id, data.delivery_type]);
+    }, [data.wilaya_id, data.delivery_type]);
 
     const calculateTotal = () => {
         return (product.price * data.quantity) + shippingPrice;
@@ -90,10 +90,6 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
     const handlePlaceOrder = (e) => {
         e.preventDefault();
-        if (!auth?.user) {
-            router.visit(route('auth'));
-            return;
-        }
 
         // Ensure the product is in the cart (checkout.place uses cart items)
         router.post(route('cart.add'), {
@@ -123,7 +119,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
             >
                 <button onClick={() => router.visit(route('products.index'))} className="back-button">
                     <ChevronLeft size={20} />
-                    Retour à la boutique
+                    {t('nav.shop', 'Retour à la boutique')}
                 </button>
 
                 <div className="product-content">
@@ -136,7 +132,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         >
                             <img
                                 src={product.images && product.images.length > 0 ? `/storage/${product.images[selectedImage].image_path}` : '/placeholder.svg'}
-                                alt={product.name}
+                                alt={getTranslated(product, 'name')}
                                 className="main-product-image object-contain"
                             />
                         </motion.div>
@@ -148,7 +144,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                     className={`thumbnail ${selectedImage === index ? 'active' : ''}`}
                                     onClick={() => setSelectedImage(index)}
                                 >
-                                    <img src={`/storage/${img.image_path}`} alt={`${product.name} ${index + 1}`} />
+                                    <img src={`/storage/${img.image_path}`} alt={`${getTranslated(product, 'name')} ${index + 1}`} />
                                 </div>
                             ))}
                         </div>
@@ -161,8 +157,8 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         transition={{ delay: 0.2 }}
                         className="product-info-section"
                     >
-                        <div className="product-brand">{product.sub_category ? product.sub_category.name : 'Puréva'}</div>
-                        <h1 className="product-title">{product.name}</h1>
+                        <div className="product-brand">{product.sub_category ? getTranslated(product.sub_category, 'name') : 'Puréva'}</div>
+                        <h1 className="product-title">{getTranslated(product, 'name')}</h1>
 
                         <div className="product-rating-section">
                             <div className="rating-stars">
@@ -170,23 +166,23 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                     <Star key={i} size={18} fill={i < 4 ? '#FFC107' : 'none'} stroke="#FFC107" />
                                 ))}
                             </div>
-                            <span className="rating-text">4.5 (80+ avis)</span>
+                            <span className="rating-text">4.5 (80+ {t('product.reviews', 'avis')})</span>
                         </div>
 
                         <div className="product-price-section">
-                            <span className="current-price">{product.price.toLocaleString()} DA</span>
+                            <span className="current-price">{product.price.toLocaleString()} {t('currency.symbol', 'DA')}</span>
                         </div>
 
                         <div className="stock-status">
                             {product.stock > 0 ? (
-                                <span className="in-stock">✓ En stock ({product.stock} disponibles)</span>
+                                <span className="in-stock">✓ {t('product.in_stock', 'En stock')} ({product.stock} {t('product.available', 'disponibles')})</span>
                             ) : (
-                                <span className="out-of-stock">En rupture de stock</span>
+                                <span className="out-of-stock">{t('product.out_of_stock', 'En rupture de stock')}</span>
                             )}
                         </div>
 
                         <div className="quantity-section">
-                            <label>Quantité:</label>
+                            <label>{t('cart.quantity', 'Quantité')}:</label>
                             <div className="quantity-selector">
                                 <button onClick={() => setData('quantity', Math.max(1, data.quantity - 1))} className="qty-btn">
                                     <Minus size={16} />
@@ -198,54 +194,37 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                             </div>
                         </div>
 
-                        {/* Order Form (checkout is auth-only in this app) */}
-                        {!auth?.user ? (
-                            <div className="order-form-section">
-                                <h3 className="order-form-title">Finaliser votre commande</h3>
-                                <p className="text-sm text-gray-600 mt-2">
-                                    Connectez-vous pour calculer la livraison et passer commande.
-                                </p>
-                                <div className="mt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => router.visit(route('auth'))}
-                                        className="add-to-cart-btn primary w-full bg-teal-600 text-white py-4 rounded-xl font-bold hover:bg-teal-700"
-                                    >
-                                        Se connecter
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <form onSubmit={handlePlaceOrder} className="order-form-section">
-                                <h3 className="order-form-title">Complétez votre commande</h3>
-                                <div className="order-form-content">
+                        {/* Order Form (Publicly accessible) */}
+                        <form onSubmit={handlePlaceOrder} className="order-form-section">
+                            <h3 className="order-form-title">{t('checkout.title', 'Complétez votre commande')}</h3>
+                            <div className="order-form-content">
                                 <div className="form-group grid grid-cols-2 gap-2">
                                     <div>
-                                        <label className="form-label">Prénom *</label>
+                                        <label className="form-label">{t('checkout.first_name', 'Prénom')} *</label>
                                         <input
                                             type="text"
                                             value={data.first_name}
                                             onChange={e => setData('first_name', e.target.value)}
-                                            placeholder="Prénom"
+                                            placeholder={t('checkout.first_name', 'Prénom')}
                                             className="form-input"
                                             required
                                         />
                                         {errors.first_name && <p className="text-red-500 text-xs">{errors.first_name}</p>}
                                     </div>
                                     <div>
-                                        <label className="form-label">Nom *</label>
+                                        <label className="form-label">{t('checkout.last_name', 'Nom')} *</label>
                                         <input
                                             type="text"
                                             value={data.last_name}
                                             onChange={e => setData('last_name', e.target.value)}
-                                            placeholder="Nom"
+                                            placeholder={t('checkout.last_name', 'Nom')}
                                             className="form-input"
                                             required
                                         />
                                     </div>
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">Téléphone *</label>
+                                    <label className="form-label">{t('checkout.phone', 'Téléphone')} *</label>
                                     <input
                                         type="tel"
                                         value={data.phone}
@@ -257,52 +236,52 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                     {errors.phone && <p className="text-red-500 text-xs">{errors.phone}</p>}
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">Wilaya *</label>
+                                    <label className="form-label">{t('checkout.wilaya', 'Wilaya')} *</label>
                                     <select
                                         className="form-select"
                                         value={data.wilaya_id}
                                         onChange={(e) => handleWilayaChange(e.target.value)}
                                         required
                                     >
-                                        <option value="">Sélectionner</option>
+                                        <option value="">{t('common.select', 'Sélectionner')}</option>
                                         {wilayas.map(w => (
-                                            <option key={w.id} value={w.id}>{w.code} - {w.name}</option>
+                                            <option key={w.id} value={w.id}>{w.code} - {isRTL() || i18n.language === 'ar' ? (w.name_ar || w.name) : w.name}</option>
                                         ))}
                                     </select>
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">Commune *</label>
+                                    <label className="form-label">{t('checkout.commune', 'Commune')} *</label>
                                     <select
                                         className="form-select"
                                         value={data.commune_id}
                                         onChange={e => setData('commune_id', e.target.value)}
                                         required
                                     >
-                                        <option value="">Sélectionner</option>
+                                        <option value="">{t('common.select', 'Sélectionner')}</option>
                                         {communes.map(c => (
-                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                            <option key={c.id} value={c.id}>{isRTL() || i18n.language === 'ar' ? (c.name_ar || c.name) : c.name}</option>
                                         ))}
                                     </select>
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">Adresse *</label>
+                                    <label className="form-label">{t('checkout.address', 'Adresse')} *</label>
                                     <input
                                         type="text"
                                         value={data.address}
                                         onChange={e => setData('address', e.target.value)}
-                                        placeholder="Adresse exacte"
+                                        placeholder={t('checkout.address', 'Adresse exacte')}
                                         className="form-input"
                                         required
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">Type de livraison</label>
+                                    <label className="form-label">{t('checkout.delivery_type', 'Type de livraison')}</label>
                                     <div className="flex gap-4">
                                         <label className="flex items-center gap-2">
-                                            <input type="radio" name="delivery_type" value="DOMICILE" checked={data.delivery_type === 'DOMICILE'} onChange={e => setData('delivery_type', e.target.value)} /> Domicile
+                                            <input type="radio" name="delivery_type" value="DOMICILE" checked={data.delivery_type === 'DOMICILE'} onChange={e => setData('delivery_type', e.target.value)} /> {t('checkout.home_delivery', 'Domicile')}
                                         </label>
                                         <label className="flex items-center gap-2">
-                                            <input type="radio" name="delivery_type" value="BUREAU" checked={data.delivery_type === 'BUREAU'} onChange={e => setData('delivery_type', e.target.value)} /> Bureau / Point relais
+                                            <input type="radio" name="delivery_type" value="BUREAU" checked={data.delivery_type === 'BUREAU'} onChange={e => setData('delivery_type', e.target.value)} /> {t('checkout.office_delivery', 'Bureau / Point relais')}
                                         </label>
                                     </div>
                                 </div>
@@ -317,16 +296,16 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                         className="pricing-summary overflow-hidden mt-4 p-4 bg-gray-50 rounded-xl"
                                     >
                                         <div className="summary-row flex justify-between">
-                                            <span>Sous-total</span>
-                                            <span>{(product.price * data.quantity).toLocaleString()} DA</span>
+                                            <span>{t('cart.subtotal', 'Sous-total')}</span>
+                                            <span>{(product.price * data.quantity).toLocaleString()} {t('currency.symbol', 'DA')}</span>
                                         </div>
                                         <div className="summary-row flex justify-between">
-                                            <span>Livraison</span>
-                                            <span>{isCalculatingShipping ? '...' : `${shippingPrice.toLocaleString()} DA`}</span>
+                                            <span>{t('cart.shipping', 'Livraison')}</span>
+                                            <span>{isCalculatingShipping ? '...' : `${shippingPrice.toLocaleString()} ${t('currency.symbol', 'DA')}`}</span>
                                         </div>
                                         <div className="summary-row total flex justify-between font-bold border-t mt-2 pt-2 text-lg">
-                                            <span>Total à payer</span>
-                                            <span>{calculateTotal().toLocaleString()} DA</span>
+                                            <span>{t('cart.total', 'Total à payer')}</span>
+                                            <span>{calculateTotal().toLocaleString()} {t('currency.symbol', 'DA')}</span>
                                         </div>
                                     </motion.div>
                                 )}
@@ -339,32 +318,31 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                     disabled={addingToCart || product.stock <= 0}
                                     className="flex-1 bg-white border-2 border-teal-600 text-teal-600 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-teal-50 disabled:opacity-50"
                                 >
-                                    {addingToCart ? <Loader2 className="animate-spin" /> : <><ShoppingCart size={20} /> Ajouter au panier</>}
+                                    {addingToCart ? <Loader2 className="animate-spin" /> : <><ShoppingCart size={20} /> {t('product.add_to_cart', 'Ajouter au panier')}</>}
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={processing || product.stock <= 0}
                                     className="add-to-cart-btn primary flex-1 bg-teal-600 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-teal-700 disabled:opacity-50"
                                 >
-                                    {processing ? <Loader2 className="animate-spin" /> : <><CreditCard size={20} /> Acheter maintenant</>}
+                                    {processing ? <Loader2 className="animate-spin" /> : <><CreditCard size={20} /> {t('checkout.place_order', 'Acheter maintenant')}</>}
                                 </button>
                             </div>
-                            </form>
-                        )}
+                        </form>
 
                         {/* Tabs */}
                         <div className="product-tabs mt-8">
                             <div className="tab-headers border-b flex gap-6">
-                                <button className={`pb-2 ${activeTab === 'description' ? 'border-b-2 border-teal-600 font-bold' : ''}`} onClick={() => setActiveTab('description')}>Description</button>
-                                <button className={`pb-2 ${activeTab === 'features' ? 'border-b-2 border-teal-600 font-bold' : ''}`} onClick={() => setActiveTab('features')}>Spécifications</button>
+                                <button className={`pb-2 ${activeTab === 'description' ? 'border-b-2 border-teal-600 font-bold' : ''}`} onClick={() => setActiveTab('description')}>{t('product.description', 'Description')}</button>
+                                <button className={`pb-2 ${activeTab === 'features' ? 'border-b-2 border-teal-600 font-bold' : ''}`} onClick={() => setActiveTab('features')}>{t('product.specifications', 'Spécifications')}</button>
                             </div>
                             <div className="tab-content py-4">
-                                {activeTab === 'description' && <p>{product.description}</p>}
+                                {activeTab === 'description' && <p>{getTranslated(product, 'description')}</p>}
                                 {activeTab === 'features' && (
                                     <div className="grid grid-cols-2 gap-4">
                                         {product.specification_values && product.specification_values.map((spec, i) => (
                                             <div key={i} className="flex flex-col border-b pb-2">
-                                                <span className="text-gray-500 text-xs">{spec.specification.name}</span>
+                                                <span className="text-gray-500 text-xs">{getTranslated(spec.specification, 'name')}</span>
                                                 <span className="font-medium">{spec.value}</span>
                                             </div>
                                         ))}

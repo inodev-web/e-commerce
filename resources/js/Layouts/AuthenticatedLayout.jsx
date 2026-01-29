@@ -1,7 +1,8 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Dropdown';
-import NavLink from '@/Components/NavLink';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import ApplicationLogo from '@/components/ApplicationLogo';
+import Dropdown from '@/components/Dropdown';
+import NavLink from '@/components/NavLink';
+import ResponsiveNavLink from '@/components/ResponsiveNavLink';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -33,7 +34,8 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </div>
 
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
+                        <div className="hidden sm:ms-6 sm:flex sm:items-center gap-3">
+                            <LanguageSwitcher />
                             <div className="relative ms-3">
                                 <Dropdown>
                                     <Dropdown.Trigger>
@@ -147,6 +149,9 @@ export default function AuthenticatedLayout({ header, children }) {
                         </div>
 
                         <div className="mt-3 space-y-1">
+                            <div className="px-4 py-2">
+                                <LanguageSwitcher className="w-full justify-center" />
+                            </div>
                             <ResponsiveNavLink href={route('profile.edit')}>
                                 Profile
                             </ResponsiveNavLink>

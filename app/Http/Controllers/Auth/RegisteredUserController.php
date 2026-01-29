@@ -19,12 +19,15 @@ use Inertia\Response;
 class RegisteredUserController extends Controller
 {
     public function __construct(
-        private readonly SmsService $smsService
+        private readonly SmsService $smsService,
+        private readonly \App\Services\LocationService $locationService
     ) {}
+    
     public function create(): Response
     {
         return Inertia::render('Auth/Login', [
-            'wilayas' => \App\Models\Wilaya::select('id', 'name')->orderBy('name')->get()
+            'wilayas' => $this->locationService->getActiveWilayas()
+                ->map(fn($w) => ['id' => $w->id, 'name' => $w->name])
         ]);
     }
 
@@ -65,6 +68,8 @@ class RegisteredUserController extends Controller
                 'role' => 'client',
                 'status' => 'active',
             ]);
+
+            $user->assignRole('client');
 
             // TÂCHE 2 (Sans SMS) : Vérification automatique
             $user->forceFill([

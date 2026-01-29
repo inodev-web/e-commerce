@@ -28,7 +28,7 @@ import {
     Cell
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
-import '../dashboard.css';
+import '../../css/dashboard.css';
 
 const data = [
     { name: 'Lun', revenue: 4000, orders: 240 },

@@ -4,13 +4,17 @@ import axios from 'axios';
 import { Truck, MapPin, Phone, CreditCard, ShoppingBag, Loader2 } from 'lucide-react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import { useTranslation } from 'react-i18next';
+import { getTranslated, isRTL } from '@/utils/translation';
 
-const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes }) => {
+const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalance: propLoyaltyBalance }) => {
     // Theme state
     const [theme, setTheme] = useState('light');
     const toggleTheme = () => setTheme(pre => pre === 'dark' ? 'light' : 'dark');
 
     const { auth } = usePage().props;
+    const { t, i18n } = useTranslation();
+    const isAr = i18n.language === 'ar';
 
     // Form handling
     const { data, setData, post, processing, errors } = useForm({
@@ -18,15 +22,27 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes }) => {
         last_name: auth.user?.client?.last_name || '',
         phone: auth.user?.phone || auth.user?.client?.phone || '',
         wilaya_id: auth.user?.client?.wilaya_id || '',
-        commune_id: auth.user?.client?.commune_id || '', // Note: Logic slightly flawed if communes not loaded
+        commune_id: auth.user?.client?.commune_id || '',
         address: auth.user?.client?.address || '',
         delivery_type: deliveryTypes[0].value,
+        promo_code: '',
+        use_loyalty_points: 0,
     });
 
     // Local state for dynamic data
     const [communes, setCommunes] = useState([]);
     const [shippingPrice, setShippingPrice] = useState(0);
     const [isLoadingShipping, setIsLoadingShipping] = useState(false);
+
+    // Promo code state
+    const [promoInput, setPromoInput] = useState('');
+    const [promoDiscount, setPromoDiscount] = useState(0);
+    const [promoError, setPromoError] = useState('');
+    const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+
+    // Loyalty points state
+    const [loyaltyBalance, setLoyaltyBalance] = useState(propLoyaltyBalance || auth.user?.client?.total_points || 0);
+    const [loyaltyDiscount, setLoyaltyDiscount] = useState(0);
 
     // Initial load or update when wilaya/type changes
     useEffect(() => {
@@ -54,12 +70,49 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes }) => {
         }
     };
 
+    const validatePromoCode = async () => {
+        if (!promoInput.trim()) return;
+
+        setIsValidatingPromo(true);
+        setPromoError('');
+
+        try {
+            const response = await axios.post(route('checkout.validate-promo'), {
+                code: promoInput
+            });
+
+            setPromoDiscount(response.data.discount);
+            setData('promo_code', response.data.code);
+            setPromoError('');
+        } catch (error) {
+            setPromoDiscount(0);
+            setData('promo_code', '');
+            setPromoError(error.response?.data?.error || 'Code invalide');
+        } finally {
+            setIsValidatingPromo(false);
+        }
+    };
+
+    const removePromoCode = () => {
+        setPromoInput('');
+        setPromoDiscount(0);
+        setData('promo_code', '');
+        setPromoError('');
+    };
+
+    const handleLoyaltyPointsChange = (points) => {
+        const maxPoints = Math.min(loyaltyBalance, productsTotal);
+        const usePoints = Math.min(Math.max(0, parseInt(points) || 0), maxPoints);
+        setData('use_loyalty_points', usePoints);
+        setLoyaltyDiscount(usePoints); // 1 point = 1 DA
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         post(route('checkout.place'));
     };
 
-    const total = productsTotal + shippingPrice;
+    const total = productsTotal + shippingPrice - promoDiscount - loyaltyDiscount;
 
     return (
         <div className={`min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-gray-900 text-white' : 'bg-gray-50'}`}>
@@ -136,9 +189,9 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes }) => {
                                             className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-teal-500 ${errors.wilaya_id ? 'border-red-500' : 'border-gray-300'}`}
                                             required
                                         >
-                                            <option value="">Sélectionner une wilaya</option>
+                                            <option value="">{t('checkout.select_wilaya', 'Sélectionner une wilaya')}</option>
                                             {wilayas.map(w => (
-                                                <option key={w.id} value={w.id}>{w.id} - {w.name}</option>
+                                                <option key={w.id} value={w.id}>{w.id} - {isAr ? (w.name_ar || w.name) : w.name}</option>
                                             ))}
                                         </select>
                                         {errors.wilaya_id && <p className="text-red-500 text-xs mt-1">{errors.wilaya_id}</p>}
@@ -154,9 +207,9 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes }) => {
                                             required
                                             disabled={!data.wilaya_id}
                                         >
-                                            <option value="">Sélectionner une commune</option>
+                                            <option value="">{t('checkout.select_commune', 'Sélectionner une commune')}</option>
                                             {communes.map(c => (
-                                                <option key={c.id} value={c.id}>{c.name}</option>
+                                                <option key={c.id} value={c.id}>{isAr ? (c.name_ar || c.name) : c.name}</option>
                                             ))}
                                         </select>
                                         {errors.commune_id && <p className="text-red-500 text-xs mt-1">{errors.commune_id}</p>}
@@ -233,21 +286,108 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes }) => {
 
                             <hr className="my-4" />
 
+                            {/* Promo Code Section */}
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Code Promo</label>
+                                {data.promo_code ? (
+                                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                                        <div>
+                                            <p className="font-medium text-green-800">{data.promo_code}</p>
+                                            <p className="text-xs text-green-600">-{promoDiscount.toLocaleString()} DA</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={removePromoCode}
+                                            className="text-red-500 hover:text-red-700 flex items-center gap-1 text-sm font-medium"
+                                            title={t('common.remove', 'Supprimer')}
+                                        >
+                                            <X className="w-4 h-4" />
+                                            {t('common.remove', 'Retirer')}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={promoInput}
+                                            onChange={e => setPromoInput(e.target.value.toUpperCase())}
+                                            placeholder={t('checkout.promo_placeholder', 'Entrer le code')}
+                                            className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-teal-500"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={validatePromoCode}
+                                            disabled={isValidatingPromo || !promoInput.trim()}
+                                            className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900 disabled:opacity-50"
+                                        >
+                                            {isValidatingPromo ? t('common.loading', 'Vérification...') : t('common.apply', 'Appliquer')}
+                                        </button>
+                                    </div>
+                                )}
+                                {promoError && <p className="text-red-500 text-xs mt-1">{promoError}</p>}
+                            </div>
+
+                            {/* Loyalty Points Section */}
+                            {auth.user && loyaltyBalance > 0 && (
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        {t('loyalty.available_points', 'Points Fidélité')} ({t('loyalty.available', 'Disponible')}: {loyaltyBalance.toLocaleString()})
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="number"
+                                            value={data.use_loyalty_points || ''}
+                                            onChange={e => handleLoyaltyPointsChange(e.target.value)}
+                                            placeholder="0"
+                                            min="0"
+                                            max={Math.min(loyaltyBalance, productsTotal)}
+                                            className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-teal-500"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => handleLoyaltyPointsChange(Math.min(loyaltyBalance, productsTotal))}
+                                            className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700"
+                                        >
+                                            {t('loyalty.use_all', 'Utiliser tout')}
+                                        </button>
+                                    </div>
+                                    {loyaltyDiscount > 0 && (
+                                        <p className="text-xs text-green-600 mt-1">
+                                            {t('cart.discount', 'Réduction')} : -{loyaltyDiscount.toLocaleString()} DA
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                            <hr className="my-4" />
+
                             <div className="space-y-3 mb-6">
                                 <div className="flex justify-between text-gray-600">
-                                    <span>Sous-total</span>
+                                    <span>{t('cart.subtotal', 'Sous-total')}</span>
                                     <span>{productsTotal.toLocaleString()} DA</span>
                                 </div>
+                                {promoDiscount > 0 && (
+                                    <div className="flex justify-between text-green-600">
+                                        <span>{t('admin.promo_codes', 'Code Promo')}</span>
+                                        <span>-{promoDiscount.toLocaleString()} DA</span>
+                                    </div>
+                                )}
+                                {loyaltyDiscount > 0 && (
+                                    <div className="flex justify-between text-green-600">
+                                        <span>{t('admin.loyalty', 'Points Fidélité')}</span>
+                                        <span>-{loyaltyDiscount.toLocaleString()} DA</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between text-gray-600">
-                                    <span>Livraison</span>
+                                    <span>{t('cart.shipping', 'Livraison')}</span>
                                     {isLoadingShipping ? (
                                         <Loader2 className="animate-spin w-4 h-4" />
                                     ) : (
-                                        <span>{shippingPrice > 0 ? `${shippingPrice.toLocaleString()} DA` : 'Gratuit / Non calculé'}</span>
+                                        <span>{shippingPrice > 0 ? `${shippingPrice.toLocaleString()} DA` : t('cart.free_shipping', 'Gratuit / Non calculé')}</span>
                                     )}
                                 </div>
                                 <div className="border-t pt-3 flex justify-between font-bold text-xl text-gray-900">
-                                    <span>Total à payer</span>
+                                    <span>{t('cart.total_to_pay', 'Total à payer')}</span>
                                     <span>{total.toLocaleString()} DA</span>
                                 </div>
                             </div>
@@ -257,7 +397,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes }) => {
                                 disabled={processing || isLoadingShipping || !data.wilaya_id}
                                 className="w-full bg-teal-600 text-white py-3 rounded-xl font-bold text-center block hover:bg-teal-700 transition-all shadow-lg shadow-teal-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {processing ? 'Traitement...' : 'Confirmer la commande'}
+                                {processing ? t('common.processing', 'Traitement...') : t('checkout.place_order', 'Confirmer la commande')}
                             </button>
 
                             <p className="text-xs text-gray-500 text-center mt-4">

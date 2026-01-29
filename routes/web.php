@@ -6,6 +6,10 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\Admin\PromoCodeController;
+use App\Http\Controllers\Admin\LoyaltyController;
+use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\PixelSettingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -88,14 +92,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/profile/edit', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit'); // Changed URI to avoid conflict
     Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [\App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
+});
 
-    // Checkout
-    Route::prefix('checkout')->name('checkout.')->group(function () {
-        Route::get('/', [CheckoutController::class, 'show'])->name('show');
-        Route::post('/calculate-shipping', [CheckoutController::class, 'calculateShipping'])->name('shipping');
-        Route::post('/place', [CheckoutController::class, 'placeOrder'])->name('place');
-        Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
-    });
+// Checkout (Publicly accessible)
+Route::prefix('checkout')->name('checkout.')->group(function () {
+    Route::get('/', [CheckoutController::class, 'show'])->name('show');
+    Route::post('/calculate-shipping', [CheckoutController::class, 'calculateShipping'])->name('shipping');
+    Route::post('/validate-promo', [CheckoutController::class, 'validatePromoCode'])->name('validate-promo');
+    Route::post('/place', [CheckoutController::class, 'placeOrder'])->name('place');
+    Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
 });
 
 // Admin Routes
@@ -103,26 +108,33 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'role:admin'
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Product Management
+    // Promo Codes
+    Route::resource('promo-codes', \App\Http\Controllers\Admin\PromoCodeController::class);
+    Route::post('promo-codes/{promoCode}/toggle', [\App\Http\Controllers\Admin\PromoCodeController::class, 'toggle'])->name('promo-codes.toggle');
+
+    // Products
     Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
+
+    // Loyalty Program
+    Route::get('loyalty', [\App\Http\Controllers\Admin\LoyaltyController::class, 'index'])->name('loyalty.index');
+    Route::post('loyalty/adjust', [\App\Http\Controllers\Admin\LoyaltyController::class, 'manualAdjustment'])->name('loyalty.adjust');
+    Route::get('loyalty/client/{client}', [\App\Http\Controllers\Admin\LoyaltyController::class, 'clientHistory'])->name('loyalty.client');
     
+    Route::get('loyalty/client/{client}', [\App\Http\Controllers\Admin\LoyaltyController::class, 'clientHistory'])->name('loyalty.client');
+    
+    // Customer Management
+    Route::get('customers', [\App\Http\Controllers\Admin\CustomerController::class, 'index'])->name('customers.index');
+    Route::get('customers/{client}', [\App\Http\Controllers\Admin\CustomerController::class, 'show'])->name('customers.show');
+
+    // Settings
+    Route::get('settings/pixel', [\App\Http\Controllers\Admin\PixelSettingController::class, 'show'])->name('settings.pixel');
+    Route::put('settings/pixel', [\App\Http\Controllers\Admin\PixelSettingController::class, 'update'])->name('settings.pixel.update');
+
     // Category Management
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
     Route::post('categories/{category}/sub-categories', [\App\Http\Controllers\Admin\CategoryController::class, 'storeSubCategory'])->name('categories.sub-categories.store');
     Route::patch('sub-categories/{subCategory}', [\App\Http\Controllers\Admin\CategoryController::class, 'updateSubCategory'])->name('sub-categories.update');
     Route::delete('sub-categories/{subCategory}', [\App\Http\Controllers\Admin\CategoryController::class, 'destroySubCategory'])->name('sub-categories.destroy');
-
-    // Admin Pages
-    Route::get('/loyalty', function () {
-        return Inertia::render('Admin/Loyalty');
-    })->name('loyalty');
-
-    Route::get('/promotions', function () {
-        return Inertia::render('Admin/Promotions');
-    })->name('promotions');
-
-    Route::get('/customers', function () {
-        return Inertia::render('Admin/Customers');
-    })->name('customers');
 
     // Specifications
     Route::resource('specifications', \App\Http\Controllers\Admin\SpecificationController::class)->only(['store', 'update', 'destroy']);
