@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, Loader2, Play, Phone, MapPin, Building, User, Sun, Moon } from 'lucide-react';
 import { Link, useForm } from '@inertiajs/react';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
+import { getTranslated } from '@/utils/translation';
+import { getLabel } from '../../utils/i18n';
 
 const AuthPage = ({ wilayas }) => {
     const [isLogin, setIsLogin] = useState(true);
@@ -103,10 +105,10 @@ const AuthPage = ({ wilayas }) => {
 
                     <div className="hidden lg:block mb-12">
                         <h1 className="text-5xl font-bold leading-tight mb-4">
-                            Trouvez Vos <br /> Essentiels Santé
+                            {getLabel('login_hero_title')}
                         </h1>
                         <p className="text-gray-300 text-base max-w-md mb-8">
-                            Accédez à une large gamme de produits parapharmaceutiques de qualité. Livraison rapide et conseils d'experts.
+                            {getLabel('login_hero_text')}
                         </p>
 
                         {/* Slider Dots */}
@@ -138,7 +140,7 @@ const AuthPage = ({ wilayas }) => {
                         onClick={toggleMode}
                         className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/20 lg:bg-black lg:text-white lg:hover:bg-gray-800 lg:border-transparent lg:dark:bg-white lg:dark:text-black px-6 py-2.5 rounded-full text-sm font-medium transition-all"
                     >
-                        {isLogin ? "S'inscrire" : 'Se connecter'}
+                        {isLogin ? getLabel('register') : getLabel('login')}
                     </button>
                 </div>
 
@@ -147,10 +149,10 @@ const AuthPage = ({ wilayas }) => {
 
                     <div className="mb-6 lg:mb-8 text-center lg:text-left">
                         <h2 className="text-3xl lg:text-4xl font-bold text-white lg:text-gray-900 lg:dark:text-white mb-2">
-                            {isLogin ? 'Bon retour !' : 'Créer un compte'}
+                            {isLogin ? getLabel('welcome_back') : getLabel('create_account')}
                         </h2>
                         <p className="text-gray-200 lg:text-gray-500 lg:dark:text-gray-400">
-                            {isLogin ? 'Connectez-vous pour accéder à votre compte' : 'Inscrivez-vous pour commencer'}
+                            {isLogin ? getLabel('login_desc') : getLabel('register_desc')}
                         </p>
                     </div>
 
@@ -161,24 +163,24 @@ const AuthPage = ({ wilayas }) => {
                             <>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="block text-sm font-medium text-gray-200 lg:text-gray-700 lg:dark:text-gray-300">Nom</label>
+                                        <label className="block text-sm font-medium text-gray-200 lg:text-gray-700 lg:dark:text-gray-300">{getLabel('last_name')}</label>
                                         <input
                                             type="text"
                                             value={data.last_name}
                                             onChange={(e) => setData('last_name', e.target.value)}
-                                            placeholder="Nom"
+                                            placeholder={getLabel('last_name')}
                                             className="w-full px-4 py-3 border border-white/20 lg:border-gray-300 lg:dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-white lg:focus:ring-gray-900 lg:dark:focus:ring-white focus:border-transparent outline-none transition-all bg-white/10 lg:bg-white lg:dark:bg-neutral-900 text-white lg:text-gray-900 lg:dark:text-white placeholder-gray-400 lg:placeholder-gray-400"
                                             required
                                         />
                                         {errors.last_name && <div className="text-red-400 lg:text-red-500 text-xs mt-1">{errors.last_name}</div>}
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="block text-sm font-medium text-gray-200 lg:text-gray-700 lg:dark:text-gray-300">Prénom</label>
+                                        <label className="block text-sm font-medium text-gray-200 lg:text-gray-700 lg:dark:text-gray-300">{getLabel('first_name')}</label>
                                         <input
                                             type="text"
                                             value={data.first_name}
                                             onChange={(e) => setData('first_name', e.target.value)}
-                                            placeholder="Prénom"
+                                            placeholder={getLabel('first_name')}
                                             className="w-full px-4 py-3 border border-white/20 lg:border-gray-300 lg:dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-white lg:focus:ring-gray-900 lg:dark:focus:ring-white focus:border-transparent outline-none transition-all bg-white/10 lg:bg-white lg:dark:bg-neutral-900 text-white lg:text-gray-900 lg:dark:text-white placeholder-gray-400 lg:placeholder-gray-400"
                                             required
                                         />
@@ -190,7 +192,7 @@ const AuthPage = ({ wilayas }) => {
 
                         {/* TELEPHONE (Commun) */}
                         <div className="space-y-1.5">
-                            <label className="block text-sm font-medium text-gray-200 lg:text-gray-700 lg:dark:text-gray-300">Numéro de téléphone</label>
+                            <label className="block text-sm font-medium text-gray-200 lg:text-gray-700 lg:dark:text-gray-300">{getLabel('phone_number')}</label>
                             <div className="relative">
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                                 <input
@@ -210,7 +212,7 @@ const AuthPage = ({ wilayas }) => {
                             <>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="block text-sm font-medium text-gray-200 lg:text-gray-700 lg:dark:text-gray-300">Wilaya</label>
+                                        <label className="block text-sm font-medium text-gray-200 lg:text-gray-700 lg:dark:text-gray-300">{getLabel('wilaya')}</label>
                                         <div className="relative">
                                             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             <select
@@ -232,7 +234,7 @@ const AuthPage = ({ wilayas }) => {
 
                                     <div className="space-y-1.5">
                                         <label className="block text-sm font-medium text-gray-200 lg:text-gray-700 lg:dark:text-gray-300 flex items-center justify-between">
-                                            Commune
+                                            {getLabel('commune')}
                                             {loadingCommunes && <Loader2 className="w-3 h-3 animate-spin text-gray-400" />}
                                         </label>
                                         <div className="relative">
@@ -247,7 +249,7 @@ const AuthPage = ({ wilayas }) => {
                                                 <option value="" className="text-gray-900">Choisir...</option>
                                                 {communes.map((commune) => (
                                                     <option key={commune.id} value={commune.id} className="text-gray-900">
-                                                        {commune.name}
+                                                        {getTranslated(commune, 'name')}
                                                     </option>
                                                 ))}
                                             </select>
@@ -257,11 +259,11 @@ const AuthPage = ({ wilayas }) => {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="block text-sm font-medium text-gray-200 lg:text-gray-700 lg:dark:text-gray-300">Adresse (Facultatif)</label>
+                                    <label className="block text-sm font-medium text-gray-200 lg:text-gray-700 lg:dark:text-gray-300">{getLabel('address_optional')}</label>
                                     <textarea
                                         value={data.address}
                                         onChange={(e) => setData('address', e.target.value)}
-                                        placeholder="Votre adresse de livraison..."
+                                        placeholder={getLabel('address_placeholder')}
                                         rows="2"
                                         className="w-full px-4 py-3 border border-white/20 lg:border-gray-300 lg:dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-white lg:focus:ring-gray-900 lg:dark:focus:ring-white focus:border-transparent outline-none transition-all bg-white/10 lg:bg-white lg:dark:bg-neutral-900 text-white lg:text-gray-900 lg:dark:text-white placeholder-gray-400 lg:placeholder-gray-400 resize-none"
                                     />
@@ -273,7 +275,7 @@ const AuthPage = ({ wilayas }) => {
 
                         {/* MOT DE PASSE (Commun) */}
                         <div className="space-y-1.5">
-                            <label className="block text-sm font-medium text-gray-200 lg:text-gray-700 lg:dark:text-gray-300">Mot de passe</label>
+                            <label className="block text-sm font-medium text-gray-200 lg:text-gray-700 lg:dark:text-gray-300">{getLabel('password')}</label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                                 <input
@@ -297,7 +299,7 @@ const AuthPage = ({ wilayas }) => {
 
                         {!isLogin && (
                             <div className="space-y-1.5">
-                                <label className="block text-sm font-medium text-gray-200 lg:text-gray-700 lg:dark:text-gray-300">Confirmer le mot de passe</label>
+                                <label className="block text-sm font-medium text-gray-200 lg:text-gray-700 lg:dark:text-gray-300">{getLabel('confirm_password')}</label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                                     <input
@@ -320,10 +322,10 @@ const AuthPage = ({ wilayas }) => {
                                     onChange={(e) => setData('remember', e.target.checked)}
                                     className="w-4 h-4 rounded border-gray-300 text-blue-500 lg:text-black focus:ring-offset-0 focus:ring-2 focus:ring-blue-500 lg:focus:ring-black"
                                 />
-                                <span className="text-gray-200 lg:text-gray-600 lg:dark:text-gray-400 font-medium">Se souvenir de moi</span>
+                                <span className="text-gray-200 lg:text-gray-600 lg:dark:text-gray-400 font-medium">{getLabel('remember_me')}</span>
                             </label>
                             {isLogin && (
-                                <Link href={route('password.request.sms')} className="text-gray-300 hover:text-white lg:text-gray-500 lg:hover:text-black lg:dark:hover:text-white transition-colors">Mot de passe oublié ?</Link>
+                                <Link href={route('password.request.sms')} className="text-gray-300 hover:text-white lg:text-gray-500 lg:hover:text-black lg:dark:hover:text-white transition-colors">{getLabel('forgot_password')}</Link>
                             )}
                         </div>
 
@@ -332,7 +334,7 @@ const AuthPage = ({ wilayas }) => {
                             disabled={processing}
                             className="w-full bg-white text-gray-900 lg:bg-gray-900 lg:text-white lg:dark:bg-white lg:dark:text-black py-3.5 rounded-xl font-bold text-lg hover:bg-gray-100 lg:hover:bg-gray-800 lg:dark:hover:bg-gray-200 transition-colors shadow-lg disabled:opacity-50"
                         >
-                            {processing ? <Loader2 className="animate-spin mx-auto" /> : (isLogin ? 'Se connecter' : "S'inscrire")}
+                            {processing ? <Loader2 className="animate-spin mx-auto" /> : (isLogin ? getLabel('login') : getLabel('register'))}
                         </button>
                     </form>
 

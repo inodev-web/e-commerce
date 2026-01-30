@@ -1,18 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { useForm, usePage } from '@inertiajs/react';
-import axios from 'axios';
-import { Truck, MapPin, Phone, CreditCard, ShoppingBag, Loader2, X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useForm, usePage, Link } from '@inertiajs/react';
+import { Truck, MapPin, Phone, CreditCard, ShoppingBag, Loader2, X, CheckCircle } from 'lucide-react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { useTranslation } from 'react-i18next';
 import { getTranslated, isRTL } from '@/utils/translation';
 
-const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalance: propLoyaltyBalance }) => {
+const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalance: propLoyaltyBalance, communes: propCommunes }) => {
     // Theme state
     const [theme, setTheme] = useState('light');
     const toggleTheme = () => setTheme(pre => pre === 'dark' ? 'light' : 'dark');
 
-    const { auth } = usePage().props;
+    const { auth, delivery_tariffs, communes: pageCommunes, selected_tariff, order: flashOrder, newLoyaltyBalance } = usePage().props;
+    const order = flashOrder; // On récupère la commande en prop si elle vient d'être créée
+
+    const communes = propCommunes || pageCommunes || [];
+
     const { t, i18n } = useTranslation();
     const isAr = i18n.language === 'ar';
 
@@ -29,8 +32,6 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
         use_loyalty_points: 0,
     });
 
-    // Local state for dynamic data
-    const [communes, setCommunes] = useState([]);
     const [shippingPrice, setShippingPrice] = useState(0);
     const [isLoadingShipping, setIsLoadingShipping] = useState(false);
 
@@ -40,34 +41,46 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
     const [promoError, setPromoError] = useState('');
     const [isValidatingPromo, setIsValidatingPromo] = useState(false);
 
-    // Loyalty points state
-    const [loyaltyBalance, setLoyaltyBalance] = useState(propLoyaltyBalance || auth.user?.client?.total_points || 0);
+    // Loyalty points state (⚡️ Utilise les points du user partagés par Inertia)
+    const loyaltyBalance = auth.user?.points || 0;
     const [loyaltyDiscount, setLoyaltyDiscount] = useState(0);
 
-    // Initial load or update when wilaya/type changes
+    // Initial load or update when wilaya changes
     useEffect(() => {
-        if (data.wilaya_id) {
-            fetchShippingAndCommunes();
+        if (!data.wilaya_id) return;
+
+        router.get(route('checkout.show'),
+            { wilaya_id: data.wilaya_id },
+            {
+                only: ['selected_tariff', 'communes'],
+                preserveState: true,
+                preserveScroll: true,
+                replace: true
+            }
+        );
+    }, [data.wilaya_id]);
+
+    // Mise à jour locale immédiate du prix quand le type change
+    useEffect(() => {
+        if (selected_tariff && data.delivery_type) {
+            setShippingPrice(selected_tariff[data.delivery_type] || 0);
         }
-    }, [data.wilaya_id, data.delivery_type]);
+    }, [selected_tariff, data.delivery_type]);
 
-    const fetchShippingAndCommunes = async () => {
-        setIsLoadingShipping(true);
-        try {
-            const response = await axios.post(route('checkout.shipping'), {
-                wilaya_id: data.wilaya_id,
-                delivery_type: data.delivery_type
-            });
+    const calculateShipping = () => {
+        if (selected_tariff) {
+            setShippingPrice(selected_tariff[data.delivery_type] || 0);
+            return;
+        }
 
-            setShippingPrice(response.data.delivery_price);
-            setCommunes(response.data.communes);
-        } catch (error) {
-            console.error("Erreur calcul livraison:", error);
+        if (!data.wilaya_id || !data.delivery_type || !delivery_tariffs) {
             setShippingPrice(0);
-            setCommunes([]);
-        } finally {
-            setIsLoadingShipping(false);
+            return;
         }
+
+        const wilayaTariffs = delivery_tariffs[data.wilaya_id] || [];
+        const tariff = wilayaTariffs.find(t => t.type === data.delivery_type);
+        setShippingPrice(tariff ? parseFloat(tariff.price) : 0);
     };
 
     const validatePromoCode = async () => {
@@ -77,7 +90,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
         setPromoError('');
 
         try {
-            const response = await axios.post(route('checkout.validate-promo'), {
+            const response = await window.axios.post(route('checkout.validate-promo'), {
                 code: promoInput,
                 amount: productsTotal,
             });
@@ -102,16 +115,67 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
     };
 
     const handleLoyaltyPointsChange = (points) => {
-        const maxPoints = Math.min(loyaltyBalance, productsTotal);
-        const usePoints = Math.min(Math.max(0, parseInt(points) || 0), maxPoints);
+        // ⚡️ Calcul local instantané (SPA)
+        const maxPointsPossible = Math.min(loyaltyBalance, productsTotal - promoDiscount);
+        const usePoints = Math.min(Math.max(0, parseInt(points) || 0), maxPointsPossible);
+
         setData('use_loyalty_points', usePoints);
-        setLoyaltyDiscount(usePoints); // 1 point = 1 DA
+        setLoyaltyDiscount(usePoints);
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('checkout.place'));
+        post(route('checkout.place'), {
+            preserveScroll: true,
+            onError: (errors) => {
+                console.error("Erreurs de validation:", errors);
+                const firstError = Object.values(errors)[0];
+                if (firstError) {
+                    alert(`Erreur: ${firstError}`);
+                }
+            }
+        });
     };
+
+    // ⚡️ VUE SUCCÈS SPA (Si la commande vient d'être passée)
+    if (order) {
+        return (
+            <div className={`checkout-page min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
+                <Header theme={theme} toggleTheme={toggleTheme} />
+                <main className="flex-grow flex items-center justify-center p-4">
+                    <div className="bg-white p-8 md:p-12 rounded-3xl shadow-lg max-w-2xl w-full text-center slide-in">
+                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
+                            <CheckCircle size={40} />
+                        </div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Commande Réussie !</h1>
+                        <p className="text-gray-500 mb-8">
+                            Merci <span className="font-semibold">{order.first_name}</span>. Votre commande <span className="font-mono text-[#DB8B89]">#{order.id}</span> est confirmée.
+                        </p>
+                        <div className="bg-gray-50 p-6 rounded-2xl mb-8 text-left border border-gray-100">
+                            <div className="flex justify-between mb-2">
+                                <span className="text-gray-500">Montant total:</span>
+                                <span className="font-bold">{order.total_price.toLocaleString()} DA</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-500">Livraison à:</span>
+                                <span className="font-medium">{order.commune_name}, {order.wilaya_name}</span>
+                            </div>
+                            {newLoyaltyBalance !== undefined && (
+                                <div className="flex justify-between mt-2 pt-2 border-t">
+                                    <span className="text-gray-500">Nouveaux points de fidélité:</span>
+                                    <span className="font-bold text-[#DB8B89]">{newLoyaltyBalance} pts</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex gap-4 justify-center">
+                            <Link href={route('products.index')} className="bg-[#DB8B89] text-white px-8 py-3 rounded-xl font-bold">Continuer les achats</Link>
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
 
     const total = productsTotal + shippingPrice - promoDiscount - loyaltyDiscount;
 

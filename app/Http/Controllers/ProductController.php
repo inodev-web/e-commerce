@@ -59,21 +59,66 @@ class ProductController extends Controller
     /**
      * Afficher un produit
      */
-    public function show(Product $product): Response
+    public function show(Request $request, int $id): Response
     {
-        $product = $this->productService->getWithDetails($product->id);
-        
-        // Produits similaires
-        $relatedProducts = Product::where('sub_category_id', $product->sub_category_id)
-            ->where('id', '!=', $product->id)
-            ->active()
-            ->with('images')
-            ->limit(4)
-            ->get();
-        
+        // ⚡️ OPTIMISATION SUCCESS : Si on renvoie un succès de commande, on "bail out" des données lourdes
+        $isSuccess = session()->has('order');
+
+        // ⚡️ CRITIQUE : Si on a une commande en session, retourner UNIQUEMENT les props minimales
+        // pour éviter tout chargement lourd qui ralentit le redirect
+        if ($isSuccess) {
+            return Inertia::render('Products/Show', [
+                'order' => session('order'),
+                'newLoyaltyBalance' => session('newLoyaltyBalance'),
+                'success' => session('success'),
+                // Props vides pour éviter tout chargement
+                'product' => null,
+                'communes' => [],
+                'delivery_tariffs' => [],
+                'selected_tariff' => null,
+                'relatedProducts' => [],
+            ]);
+        }
+
         return Inertia::render('Products/Show', [
-            'product' => $product,
-            'relatedProducts' => $relatedProducts,
+            'product' => fn() => $this->productService->getWithDetails($id),
+            
+            // On ne charge les produits suggérés QUE si ce n'est pas un succès de commande
+            'relatedProducts' => Inertia::lazy(function() use ($id, $isSuccess) {
+                if ($isSuccess) return [];
+                
+                $product = Product::select('id', 'sub_category_id')->find($id);
+                if (!$product) return [];
+                
+                return Product::where('sub_category_id', $product->sub_category_id)
+                    ->where('id', '!=', $id)
+                    ->active()
+                    ->with(['images', 'specificationValues.specification'])
+                    ->limit(4)
+                    ->get();
+            }),
+            
+            'communes' => fn () => ($isSuccess || !request('wilaya_id')) 
+                ? [] 
+                : app(\App\Services\LocationService::class)->getCommunesByWilaya((int)request('wilaya_id')),
+            
+            'delivery_tariffs' => Inertia::lazy(fn () => $isSuccess ? [] : \Illuminate\Support\Facades\Cache::rememberForever('delivery_tariffs', function () {
+                return \App\Models\DeliveryTariff::where('is_active', true)->get()->groupBy('wilaya_id');
+            })),
+
+            'selected_tariff' => function() use ($isSuccess) {
+                if ($isSuccess) return null;
+                $wId = request('wilaya_id');
+                if (!$wId) return null;
+
+                return \App\Models\DeliveryTariff::where('wilaya_id', $wId)
+                    ->where('is_active', true)
+                    ->get()
+                    ->mapWithKeys(fn($t) => [$t->type->value => (float)$t->price]);
+            },
+
+            'order' => session('order'), // Déjà flashé par CheckoutController
+            'newLoyaltyBalance' => session('newLoyaltyBalance'), // Nouveau solde après commande
         ]);
     }
 
@@ -140,7 +185,7 @@ class ProductController extends Controller
                     ProductImage::create([
                         'product_id' => $product->id,
                         'image_path' => $path,
-                        'is_primary' => $index === 0,
+                        'is_main' => $index === 0,
                     ]);
                 }
             }
@@ -222,7 +267,7 @@ class ProductController extends Controller
                     ProductImage::create([
                         'product_id' => $product->id,
                         'image_path' => $path,
-                        'is_primary' => false,
+                        'is_main' => false,
                     ]);
                 }
             }

@@ -20,6 +20,7 @@ readonly class CreateOrderDTO
         public DeliveryType $deliveryType,
         public ?string $promoCode = null,
         public int $loyaltyPointsUsed = 0,
+        public bool $clearCart = true,
     ) {}
 
     public static function fromRequest(array $data): self
@@ -36,6 +37,7 @@ readonly class CreateOrderDTO
             deliveryType: DeliveryType::from($data['delivery_type']),
             promoCode: $data['promo_code'] ?? null,
             loyaltyPointsUsed: (int) ($data['use_loyalty_points'] ?? 0),
+            clearCart: (bool) ($data['clear_cart'] ?? true),
         );
     }
 }

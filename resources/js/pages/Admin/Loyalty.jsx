@@ -1,7 +1,7 @@
 import React from 'react';
 import { Save, Gift } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import AdminLayout from '../../Components/AdminLayout';
+import AdminLayout from '../../components/AdminLayout';
 
 import { useTranslation } from 'react-i18next';
 import { useForm } from '@inertiajs/react';
@@ -9,7 +9,7 @@ import { useForm } from '@inertiajs/react';
 const AdminLoyalty = ({ auth, stats, settings }) => {
     const { t } = useTranslation();
     const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
+        phone: '',
         action: 'add',
         points: '',
         description: ''
@@ -110,16 +110,16 @@ const AdminLoyalty = ({ auth, stats, settings }) => {
 
                         <form onSubmit={handleAdjust} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('admin.search_client_email', 'Email du Client')}</label>
+                                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('admin.search_client_phone', 'Numéro de Téléphone Client')}</label>
                                 <input
-                                    type="email"
-                                    placeholder="client@example.com"
-                                    value={data.email}
-                                    onChange={e => setData('email', e.target.value)}
+                                    type="text"
+                                    placeholder="0550123456"
+                                    value={data.phone}
+                                    onChange={e => setData('phone', e.target.value)}
                                     className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
                                     required
                                 />
-                                {errors.email && <p className="text-red-500 text-xs">{errors.email}</p>}
+                                {errors.phone && <p className="text-red-500 text-xs">{errors.phone}</p>}
                             </div>
                             <div className="flex gap-4">
                                 <div className="flex-1">

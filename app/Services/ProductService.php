@@ -16,13 +16,16 @@ class ProductService
     public function list(ProductFilterDTO $filter, int $perPage = 20): LengthAwarePaginator
     {
         $query = Product::query()
-            ->with(['subCategory.category', 'images', 'specificationValues.specification']);
+            ->with([
+                'subCategory.category', 
+                'images' => function ($q) {
+                    $q->orderBy('is_main', 'desc');
+                }
+            ]);
         
         // Filtrer par catégorie
         if ($filter->categoryId) {
-            $query->whereHas('subCategory', function ($q) use ($filter) {
-                $q->where('category_id', $filter->categoryId);
-            });
+            $query->where('category_id', $filter->categoryId);
         }
         
         // Filtrer par sous-catégorie

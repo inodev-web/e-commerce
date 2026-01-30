@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
-import LanguageSwitcher from '@/Components/LanguageSwitcher';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
 import {
     LayoutDashboard,
@@ -20,7 +20,15 @@ import {
 
 const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleTheme }) => {
     const { t } = useTranslation();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true); // For mobile
+    const [isCollapsed, setIsCollapsed] = useState(() => {
+        // Only on client side
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('admin_sidebar_collapsed') === 'true';
+        }
+        return false;
+    });
+
     const { url } = usePage();
 
     // Internal state to handle theme if not managed by parent
@@ -38,6 +46,12 @@ const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleThem
             setInternalTheme(newTheme);
             localStorage.setItem('theme', newTheme);
         }
+    };
+
+    const toggleCollapse = () => {
+        const newState = !isCollapsed;
+        setIsCollapsed(newState);
+        localStorage.setItem('admin_sidebar_collapsed', String(newState));
     };
 
     useEffect(() => {
@@ -63,62 +77,76 @@ const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleThem
         <div className={`admin-app flex h-screen bg-gray-100 dark:bg-zinc-950 text-gray-900 dark:text-gray-100 overflow-hidden font-sans ${theme}`}>
             {/* Sidebar */}
             <aside
-                className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 shadow-xl lg:shadow-none ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+                className={`fixed inset-y-0 left-0 z-50 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 shadow-xl lg:shadow-none 
+                    ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+                    ${isCollapsed ? "lg:w-20" : "lg:w-64"}
+                `}
             >
-                <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-zinc-800">
-                    <Link href={route('admin.dashboard')} className="flex items-center gap-2 font-bold text-xl tracking-tight">
-                        <div className="w-8 h-8 rounded bg-[#DB8B89] flex items-center justify-center text-white font-serif">
+                <div className={`flex items-center justify-between h-16 border-b border-gray-200 dark:border-zinc-800 transition-all duration-300 ${isCollapsed ? "px-4" : "px-6"}`}>
+                    <Link href={route('admin.dashboard')} className="flex items-center gap-2 font-bold text-xl tracking-tight overflow-hidden whitespace-nowrap">
+                        <div className="w-8 h-8 rounded shrink-0 bg-[#DB8B89] flex items-center justify-center text-white font-serif">
                             A
                         </div>
-                        <span className="text-[#DB8B89]">Admin</span>
+                        {!isCollapsed && <span className="text-[#DB8B89]">Admin</span>}
                     </Link>
                     <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-1 rounded-md hover:bg-pink-50 dark:hover:bg-pink-900/10">
                         <X size={20} />
                     </button>
                 </div>
 
-                <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-8rem)]">
+                <nav className={`p-4 space-y-1 overflow-y-auto h-[calc(100vh-8rem)] transition-all duration-300 ${isCollapsed ? "px-2" : "px-4"}`}>
                     {navItems.map((item) => {
                         const isActive = url.startsWith(item.path);
                         return (
                             <Link
                                 key={item.path}
                                 href={item.path}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
+                                title={isCollapsed ? item.name : ""}
+                                className={`flex items-center gap-3 py-3 rounded-lg text-sm font-medium transition-all ${isActive
                                     ? "bg-[#DB8B89] text-white shadow-lg shadow-pink-500/20"
                                     : "text-gray-600 dark:text-gray-400 hover:bg-pink-50 dark:hover:bg-pink-900/10 hover:text-[#DB8B89] dark:hover:text-[#DB8B89]"
-                                    }`}
+                                    } ${isCollapsed ? "justify-center px-0" : "px-4"}`}
                             >
-                                <item.icon size={18} />
-                                {item.name}
+                                <item.icon size={18} className="shrink-0" />
+                                {!isCollapsed && <span className="truncate">{item.name}</span>}
                             </Link>
                         );
                     })}
                 </nav>
 
-                <div className="absolute bottom-0 w-full p-4 border-t border-gray-200 dark:border-zinc-800">
+                <div className="absolute bottom-0 w-full p-4 border-t border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
                     <button
                         onClick={() => router.post(route('logout'))}
-                        className="flex w-full items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+                        title={isCollapsed ? t('nav.logout', 'Déconnexion') : ""}
+                        className={`flex items-center gap-3 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-all ${isCollapsed ? "justify-center px-0 w-12 mx-auto" : "px-4 w-full"}`}
                     >
-                        <LogOut size={18} />
-                        {t('nav.logout', 'Déconnexion')}
+                        <LogOut size={18} className="shrink-0" />
+                        {!isCollapsed && <span>{t('nav.logout', 'Déconnexion')}</span>}
                     </button>
                 </div>
             </aside>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300">
                 {/* Top Header */}
                 <header className="h-16 bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between px-6 z-40">
-                    <button
-                        onClick={() => setIsSidebarOpen(true)}
-                        className={`p-2 rounded-md hover:bg-pink-50 dark:hover:bg-pink-900/10 lg:hidden ${isSidebarOpen ? "hidden" : ""}`}
-                    >
-                        <Menu size={20} />
-                    </button>
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setIsSidebarOpen(true)}
+                            className={`p-2 rounded-md hover:bg-pink-50 dark:hover:bg-pink-900/10 lg:hidden ${isSidebarOpen ? "hidden" : ""}`}
+                        >
+                            <Menu size={20} />
+                        </button>
 
-                    <div className="flex-1 lg:flex-none"></div>
+                        {/* PC Collapse Toggle */}
+                        <button
+                            onClick={toggleCollapse}
+                            className="hidden lg:flex p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors border border-gray-100 dark:border-zinc-800"
+                            title={isCollapsed ? "Développer" : "Réduire"}
+                        >
+                            <Menu size={20} className="text-gray-500" />
+                        </button>
+                    </div>
 
                     <div className="flex items-center gap-4">
                         <LanguageSwitcher />
@@ -128,7 +156,7 @@ const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleThem
                         >
                             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                         </button>
-                        <Link href={route('home')} className="text-sm text-teal-600 font-bold hover:underline">
+                        <Link href={route('home')} className="hidden sm:inline text-sm text-teal-600 font-bold hover:underline">
                             {t('admin.view_shop', 'Voir la boutique')}
                         </Link>
                         <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-[#DB8B89] to-[#F8E4E0]"></div>
@@ -136,8 +164,8 @@ const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleThem
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-y-auto p-6 bg-gray-50/50 dark:bg-black/20 scroll-smooth">
-                    <div className="mx-auto max-w-7xl">
+                <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50/50 dark:bg-black/20 scroll-smooth">
+                    <div className="mx-auto max-w-full lg:max-w-7xl">
                         {children}
                     </div>
                 </main>

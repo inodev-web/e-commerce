@@ -21,7 +21,7 @@ class LocationService
         return Cache::rememberForever('active_wilayas_with_communes', function () {
             return Wilaya::active()
                 ->with('communes')
-                ->orderBy('name')
+                ->orderBy('code')
                 ->get();
         });
     }
@@ -39,23 +39,30 @@ class LocationService
     }
 
     /**
-     * CRITIQUE: Obtenir le tarif de livraison dynamique au moment de la requête
+     * CRITIQUE: Chercher le tarif sans lever d'exception (plus rapide)
      */
-    public function getDeliveryPrice(int $wilayaId, DeliveryType $type): float
+    public function findDeliveryPrice(int $wilayaId, DeliveryType $type): ?float
     {
-        // Cache tarif as well? Tariffs might change but not instant-to-instant.
-        // But the prompt specifically mentioned Wilaya/Communes.
-        // Tariffs query is fast (indexed).
         $tariff = DeliveryTariff::where('wilaya_id', $wilayaId)
             ->where('type', $type)
             ->where('is_active', true)
             ->first();
             
-        if (!$tariff) {
+        return $tariff ? (float) $tariff->price : null;
+    }
+
+    /**
+     * Obtenir le tarif de livraison dynamique au moment de la requête
+     */
+    public function getDeliveryPrice(int $wilayaId, DeliveryType $type): float
+    {
+        $price = $this->findDeliveryPrice($wilayaId, $type);
+            
+        if ($price === null) {
             throw new \Exception("Aucun tarif de livraison trouvé pour cette wilaya et ce type");
         }
         
-        return (float) $tariff->price;
+        return $price;
     }
 
     /**
@@ -75,7 +82,7 @@ class LocationService
         return Cache::rememberForever('wilayas_with_tariffs', function () {
             return Wilaya::active()
                 ->with('deliveryTariffs')
-                ->orderBy('name')
+                ->orderBy('code')
                 ->get();
         });
     }

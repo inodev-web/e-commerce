@@ -126,43 +126,77 @@ class DeliveryController extends Controller
     }
 
     /**
-     * Mise à jour en masse des tarifs
+     * Mise à jour en masse des tarifs (optimisé avec upsert)
      */
     public function bulkUpdate(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'wilayas' => 'required|array',
             'wilayas.*.id' => 'required|exists:wilayas,id',
-            'wilayas.*.active' => 'boolean',
+            'wilayas.*.active' => 'sometimes|boolean',
             'wilayas.*.homePrice' => 'nullable|numeric|min:0',
-            'wilayas.*.homeActive' => 'boolean',
+            'wilayas.*.homeActive' => 'sometimes|boolean',
             'wilayas.*.deskPrice' => 'nullable|numeric|min:0',
-            'wilayas.*.deskActive' => 'boolean',
+            'wilayas.*.deskActive' => 'sometimes|boolean',
         ]);
 
+        // Prepare data for bulk operations
+        $wilayaUpdates = [];
+        $deliveryTariffs = [];
+
         foreach ($data['wilayas'] as $wilayaData) {
-            $wilaya = Wilaya::find($wilayaData['id']);
-            $wilaya->update(['is_active' => $wilayaData['active']]);
+            // Wilaya updates (if active field changed)
+            if (isset($wilayaData['active'])) {
+                $wilayaUpdates[] = [
+                    'id' => $wilayaData['id'],
+                    'is_active' => $wilayaData['active'],
+                ];
+            }
 
-            // Update or Create Home Tariff
-            $wilaya->deliveryTariffs()->updateOrCreate(
-                ['type' => \App\Enums\DeliveryType::DOMICILE],
-                [
+            // Home delivery tariff
+            if (isset($wilayaData['homePrice']) || isset($wilayaData['homeActive'])) {
+                $deliveryTariffs[] = [
+                    'wilaya_id' => $wilayaData['id'],
+                    'type' => \App\Enums\DeliveryType::DOMICILE->value,
                     'price' => $wilayaData['homePrice'] ?? 0,
-                    'is_active' => $wilayaData['homeActive']
-                ]
-            );
+                    'is_active' => $wilayaData['homeActive'] ?? false,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
 
-            // Update or Create Desk Tariff
-            $wilaya->deliveryTariffs()->updateOrCreate(
-                ['type' => \App\Enums\DeliveryType::BUREAU],
-                [
+            // Desk delivery tariff
+            if (isset($wilayaData['deskPrice']) || isset($wilayaData['deskActive'])) {
+                $deliveryTariffs[] = [
+                    'wilaya_id' => $wilayaData['id'],
+                    'type' => \App\Enums\DeliveryType::BUREAU->value,
                     'price' => $wilayaData['deskPrice'] ?? 0,
-                    'is_active' => $wilayaData['deskActive']
-                ]
+                    'is_active' => $wilayaData['deskActive'] ?? false,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+        }
+
+        // Bulk update wilayas (1 query instead of N)
+        if (!empty($wilayaUpdates)) {
+            foreach ($wilayaUpdates as $update) {
+                Wilaya::where('id', $update['id'])->update(['is_active' => $update['is_active']]);
+            }
+        }
+
+        // Bulk upsert delivery tariffs (1 query instead of 2N)
+        if (!empty($deliveryTariffs)) {
+            DeliveryTariff::upsert(
+                $deliveryTariffs,
+                ['wilaya_id', 'type'], // Unique keys
+                ['price', 'is_active', 'updated_at'] // Columns to update
             );
         }
 
-        return back()->with('success', 'Tarifs mis à jour avec succès');
+        // Clear delivery tariffs cache
+        \Illuminate\Support\Facades\Cache::forget('delivery_tariffs');
+
+        return back()->with('success', count($data['wilayas']) . ' wilaya(s) mise(s) à jour instantanément !');
     }
 }

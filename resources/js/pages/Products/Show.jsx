@@ -1,6 +1,6 @@
-import { router, useForm, usePage } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
-import { Star, ShoppingCart, Minus, Plus, ChevronLeft, Loader2, CreditCard } from 'lucide-react';
+import { router, useForm, usePage, Link } from '@inertiajs/react';
+import { useState, useEffect, useRef } from 'react';
+import { Star, ShoppingCart, Minus, Plus, ChevronLeft, Loader2, CreditCard, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import Header from '../../components/Header';
@@ -12,18 +12,42 @@ import { getTranslated, isRTL } from '@/utils/translation';
 
 const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     const { t, i18n } = useTranslation();
-    const { auth } = usePage().props;
+    const { auth, communes: pageCommunes, delivery_tariffs, selected_tariff, order, newLoyaltyBalance, flash } = usePage().props;
+    const communes = pageCommunes || [];
+
+    // ⚡️ CRITIQUE : Garder le produit en mémoire même si il devient null après commande
+    const productRef = useRef(product);
+    useEffect(() => {
+        if (product) {
+            productRef.current = product;
+        }
+    }, [product]);
+    const currentProduct = product || productRef.current;
+
     const fullName = auth?.user?.name ?? '';
     const [first = '', ...rest] = fullName.split(' ');
     const last = rest.join(' ');
     const [selectedImage, setSelectedImage] = useState(0);
     const [activeTab, setActiveTab] = useState('description');
 
-    // Wilayas & Communes
     const [wilayas, setWilayas] = useState([]);
-    const [communes, setCommunes] = useState([]);
     const [shippingPrice, setShippingPrice] = useState(0);
     const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
+
+    // Form handling
+    const { data, setData, post, processing, errors } = useForm({
+        product_id: currentProduct?.id || 0,
+        quantity: 1,
+        first_name: auth?.user?.client?.first_name || '',
+        last_name: auth?.user?.client?.last_name || '',
+        phone: auth?.user?.phone || auth?.user?.client?.phone || '',
+        address: auth?.user?.client?.address || '',
+        wilaya_id: auth?.user?.client?.wilaya_id || '',
+        commune_id: auth?.user?.client?.commune_id || '',
+        delivery_type: 'DOMICILE',
+        promo_code: '',
+        use_loyalty_points: 0,
+    });
 
     // Promo code state
     const [showPromo, setShowPromo] = useState(false);
@@ -41,10 +65,11 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
         e.preventDefault();
         setAddingToCart(true);
         router.post(route('cart.add'), {
-            product_id: product.id,
+            product_id: currentProduct?.id || 0,
             quantity: data.quantity
         }, {
             preserveScroll: true,
+            preserveState: true,
             onSuccess: () => {
                 setCartModalOpen(true);
                 setAddingToCart(false);
@@ -52,19 +77,8 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
             onError: () => setAddingToCart(false)
         });
     };
-    const { data, setData, post, processing, errors } = useForm({
-        product_id: product.id,
-        quantity: 1,
-        first_name: auth?.user?.client?.first_name || '',
-        last_name: auth?.user?.client?.last_name || '',
-        phone: auth?.user?.phone || auth?.user?.client?.phone || '',
-        address: auth?.user?.client?.address || '',
-        wilaya_id: auth?.user?.client?.wilaya_id || '',
-        commune_id: auth?.user?.client?.commune_id || '',
-        delivery_type: 'DOMICILE',
-        promo_code: '',
-    });
 
+    // Initial load for wilayas only (static list)
     useEffect(() => {
         axios.get(route('wilayas.index')).then(res => {
             setWilayas(res.data.data);
@@ -73,27 +87,43 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
     const handleWilayaChange = (wilayaId) => {
         setData(d => ({ ...d, wilaya_id: wilayaId, commune_id: '' }));
-        // Communes + delivery price will be loaded via calculate-shipping (authenticated users only)
-        setCommunes([]);
     };
 
+    // ⚡️ OPTIMISATION CRITIQUE : On ne recharge QUE si la wilaya change
+    // On récupère les tarifs pour TOUS les modes d'un coup (Domicile & Bureau)
     useEffect(() => {
-        if (data.wilaya_id && data.delivery_type) {
-            setIsCalculatingShipping(true);
-            axios.post(route('checkout.shipping'), {
-                wilaya_id: data.wilaya_id,
-                delivery_type: data.delivery_type
-            }).then(res => {
-                setShippingPrice(res.data.delivery_price ?? 0);
-                setCommunes(res.data.communes ?? []);
-            }).finally(() => {
-                setIsCalculatingShipping(false);
-            });
+        if (!data.wilaya_id || order) return; // Pas de rechargement si la commande est passée (SPA)
+
+        setIsCalculatingShipping(true);
+        router.get(route('products.show', currentProduct?.id || 0),
+            { wilaya_id: data.wilaya_id },
+            {
+                only: ['selected_tariff', 'communes'],
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                onFinish: () => setIsCalculatingShipping(false)
+            }
+        );
+    }, [data.wilaya_id, order]);
+
+    // Mise à jour locale immédiate du prix quand le type change (sans requête réseau)
+    useEffect(() => {
+        if (selected_tariff && data.delivery_type) {
+            setShippingPrice(selected_tariff[data.delivery_type] || 0);
         }
-    }, [data.wilaya_id, data.delivery_type]);
+    }, [selected_tariff, data.delivery_type]);
+
+    const [useLoyaltyEnabled, setUseLoyaltyEnabled] = useState(false);
+    // ⚡️ OPTIMISATION : Utiliser le nouveau solde si disponible (après commande), sinon le solde actuel
+    const loyaltyBalance = newLoyaltyBalance !== undefined ? newLoyaltyBalance : (auth.user?.points || 0);
+
+    const productsTotal = (currentProduct?.price || 0) * data.quantity;
+    const finalLoyaltyDiscount = useLoyaltyEnabled ? Math.min(data.use_loyalty_points, productsTotal, loyaltyBalance) : 0;
+    const finalTotal = productsTotal + shippingPrice - finalLoyaltyDiscount;
 
     const calculateTotal = () => {
-        const subtotal = product.price * data.quantity;
+        const subtotal = (currentProduct?.price || 0) * data.quantity;
         const total = subtotal + shippingPrice - promoDiscount;
         return Math.max(0, total);
     };
@@ -107,7 +137,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
         try {
             const response = await axios.post(route('checkout.validate-promo'), {
                 code: promoInput,
-                amount: product.price * data.quantity,
+                amount: (currentProduct?.price || 0) * data.quantity,
             });
 
             setPromoDiscount(response.data.discount);
@@ -129,29 +159,69 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
         setPromoError('');
     };
 
-    const handlePlaceOrder = async (e) => {
+    const handlePlaceOrder = (e) => {
         e.preventDefault();
         setPlacingOrder(true);
 
-        try {
-            // CRITICAL: Clear existing cart to prevent "hidden items" charge
-            await axios.post(route('cart.clear'));
-
-            // Add the current product to cart
-            await axios.post(route('cart.add'), {
-                product_id: product.id,
-                quantity: data.quantity,
-            });
-
-            // Submit the order logic (validation happens here via Inertia)
-            post(route('checkout.place'), {
-                onFinish: () => setPlacingOrder(false)
-            });
-        } catch (error) {
-            console.error("Error preparing order:", error);
-            setPlacingOrder(false);
-        }
+        // ⚡️ OPTIMISATION RADICALE : Une seule requête (Single Hit)
+        // On envoie les items directement, le backend les prioritizes
+        post(route('checkout.place'), {
+            ...data,
+            items: {
+                [currentProduct?.id || 0]: { quantity: data.quantity }
+            },
+            clear_cart: false
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+            onFinish: () => setPlacingOrder(false),
+            onError: (err) => {
+                console.error("Erreur commande directe:", err);
+                const firstMsg = Object.values(err)[0];
+                if (firstMsg) alert(firstMsg);
+            }
+        });
     };
+
+    // ⚡️ VUE SUCCÈS SPA (Si la commande vient d'être passée)
+    if (order) {
+        return (
+            <div className={`checkout-page min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
+                <Header theme={theme} toggleTheme={toggleTheme} />
+                <main className="flex-grow flex items-center justify-center p-4">
+                    <div className="bg-white p-8 md:p-12 rounded-3xl shadow-lg max-w-2xl w-full text-center slide-in">
+                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
+                            <CheckCircle size={40} />
+                        </div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Commande Réussie !</h1>
+                        <p className="text-gray-500 mb-8">
+                            Merci <span className="font-semibold">{order.first_name}</span>. Votre commande <span className="font-mono text-[#DB8B89]">#{order.id}</span> est confirmée.
+                        </p>
+                        <div className="bg-gray-50 p-6 rounded-2xl mb-8 text-left border border-gray-100">
+                            <div className="flex justify-between mb-2">
+                                <span className="text-gray-500">Montant total:</span>
+                                <span className="font-bold">{order.total_price.toLocaleString()} DA</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-500">Livraison à:</span>
+                                <span className="font-medium">{order.commune_name}, {order.wilaya_name}</span>
+                            </div>
+                            {newLoyaltyBalance !== undefined && (
+                                <div className="flex justify-between mt-2 pt-2 border-t">
+                                    <span className="text-gray-500">Nouveaux points de fidélité:</span>
+                                    <span className="font-bold text-[#DB8B89]">{newLoyaltyBalance} pts</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex gap-4 justify-center">
+                            <Link href={route('products.index')} className="bg-[#DB8B89] text-white px-8 py-3 rounded-xl font-bold">Continuer les achats</Link>
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
 
     return (
         <div className="product-page">
@@ -177,20 +247,20 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                             className="main-image-container"
                         >
                             <img
-                                src={product.images && product.images.length > 0 ? `/storage/${product.images[selectedImage].image_path}` : '/placeholder.svg'}
-                                alt={getTranslated(product, 'name')}
+                                src={currentProduct?.images && currentProduct.images.length > 0 ? `/storage/${currentProduct.images[selectedImage].image_path}` : '/placeholder.svg'}
+                                alt={currentProduct ? getTranslated(currentProduct, 'name') : ''}
                                 className="main-product-image object-contain"
                             />
                         </motion.div>
 
                         <div className="thumbnail-container">
-                            {product.images && product.images.map((img, index) => (
+                            {currentProduct?.images && currentProduct.images.map((img, index) => (
                                 <div
                                     key={index}
                                     className={`thumbnail ${selectedImage === index ? 'active' : ''}`}
                                     onClick={() => setSelectedImage(index)}
                                 >
-                                    <img src={`/storage/${img.image_path}`} alt={`${getTranslated(product, 'name')} ${index + 1}`} />
+                                    <img src={`/storage/${img.image_path}`} alt={currentProduct ? `${getTranslated(currentProduct, 'name')} ${index + 1}` : ''} />
                                 </div>
                             ))}
                         </div>
@@ -203,8 +273,8 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         transition={{ delay: 0.2 }}
                         className="product-info-section"
                     >
-                        <div className="product-brand">{product.sub_category ? getTranslated(product.sub_category, 'name') : 'Puréva'}</div>
-                        <h1 className="product-title">{getTranslated(product, 'name')}</h1>
+                        <div className="product-brand">{currentProduct?.sub_category ? getTranslated(currentProduct.sub_category, 'name') : 'Puréva'}</div>
+                        <h1 className="product-title">{currentProduct ? getTranslated(currentProduct, 'name') : ''}</h1>
 
                         <div className="product-rating-section">
                             <div className="rating-stars">
@@ -216,12 +286,12 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         </div>
 
                         <div className="product-price-section">
-                            <span className="current-price">{product.price.toLocaleString()} {t('currency.symbol', 'DA')}</span>
+                            <span className="current-price">{(currentProduct?.price || 0).toLocaleString()} {t('currency.symbol', 'DA')}</span>
                         </div>
 
                         <div className="stock-status">
-                            {product.stock > 0 ? (
-                                <span className="in-stock">✓ {t('product.in_stock', 'En stock')} ({product.stock} {t('product.available', 'disponibles')})</span>
+                            {(currentProduct?.stock || 0) > 0 ? (
+                                <span className="in-stock">✓ {t('product.in_stock', 'En stock')} ({currentProduct?.stock || 0} {t('product.available', 'disponibles')})</span>
                             ) : (
                                 <span className="out-of-stock">{t('product.out_of_stock', 'En rupture de stock')}</span>
                             )}
@@ -234,7 +304,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                     <Minus size={16} />
                                 </button>
                                 <span className="qty-value">{data.quantity}</span>
-                                <button onClick={() => setData('quantity', Math.min(product.stock, data.quantity + 1))} className="qty-btn">
+                                <button onClick={() => setData('quantity', Math.min(currentProduct?.stock || 0, data.quantity + 1))} className="qty-btn">
                                     <Plus size={16} />
                                 </button>
                             </div>
@@ -343,7 +413,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                     >
                                         <div className="summary-row flex justify-between">
                                             <span>{t('cart.subtotal', 'Sous-total')}</span>
-                                            <span>{(product.price * data.quantity).toLocaleString()} {t('currency.symbol', 'DA')}</span>
+                                            <span>{((currentProduct?.price || 0) * data.quantity).toLocaleString()} {t('currency.symbol', 'DA')}</span>
                                         </div>
                                         {promoDiscount > 0 && (
                                             <div className="summary-row flex justify-between text-green-600 text-sm">
@@ -357,8 +427,42 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                         </div>
                                         <div className="summary-row total flex justify-between font-bold border-t mt-2 pt-2 text-lg">
                                             <span>{t('cart.total', 'Total à payer')}</span>
-                                            <span>{calculateTotal().toLocaleString()} {t('currency.symbol', 'DA')}</span>
+                                            <span>{finalTotal.toLocaleString()} {t('currency.symbol', 'DA')}</span>
                                         </div>
+
+                                        {/* Loyalty Points Section */}
+                                        {auth.user && loyaltyBalance > 0 && (
+                                            <div className="mt-4 border-t pt-4">
+                                                <label className="flex items-center gap-2 cursor-pointer text-sm font-medium mb-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={useLoyaltyEnabled}
+                                                        onChange={e => {
+                                                            setUseLoyaltyEnabled(e.target.checked);
+                                                            if (!e.target.checked) setData('use_loyalty_points', 0);
+                                                        }}
+                                                        className="text-[#DB8B89] rounded focus:ring-[#DB8B89]"
+                                                    />
+                                                    {t('loyalty.use_points', 'Utiliser mes points')} ({loyaltyBalance} pts)
+                                                </label>
+
+                                                {useLoyaltyEnabled && (
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="number"
+                                                            value={data.use_loyalty_points || ''}
+                                                            onChange={e => setData('use_loyalty_points', Math.min(parseInt(e.target.value) || 0, loyaltyBalance))}
+                                                            max={loyaltyBalance}
+                                                            placeholder="0"
+                                                            className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89]"
+                                                        />
+                                                        <span className="text-green-600 text-sm flex items-center">
+                                                            -{finalLoyaltyDiscount.toLocaleString()} DA
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
 
                                         {/* Promo code section */}
                                         <div className="mt-4">
@@ -427,15 +531,15 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                             <div className="product-actions mt-6 flex gap-2">
                                 <button
                                     type="submit"
-                                    disabled={processing || placingOrder || product.stock <= 0}
+                                    disabled={processing || placingOrder || (currentProduct?.stock || 0) <= 0}
                                     className="add-to-cart-btn primary flex-1 bg-[#DB8B89] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#C07573] disabled:opacity-50"
                                 >
                                     {processing || placingOrder ? <Loader2 className="animate-spin" /> : <><CreditCard size={20} /> {t('checkout.place_order', 'Acheter maintenant')}</>}
-                                </button>                                
+                                </button>
                                 <button
                                     type="button"
                                     onClick={handleAddToCart}
-                                    disabled={addingToCart || product.stock <= 0}
+                                    disabled={addingToCart || (currentProduct?.stock || 0) <= 0}
                                     className="flex-1 bg-white border-2 border-[#DB8B89] py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#F8E4E0] disabled:opacity-50 text-[#DB8B89]"
                                 >
                                     {addingToCart ? <Loader2 className="animate-spin" /> : <><ShoppingCart size={20} /> {t('product.add_to_cart', 'Ajouter au panier')}</>}
@@ -450,10 +554,10 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                 <button className={`pb-2 ${activeTab === 'features' ? 'border-b-2 border-teal-600 font-bold' : ''}`} onClick={() => setActiveTab('features')}>{t('product.specifications', 'Spécifications')}</button>
                             </div>
                             <div className="tab-content py-4">
-                                {activeTab === 'description' && <p>{getTranslated(product, 'description')}</p>}
+                                {activeTab === 'description' && <p>{currentProduct ? getTranslated(currentProduct, 'description') : ''}</p>}
                                 {activeTab === 'features' && (
                                     <div className="grid grid-cols-2 gap-4">
-                                        {product.specification_values && product.specification_values.map((spec, i) => (
+                                        {currentProduct?.specification_values && currentProduct.specification_values.map((spec, i) => (
                                             <div key={i} className="flex flex-col border-b pb-2">
                                                 <span className="text-gray-500 text-xs">{getTranslated(spec.specification, 'name')}</span>
                                                 <span className="font-medium">{spec.value}</span>

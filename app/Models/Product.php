@@ -54,7 +54,7 @@ class Product extends Model
 
     public function images(): HasMany
     {
-        return $this->hasMany(ProductImage::class)->orderBy('is_primary', 'desc');
+        return $this->hasMany(ProductImage::class)->orderBy('is_main', 'desc');
     }
 
     public function cartItems(): HasMany
@@ -83,7 +83,7 @@ class Product extends Model
 
     public function getPrimaryImageAttribute(): ?ProductImage
     {
-        return $this->images()->where('is_primary', true)->first() 
+        return $this->images()->where('is_main', true)->first() 
             ?? $this->images()->first();
     }
 

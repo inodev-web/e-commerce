@@ -26,29 +26,49 @@ class CheckoutController extends Controller
     /**
      * Afficher la page de checkout avec wilayas et tarifs DYNAMIQUES
      */
-    public function show(): Response
+    public function show(Request $request): Response
     {
-        $cart = $this->cartService->getOrCreate(
-            auth()->user()?->client?->id,
-            session()->getId()
-        );
-        
-        $items = $this->cartService->getItemsWithProducts($cart);
-        $productsTotal = $this->cartService->getTotal($cart);
-        
-        // CRITIQUE: Envoyer les wilayas avec leurs tarifs DYNAMIQUES au front React
-        $wilayasWithTariffs = $this->locationService->getWilayasWithTariffs();
-        
+        // ⚡️ OPTIMISATION TOTALE : Toutes les props sont des closures
         return Inertia::render('Checkout/Show', [
-            'cart' => $cart,
-            'items' => $items,
-            'productsTotal' => $productsTotal,
-            'wilayas' => $wilayasWithTariffs,
-            'deliveryTypes' => [
+            'cart' => fn() => $this->cartService->getOrCreate(
+                auth()->user()?->client?->id,
+                session()->getId()
+            ),
+            
+            'items' => fn() => $this->cartService->getItemsWithProducts(
+                $this->cartService->getOrCreate(auth()->user()?->client?->id, session()->getId())
+            ),
+            
+            'productsTotal' => fn() => $this->cartService->getTotal(
+                $this->cartService->getOrCreate(auth()->user()?->client?->id, session()->getId())
+            ),
+            
+            'wilayas' => fn() => $this->locationService->getWilayasWithTariffs(),
+            
+            'communes' => fn() => request('wilaya_id') 
+                ? $this->locationService->getCommunesByWilaya((int)request('wilaya_id')) 
+                : [],
+                
+            'delivery_tariffs' => Inertia::lazy(fn () => \Illuminate\Support\Facades\Cache::rememberForever('delivery_tariffs', function () {
+                return \App\Models\DeliveryTariff::where('is_active', true)->get()->groupBy('wilaya_id');
+            })),
+
+            'selected_tariff' => function() {
+                $wId = request('wilaya_id');
+                if (!$wId) return null;
+                
+                return \App\Models\DeliveryTariff::where('wilaya_id', $wId)
+                    ->where('is_active', true)
+                    ->get()
+                    ->mapWithKeys(fn($t) => [$t->type->value => (float)$t->price]);
+            },
+
+            'deliveryTypes' => fn() => [
                 ['value' => DeliveryType::DOMICILE->value, 'label' => DeliveryType::DOMICILE->label()],
                 ['value' => DeliveryType::BUREAU->value, 'label' => DeliveryType::BUREAU->label()],
             ],
-            'loyaltyBalance' => auth()->check() && auth()->user()->client 
+            
+            'loyaltyBalance' => fn() => auth()->check() && auth()->user()->client 
                 ? app(\App\Services\LoyaltyService::class)->getBalance(auth()->user()->client->id) 
                 : 0,
         ]);
@@ -159,38 +179,94 @@ class CheckoutController extends Controller
         ]);
     }
     /**
-     * Passer la commande avec validation et redirection Inertia
+     * Passer la commande avec validation et réponse SPA optimisée
      */
-    public function placeOrder(PlaceOrderRequest $request): RedirectResponse
+    public function placeOrder(PlaceOrderRequest $request)
     {
         try {
             $data = $request->validated();
+            $isDirect = $request->has('items');
             
-            // Construire le DTO
             $dto = CreateOrderDTO::fromRequest([
                 ...$data,
                 'client_id' => auth()->user()?->client?->id,
-                'items' => $this->prepareCartItems(),
+                'items' => $isDirect ? $request->input('items') : $this->prepareCartItems(),
+                'clear_cart' => !$isDirect,
             ]);
             
-            // Créer la commande via le service (transaction DB + snapshots)
             $order = $this->orderService->create($dto);
             
-            return redirect()->route('checkout.success', $order)
-                ->with('success', "Commande #{$order->id} créée avec succès!");
+            // ⚡️ OPTIMISATION RADICALE : Calculer les nouveaux points AVANT la réponse
+            $newLoyaltyBalance = 0;
+            if ($dto->clientId) {
+                $newLoyaltyBalance = app(\App\Services\LoyaltyService::class)->getBalance($dto->clientId);
+                // Invalider le cache des points pour ce client
+                \Illuminate\Support\Facades\Cache::forget("loyalty_balance_{$dto->clientId}");
+            }
+            
+            // ⚡️ OPTIMISATION RADICALE : Réponse minimale SANS redirect pour éviter le 302
+            // Si c'est une commande directe depuis la page produit, on retourne juste les données minimales en session
+            // Le frontend utilisera ces données sans rechargement grâce à preserveState
+            $orderData = [
+                'id' => $order->id,
+                'first_name' => $order->first_name,
+                'total_price' => $order->total_price,
+                'commune_name' => $order->commune_name,
+                'wilaya_name' => $order->wilaya_name,
+            ];
+            
+            // Stocker en session pour que le frontend puisse y accéder
+            session()->flash('order', $orderData);
+            session()->flash('newLoyaltyBalance', $newLoyaltyBalance);
+            session()->flash('success', "Commande #{$order->id} créée avec succès!");
+            
+            // ⚡️ CRITIQUE : Pour les commandes directes, utiliser l'URL de référence sans paramètres
+            // pour éviter le 302 redirect vers une URL avec ?wilaya_id=16 qui déclenche un rechargement
+            if ($isDirect && !empty($dto->items)) {
+                $productId = array_key_first($dto->items);
+                if ($productId) {
+                    // Utiliser redirect()->route() au lieu de back() pour éviter les paramètres de requête
+                    // qui causent le rechargement complet
+                    return redirect()->route('products.show', $productId)->with([
+                        'order' => $orderData,
+                        'newLoyaltyBalance' => $newLoyaltyBalance,
+                        'success' => "Commande #{$order->id} créée avec succès!"
+                    ]);
+                }
+            }
+            
+            // Pour le checkout classique, utiliser back() mais avec preserveState côté frontend
+            return back()->with([
+                'order' => $orderData,
+                'newLoyaltyBalance' => $newLoyaltyBalance,
+                'success' => "Commande #{$order->id} créée avec succès!"
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Checkout Error: ' . $e->getMessage());
-            file_put_contents(storage_path('logs/checkout_error.log'), $e->getMessage() . PHP_EOL . $e->getTraceAsString());
-            return redirect()->back()->with('error', $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Checkout Error: ' . $e->getMessage(), [
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->only(['first_name', 'last_name', 'phone', 'wilaya_id', 'commune_id', 'delivery_type']),
+            ]);
+            
+            // Retourner les erreurs au format Inertia
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
     }
 
     /**
-     * Page de confirmation
+     * Page de confirmation - ⚡️ OPTIMISATION : Payload minimal
      */
     public function success(\App\Models\Order $order): Response
     {
-        $order->load(['items.product.images']);
+        // On ne charge QUE ce qui est nécessaire pour l'affichage du succès
+        // Les snapshots dans items suffisent généralement
+        $order->load(['items' => function($q) {
+            $q->select('id', 'order_id', 'product_id', 'quantity', 'price_snapshot', 'metadata_snapshot');
+        }]);
         
         return Inertia::render('Checkout/Success', [
             'order' => $order,

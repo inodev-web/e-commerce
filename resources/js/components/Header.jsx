@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
     const { t } = useTranslation();
-    const { auth } = usePage().props;
+    const { auth, cartCount } = usePage().props;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -93,17 +93,29 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
 
                     <LanguageSwitcher />
 
-                    <Link href={auth.user ? route('profile.edit') : route('auth')} className="nav-link">
-                        <User className="nav-icon" size={22} />
-                        <span>{auth.user ? t('nav.account', 'Profil') : t('nav.login', 'Connexion')}</span>
-                    </Link>
+                    {/* Admin Dashboard Link */}
+                    {auth.user && auth.user.roles && auth.user.roles.includes('admin') && (
+                        <Link href={route('admin.dashboard')} className="nav-link text-teal-600 font-bold">
+                            <ShieldCheck className="nav-icon" size={22} />
+                            <span>{t('nav.dashboard', 'Tableau de bord')}</span>
+                        </Link>
+                    )}
 
-                    <Link href={route('cart.show')} className="nav-link cart-link">
-                        <ShoppingCart className="nav-icon" size={22} />
-                        <span>{t('nav.cart', 'Panier')}</span>
-                        {/* If you have cart count in props, use it here */}
-                        <span className="cart-badge">0</span>
-                    </Link>
+                    {/* Client Links (Profile/Cart) - Hide for Admin */}
+                    {(!auth.user || !auth.user.roles || !auth.user.roles.includes('admin')) && (
+                        <>
+                            <Link href={auth.user ? route('profile.edit') : route('auth')} className="nav-link">
+                                <User className="nav-icon" size={22} />
+                                <span>{auth.user ? t('nav.account', 'Profil') : t('nav.login', 'Connexion')}</span>
+                            </Link>
+
+                            <Link href={route('cart.show')} className="nav-link cart-link">
+                                <ShoppingCart className="nav-icon" size={22} />
+                                <span>{t('nav.cart', 'Panier')}</span>
+                                {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+                            </Link>
+                        </>
+                    )}
 
                     {auth.user && (
                         <Link href={route('logout')} method="post" as="button" className="nav-link logout-link text-red-500 hover:text-red-700">

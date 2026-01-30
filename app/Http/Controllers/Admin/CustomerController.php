@@ -58,4 +58,26 @@ class CustomerController extends Controller
             'client' => $client
         ]);
     }
+
+    /**
+     * Toggle user status (active/blocked)
+     */
+    public function toggle(Client $client)
+    {
+        if (!$client->user) {
+            return redirect()->back()->withErrors(['error' => 'Ce client n\'a pas de compte utilisateur associé.']);
+        }
+
+        $newStatus = $client->user->status === \App\Enums\UserStatus::BANNED 
+            ? \App\Enums\UserStatus::ACTIVE 
+            : \App\Enums\UserStatus::BANNED;
+        
+        $client->user->update(['status' => $newStatus]);
+
+        $message = $newStatus === \App\Enums\UserStatus::BANNED
+            ? 'Client bloqué avec succès.' 
+            : 'Client débloqué avec succès.';
+
+        return redirect()->back()->with('success', $message);
+    }
 }

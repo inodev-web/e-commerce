@@ -40,14 +40,25 @@ class OrderService
             $deliveryTariff = DeliveryTariff::where('wilaya_id', $dto->wilayaId)
                 ->where('type', $dto->deliveryType)
                 ->where('is_active', true)
-                ->firstOrFail();
+                ->first();
+
+            if (!$deliveryTariff) {
+                throw new \Exception("La livraison n'est pas encore configurée pour cette Wilaya (" . $wilaya->name . ") et ce mode (" . $dto->deliveryType->value . "). Contactez l'administrateur.");
+            }
             
-            // 3. Calculer le total des produits à partir de la base de données
+            // 3. Calculer le total des produits (⚡️ FIX N+1 : Fetch all at once)
+            $productIds = array_keys($dto->items);
+            $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+            
             $productsTotal = 0;
             $validatedItems = [];
             
             foreach ($dto->items as $productId => $item) {
-                $product = Product::findOrFail($productId);
+                $product = $products->get($productId);
+                
+                if (!$product) {
+                    throw new \Exception("Produit non trouvé : {$productId}");
+                }
                 
                 // Vérifier disponibilité
                 if (!$product->isAvailable()) {
@@ -137,19 +148,17 @@ class OrderService
                 'status' => OrderStatus::PENDING,
             ]);
             
-            // 7. Créer les order items avec METADATA SNAPSHOT (JSONB)
+            // 7. Créer les order items avec MINIMAL SNAPSHOT
             foreach ($validatedItems as $productId => $item) {
                 $product = $item['product'];
-                $product->load('specificationValues.specification');
                 
-                // Construire le metadata snapshot JSONB
+                // ⚡️ OPTIMISATION : Snapshot ultra-léger (pas de descriptions fleuves)
                 $metadataSnapshot = [
                     'name' => $product->name,
-                    'description' => $product->description,
+                    // On ne stocke que les specs essentielles si besoin
                     'specifications' => $product->specificationValues->map(fn($sv) => [
-                        'name' => $sv->specification->name,
-                        'value' => $sv->value,
-                        'required' => $sv->specification->required,
+                        'n' => $sv->specification->name,
+                        'v' => $sv->value,
                     ])->toArray(),
                 ];
                 
@@ -158,7 +167,7 @@ class OrderService
                     'product_id' => $productId,
                     'quantity' => $item['quantity'],
                     'price_snapshot' => $item['price'],
-                    'metadata_snapshot' => $metadataSnapshot,  // JSONB SNAPSHOT
+                    'metadata_snapshot' => $metadataSnapshot,
                 ]);
                 
                 // 8. Décrémenter le stock
@@ -181,8 +190,8 @@ class OrderService
             // 10. Pixel Tracking
             $this->pixelService->trackPurchase($order);
             
-            // 10. Vider le panier si présent
-            if ($dto->clientId) {
+            // 10. Vider le panier si nécessaire
+            if ($dto->clientId && $dto->clearCart) {
                 Cart::where('client_id', $dto->clientId)->delete();
             }
             

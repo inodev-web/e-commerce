@@ -1,7 +1,7 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Gift, ShoppingBag, MapPin, Phone, Mail } from 'lucide-react';
-import AdminLayout from '../../Components/AdminLayout';
+import AdminLayout from '../../components/AdminLayout';
 import { useTranslation } from 'react-i18next';
 import { getTranslated } from '@/utils/translation';
 
@@ -77,7 +77,7 @@ const CustomerDetails = ({ auth, client }) => {
                                                 <td className="px-4 py-3 font-medium">{order.total_price.toLocaleString()} DA</td>
                                                 <td className="px-4 py-3">
                                                     <span className={`px-2 py-1 rounded-full text-xs ${order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                                                            order.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                                                        order.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
                                                         }`}>
                                                         {t(`status.${order.status}`, order.status)}
                                                     </span>

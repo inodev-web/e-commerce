@@ -19,7 +19,7 @@ Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->name('h
 
 Route::get('/auth', function () {
     return Inertia::render('Auth/Login', [
-        'wilayas' => \App\Models\Wilaya::select('id', 'name')->orderBy('name')->get()
+        'wilayas' => \App\Models\Wilaya::select('id', 'name', 'code')->orderBy('code')->get()
     ]);
 })->name('auth');
 
@@ -41,7 +41,7 @@ Route::get('/products/{product}', [ProductController::class, 'show'])->name('pro
 Route::get('/wilayas', [\App\Http\Controllers\WilayaController::class, 'index'])->name('wilayas.index');
 Route::get('/api/wilayas/{wilaya}/communes', function (\App\Models\Wilaya $wilaya) {
     return \Illuminate\Support\Facades\Cache::rememberForever("wilaya_{$wilaya->id}_communes", function () use ($wilaya) {
-        return $wilaya->communes()->orderBy('name')->select('id', 'name')->get();
+        return $wilaya->communes()->orderBy('name')->select('id', 'name', 'name_ar')->get();
     });
 });
 
@@ -103,7 +103,7 @@ Route::prefix('checkout')->name('checkout.')->group(function () {
 });
 
 // Admin Routes
-Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Product Management
@@ -125,6 +125,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'role:admin'
     // Customer Management
     Route::get('customers', [\App\Http\Controllers\Admin\CustomerController::class, 'index'])->name('customers.index');
     Route::get('customers/{client}', [\App\Http\Controllers\Admin\CustomerController::class, 'show'])->name('customers.show');
+    Route::post('customers/{client}/toggle', [\App\Http\Controllers\Admin\CustomerController::class, 'toggle'])->name('customers.toggle');
 
     // Settings
     Route::get('settings/pixel', [\App\Http\Controllers\Admin\PixelSettingController::class, 'show'])->name('settings.pixel');

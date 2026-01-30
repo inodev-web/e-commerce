@@ -14,7 +14,7 @@ import {
     XCircle,
     Package
 } from 'lucide-react';
-import AdminLayout from '../../Components/AdminLayout';
+import AdminLayout from '../../components/AdminLayout';
 import { Button } from "@/components/ui/button";
 import { getTranslated } from '@/utils/translation';
 

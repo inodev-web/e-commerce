@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Star, Filter, Search as SearchIcon } from 'lucide-react';
-import { router, Link } from '@inertiajs/react';
+import { router, Link, usePage } from '@inertiajs/react';
 import { getTranslated } from '@/utils/translation';
+import { getLabel } from '../../utils/i18n';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../../components/ui/dialog';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
@@ -22,8 +23,40 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
 
         router.get(route('products.index'), newFilters, {
             preserveState: true,
-            replace: true
+            replace: true,
+            preserveScroll: true // Added preserveScroll for better UX
         });
+    };
+
+    // Debounce implementation for Price
+    const [priceFilters, setPriceFilters] = useState({
+        min_price: filters.min_price || '',
+        max_price: filters.max_price || ''
+    });
+
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            if (priceFilters.min_price !== (filters.min_price || '') || priceFilters.max_price !== (filters.max_price || '')) {
+                const newFilters = { ...filters };
+                if (priceFilters.min_price) newFilters.min_price = priceFilters.min_price;
+                else delete newFilters.min_price;
+
+                if (priceFilters.max_price) newFilters.max_price = priceFilters.max_price;
+                else delete newFilters.max_price;
+
+                router.get(route('products.index'), newFilters, {
+                    preserveState: true,
+                    replace: true,
+                    preserveScroll: true
+                });
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [priceFilters]);
+
+    const handlePriceChange = (key, value) => {
+        setPriceFilters(prev => ({ ...prev, [key]: value }));
     };
 
     const handleSearch = (e) => {
@@ -48,6 +81,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
             quantity: 1
         }, {
             preserveScroll: true,
+            preserveState: true,
             onSuccess: () => {
                 setAddedProduct(product);
                 setModalOpen(true);
@@ -61,8 +95,8 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
 
             <main className="shop-container">
                 <div className="shop-header">
-                    <h1 className="shop-title">Tous les Produits</h1>
-                    <p className="shop-subtitle">Découvrez notre sélection de produits parapharmaceutiques de qualité.</p>
+                    <h1 className="shop-title">{getLabel('all_products')}</h1>
+                    <p className="shop-subtitle">{getLabel('products_subtitle')}</p>
                 </div>
 
                 {/* Search Bar */}
@@ -70,14 +104,14 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                     <form onSubmit={handleSearch} className="relative">
                         <input
                             type="text"
-                            placeholder="Rechercher un produit..."
+                            placeholder={getLabel('search') + "..."}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="w-full pl-12 pr-28 py-3 rounded-full border border-gray-200 bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-shadow"
                         />
                         <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-[#DB8B89]" size={20} />
                         <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#DB8B89] text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-[#C07573] transition-colors">
-                            Rechercher
+                            {getLabel('search')}
                         </button>
                     </form>
                 </div>
@@ -85,18 +119,18 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                 {/* Filter Bar */}
                 <div className="filter-bar">
                     <div className="filter-left">
-                        <span className="filter-label">FILTRER PAR:</span>
+                        <span className="filter-label">{getLabel('filter_by')}</span>
 
                         {/* Categories Filter */}
                         <Dialog>
                             <DialogTrigger asChild>
                                 <button className="filter-button">
-                                    Catégories <span className="arrow">▼</span>
+                                    {getLabel('categories')} <span className="arrow">▼</span>
                                 </button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[425px] p-6 lg:p-10">
                                 <DialogHeader>
-                                    <DialogTitle>Catégories</DialogTitle>
+                                    <DialogTitle>{getLabel('categories')}</DialogTitle>
                                 </DialogHeader>
                                 <div className="grid gap-4 mt-2 max-h-60 overflow-y-auto">
                                     {categories.map((cat) => (
@@ -125,7 +159,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                                     ))}
                                 </div>
                                 <DialogFooter>
-                                    <button className="apply-button" onClick={() => router.reload()}>Fermer</button>
+                                    <button className="apply-button" onClick={() => router.reload()}>{getLabel('close')}</button>
                                 </DialogFooter>
                             </DialogContent>
                         </Dialog>
@@ -134,37 +168,38 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                         <Dialog>
                             <DialogTrigger asChild>
                                 <button className="filter-button">
-                                    Prix <span className="arrow">▼</span>
+                                    {getLabel('price')} <span className="arrow">▼</span>
                                 </button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[425px] p-10">
                                 <DialogHeader>
-                                    <DialogTitle>Plage de prix</DialogTitle>
+                                    <DialogTitle>{getLabel('price')}</DialogTitle>
                                 </DialogHeader>
                                 <div className="grid gap-4 mt-2">
                                     <div className="flex gap-4">
                                         <div className="flex-1">
-                                            <label className="text-xs text-gray-500">Min (DA)</label>
+                                            <label className="text-xs text-gray-500">{getLabel('min')} (DA)</label>
                                             <input
                                                 type="number"
-                                                value={filters.min_price || ''}
-                                                onChange={(e) => handleFilterChange('min_price', e.target.value)}
+                                                value={priceFilters.min_price}
+                                                onChange={(e) => handlePriceChange('min_price', e.target.value)}
                                                 className="w-full border rounded-lg p-2"
                                             />
                                         </div>
                                         <div className="flex-1">
-                                            <label className="text-xs text-gray-500">Max (DA)</label>
+                                            <label className="text-xs text-gray-500">{getLabel('max')} (DA)</label>
                                             <input
                                                 type="number"
-                                                value={filters.max_price || ''}
-                                                onChange={(e) => handleFilterChange('max_price', e.target.value)}
+                                                value={priceFilters.max_price}
+                                                onChange={(e) => handlePriceChange('max_price', e.target.value)}
                                                 className="w-full border rounded-lg p-2"
                                             />
                                         </div>
                                     </div>
                                 </div>
+
                                 <DialogFooter>
-                                    <button className="apply-button" onClick={() => router.reload()}>Fermer</button>
+                                    <button className="apply-button" onClick={() => router.reload()}>{getLabel('close')}</button>
                                 </DialogFooter>
                             </DialogContent>
                         </Dialog>
@@ -188,20 +223,22 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                 </div>
 
                 {/* Active Filters */}
-                {Object.keys(filters).length > 0 && (
-                    <div className="active-filters">
-                        {filters.search && <span className="filter-tag">Search: {filters.search} <button onClick={() => handleFilterChange('search', null)}>✕</button></span>}
-                        {filters.category_id && <span className="filter-tag">Category ID: {filters.category_id} <button onClick={() => handleFilterChange('category_id', null)}>✕</button></span>}
-                        <button className="clear-all" onClick={clearFilters}>Tout effacer</button>
-                    </div>
-                )}
+                {
+                    Object.keys(filters).length > 0 && (
+                        <div className="active-filters">
+                            {filters.search && <span className="filter-tag">Search: {filters.search} <button onClick={() => handleFilterChange('search', null)}>✕</button></span>}
+                            {filters.category_id && <span className="filter-tag">Category ID: {filters.category_id} <button onClick={() => handleFilterChange('category_id', null)}>✕</button></span>}
+                            <button className="clear-all" onClick={clearFilters}>Tout effacer</button>
+                        </div>
+                    )
+                }
 
                 {/* Product Grid */}
                 <div className="product-grid">
                     {products.data.length > 0 ? products.data.map((product) => (
                         <Link key={product.id} href={route('products.show', product.id)} className="top-seller-card h-full">
                             {product.stock <= 0 && (
-                                <span className="seller-badge out-of-stock">RUPTURE</span>
+                                <span className="seller-badge out-of-stock">{getLabel('out_of_stock')}</span>
                             )}
                             <div className="seller-rating">
                                 <Star size={14} fill="#FFC107" stroke="#FFC107" />
@@ -240,19 +277,21 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                 </div>
 
                 {/* Pagination */}
-                {products.links && products.links.length > 3 && (
-                    <div className="pagination flex justify-center items-center gap-2 mt-12">
-                        {products.links.map((link, i) => (
-                            <Link
-                                key={i}
-                                href={link.url}
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                className={`px-4 py-2 rounded-lg border transition-all ${link.active ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-600 hover:border-teal-600'} ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            />
-                        ))}
-                    </div>
-                )}
-            </main>
+                {
+                    products.links && products.links.length > 3 && (
+                        <div className="pagination flex justify-center items-center gap-2 mt-12">
+                            {products.links.map((link, i) => (
+                                <Link
+                                    key={i}
+                                    href={link.url}
+                                    dangerouslySetInnerHTML={{ __html: link.label }}
+                                    className={`px-4 py-2 rounded-lg border transition-all ${link.active ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-600 hover:border-teal-600'} ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                />
+                            ))}
+                        </div>
+                    )
+                }
+            </main >
 
             <Footer />
             <CartConfirmationModal
@@ -260,7 +299,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                 onClose={() => setModalOpen(false)}
                 product={addedProduct}
             />
-        </div>
+        </div >
     );
 };
 

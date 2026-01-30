@@ -33,18 +33,26 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'locale' => app()->getLocale(),
             'available_locales' => config('app.available_locales', ['fr', 'ar']),
-            'auth' => [
+            'auth' => fn () => [
                 'user' => $request->user() ? [
                     'id' => $request->user()->id,
                     'first_name' => $request->user()->client?->first_name,
                     'last_name' => $request->user()->client?->last_name,
                     'full_name' => $request->user()->client ? ($request->user()->client->first_name . ' ' . $request->user()->client->last_name) : 'Utilisateur',
                     'phone' => $request->user()->phone,
-                    'roles' => $request->user()->getRoleNames(), // Assurez-vous que Spatie est bien configuré
+                    'roles' => $request->user()->getRoleNames(),
                     'status' => $request->user()->status,
-                    // Eviter de charger tout l'objet client si pas nécessaire, mais utile pour l'avatar etc.
+                    // ⚡️ OPTIMISATION : Utiliser le cache pour les points (calculé dans LoyaltyService)
+                    'points' => $request->user()->client ? app(\App\Services\LoyaltyService::class)->getBalance($request->user()->client->id) : 0,
                 ] : null,
             ],
+            'cartCount' => fn () => $request->user()?->client?->cart?->items->sum('quantity') ?? 0,
+            'flash' => [
+                'success' => session('success'),
+                'error' => session('error'),
+            ],
+            'order' => session('order'),
+            // ⚡️ OPTIMISATION : Supprimé car déjà dans auth.user.points (évite duplication)
         ];
     }
 }

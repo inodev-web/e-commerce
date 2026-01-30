@@ -21,44 +21,65 @@ class LoyaltyService
     {
         $points = (int) floor($orderTotal * self::POINTS_PERCENTAGE);
         
-        return LoyaltyPoint::create([
+        $loyaltyPoint = LoyaltyPoint::create([
             'client_id' => $clientId,
             'points' => $points,
             'description' => "Points gagnés pour commande de {$orderTotal} DA",
         ]);
+        
+        // Invalider le cache après attribution
+        \Illuminate\Support\Facades\Cache::forget("loyalty_balance_{$clientId}");
+        
+        return $loyaltyPoint;
     }
 
     /**
-     * Obtenir le solde total de points d'un client
+     * Obtenir le solde total de points d'un client (avec cache)
      */
     public function getBalance(int $clientId): int
     {
-        return (int) LoyaltyPoint::where('client_id', $clientId)->sum('points');
+        return (int) \Illuminate\Support\Facades\Cache::remember(
+            "loyalty_balance_{$clientId}",
+            now()->addMinutes(5), // Cache 5 minutes
+            fn() => (int) LoyaltyPoint::where('client_id', $clientId)->sum('points')
+        );
     }
 
     /**
-     * Convertir des points en remise (1 point = 1 DA)
+     * Convertir des points en remise (1 point = 1 DA) - 🛡 SÉCURISÉ (Race Condition)
      */
     public function convertToDiscount(int $clientId, int $points): float
     {
-        $balance = $this->getBalance($clientId);
-        
-        if ($points > $balance) {
-            throw new \Exception("Points insuffisants. Disponible: {$balance}");
-        }
-        
-        if ($points <= 0) {
-            throw new \Exception("Le nombre de points doit être positif");
-        }
-        
-        // Déduire les points
-        LoyaltyPoint::create([
-            'client_id' => $clientId,
-            'points' => -$points,
-            'description' => "Conversion de {$points} points en remise",
-        ]);
-        
-        return (float) $points; // 1 point = 1 DA
+        return \Illuminate\Support\Facades\DB::transaction(function() use ($clientId, $points) {
+            // 🔒 LOCK FOR UPDATE sur le client pour éviter les accès concurrents sur le solde
+            $client = Client::where('id', $clientId)->lockForUpdate()->first();
+            
+            if (!$client) {
+                throw new \Exception("Client non trouvé");
+            }
+
+            $balance = $this->getBalance($clientId);
+            
+            if ($points > $balance) {
+                throw new \Exception("Points insuffisants. Disponible: {$balance}");
+            }
+            
+            if ($points <= 0) {
+                throw new \Exception("Le nombre de points doit être positif");
+            }
+            
+            // Déduire les points
+            LoyaltyPoint::create([
+                'client_id' => $clientId,
+                'points' => -$points,
+                'description' => "Conversion de {$points} points en remise (Commande)",
+            ]);
+            
+            // Invalider le cache après conversion
+            \Illuminate\Support\Facades\Cache::forget("loyalty_balance_{$clientId}");
+            
+            return (float) $points; // 1 point = 1 DA
+        });
     }
 
     /**

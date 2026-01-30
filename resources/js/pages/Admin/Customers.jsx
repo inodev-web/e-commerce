@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, MoreVertical, Ban, Gift, Eye } from 'lucide-react';
-import AdminLayout from '../../Components/AdminLayout';
+import AdminLayout from '../../components/AdminLayout';
 import { Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 
@@ -78,7 +78,14 @@ const AdminCustomers = ({ auth, theme, toggleTheme, clients, filters }) => {
                                                 <Link href={route('admin.customers.show', client.id)} className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400" title={t('common.details', 'Détails')}>
                                                     <Eye className="w-4 h-4" />
                                                 </Link>
-                                                <button className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400" title="Bloquer">
+                                                <button
+                                                    onClick={() => router.post(route('admin.customers.toggle', client.id), {}, {
+                                                        preserveScroll: true,
+                                                        onSuccess: () => router.reload({ only: ['clients'] })
+                                                    })}
+                                                    className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                                                    title={client.user?.status === 'banned' ? 'Débloquer' : 'Bloquer'}
+                                                >
                                                     <Ban className="w-4 h-4" />
                                                 </button>
                                             </div>

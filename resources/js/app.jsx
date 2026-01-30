@@ -45,3 +45,13 @@ createInertiaApp({
         color: '#4B5563',
     },
 });
+
+// Global 419 CSRF error fallback
+import { router } from '@inertiajs/react';
+router.on('error', (event) => {
+    const response = event.detail.response;
+    if (response && response.status === 419) {
+        console.warn('Session expired (419). Attempting transparent reload...');
+        window.location.reload();
+    }
+});

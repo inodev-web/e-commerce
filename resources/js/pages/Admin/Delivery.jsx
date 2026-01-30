@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search, Save, MapPin } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import AdminLayout from '../../Components/AdminLayout';
-
+import AdminLayout from '../../components/AdminLayout';
+import { router } from '@inertiajs/react';
 import { useForm } from '@inertiajs/react';
 
 const AdminDelivery = ({ wilayas, theme, toggleTheme }) => {
     const [search, setSearch] = useState('');
+    const originalData = useRef(wilayas); // Store original data for comparison
 
     const { data, setData, post, processing } = useForm({
         wilayas: wilayas
@@ -17,15 +18,50 @@ const AdminDelivery = ({ wilayas, theme, toggleTheme }) => {
         w.code.includes(search)
     );
 
+    const [isProcessing, setIsProcessing] = useState(false);
+
     const updateWilaya = (id, field, value) => {
-        setData('wilayas', data.wilayas.map(w =>
-            w.id === id ? { ...w, [field]: value } : w
-        ));
+        setData('wilayas', data.wilayas.map(w => {
+            if (w.id !== id) return w;
+
+            // If updating the master "active" checkbox
+            if (field === 'active') {
+                return {
+                    ...w,
+                    active: value,
+                    homeActive: value, // Toggle both delivery types
+                    deskActive: value
+                };
+            }
+
+            return { ...w, [field]: value };
+        }));
     };
 
     const handleSave = () => {
-        post(route('admin.delivery.bulk-update'), {
+        // Filter only modified wilayas using JSON comparison
+        const modifiedWilayas = data.wilayas.filter((wilaya) => {
+            const original = originalData.current.find(w => w.id === wilaya.id);
+            return JSON.stringify(wilaya) !== JSON.stringify(original);
+        });
+
+        if (modifiedWilayas.length === 0) {
+            alert('Aucune modification détectée');
+            return;
+        }
+
+        router.post(route('admin.delivery.bulk-update'), {
+            wilayas: modifiedWilayas
+        }, {
             preserveScroll: true,
+            preserveState: true,
+            only: ['wilayas', 'flash'], // Partial reload: only get back updated data and messages
+            onStart: () => setIsProcessing(true),
+            onFinish: () => setIsProcessing(false),
+            onSuccess: () => {
+                // Update original data after successful save
+                originalData.current = data.wilayas;
+            }
         });
     };
 
@@ -36,11 +72,11 @@ const AdminDelivery = ({ wilayas, theme, toggleTheme }) => {
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Livraison</h1>
                     <Button
                         onClick={handleSave}
-                        disabled={processing}
+                        disabled={isProcessing}
                         className="bg-[#DB8B89] text-white hover:bg-[#C07573]"
                     >
                         <Save className="w-4 h-4 mr-2" />
-                        {processing ? 'Sauvegarde...' : 'Sauvegarder tout'}
+                        {isProcessing ? 'Sauvegarde...' : 'Sauvegarder tout'}
                     </Button>
                 </div>
 
@@ -64,7 +100,7 @@ const AdminDelivery = ({ wilayas, theme, toggleTheme }) => {
                                 <tr>
                                     <th className="px-6 py-4 w-20">Code</th>
                                     <th className="px-6 py-4">Wilaya</th>
-                                    <th className="px-6 py-4 text-center">Active</th>
+                                    <th className="px-6 py-4 text-center">Active (Tout)</th>
                                     <th className="px-6 py-4">Domicile (DA)</th>
                                     <th className="px-6 py-4 text-center">Active</th>
                                     <th className="px-6 py-4">Bureau (DA)</th>
@@ -79,7 +115,7 @@ const AdminDelivery = ({ wilayas, theme, toggleTheme }) => {
                                         <td className="px-6 py-4 text-center">
                                             <input
                                                 type="checkbox"
-                                                checked={wilaya.active}
+                                                checked={wilaya.homeActive && wilaya.deskActive}
                                                 onChange={(e) => updateWilaya(wilaya.id, 'active', e.target.checked)}
                                                 className="w-4 h-4 rounded border-gray-300 text-[#DB8B89] focus:ring-[#DB8B89]"
                                             />

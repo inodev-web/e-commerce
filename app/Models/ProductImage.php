@@ -17,6 +17,7 @@ class ProductImage extends Model
         'url',
         'image_path',
         'is_primary',
+        'is_main',
     ];
 
     protected $appends = [
@@ -31,6 +32,7 @@ class ProductImage extends Model
     {
         return [
             'is_primary' => 'boolean',
+            'is_main' => 'boolean',
         ];
     }
 

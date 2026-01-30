@@ -2,7 +2,7 @@ import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { getTranslated } from '@/utils/translation';
-import AdminLayout from '../../Components/AdminLayout';
+import AdminLayout from '../../components/AdminLayout';
 import {
     DollarSign,
     ShoppingBag,

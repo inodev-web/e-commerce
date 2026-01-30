@@ -2,7 +2,7 @@
 import { Plus, Search, Edit, Trash2, Filter } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import AdminLayout from '../../Components/AdminLayout';
+import AdminLayout from '../../components/AdminLayout';
 import { Link, router, useForm } from '@inertiajs/react';
 import { getTranslated } from '@/utils/translation';
 
@@ -69,6 +69,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         price: '',
         stock: '',
         status: 'ACTIF',
+        free_shipping: false,
         images: [],
         specifications: [],
     });
@@ -172,6 +173,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
             price: product.price ?? '',
             stock: product.stock ?? '',
             status: product.status || 'ACTIF',
+            free_shipping: !!product.free_shipping,
             images: [],
             specifications: buildSpecValues(subCategory, product),
         });
@@ -917,6 +919,20 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         ))}
                                     </select>
                                     {productForm.errors.sub_category_id && <p className="text-xs text-red-500">{productForm.errors.sub_category_id}</p>}
+                                    {productForm.errors.sub_category_id && <p className="text-xs text-red-500">{productForm.errors.sub_category_id}</p>}
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Options de livraison</label>
+                                    <div className="flex items-center gap-2 p-3 border rounded-md dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/50">
+                                        <input
+                                            type="checkbox"
+                                            id="free_shipping"
+                                            checked={productForm.data.free_shipping}
+                                            onChange={(e) => productForm.setData('free_shipping', e.target.checked)}
+                                            className="w-4 h-4 rounded border-gray-300 text-[#DB8B89] focus:ring-[#DB8B89]"
+                                        />
+                                        <label htmlFor="free_shipping" className="text-sm font-medium cursor-pointer">Livraison Gratuite</label>
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Statut</label>
@@ -984,11 +1000,11 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Images</label>
-                                    <input
-                                        type="file"
-                                        multiple
-                                        accept="image/*"
-                                        onChange={(e) => {
+                                <input
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={(e) => {
                                         const files = Array.from(e.target.files || []);
                                         if (!files.length) return;
                                         const existing = Array.isArray(productForm.data.images)
@@ -996,21 +1012,34 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                             : [];
                                         productForm.setData('images', [...existing, ...files]);
                                         e.target.value = '';
-                                        }}
-                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-[#DB8B89] file:text-white hover:file:bg-[#C07573]"
-                                    />
-                                    {Array.isArray(productForm.data.images) && productForm.data.images.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mt-2">
-                                            {productForm.data.images.map((file, index) => (
-                                                <span
-                                                    key={`${file.name}-${index}`}
-                                                    className="text-xs px-2 py-1 rounded-full bg-pink-50 text-[#DB8B89] border border-pink-100"
+                                    }}
+                                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-[#DB8B89] file:text-white hover:file:bg-[#C07573]"
+                                />
+                                {Array.isArray(productForm.data.images) && productForm.data.images.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {productForm.data.images.map((file, index) => (
+                                            <div key={`${file.name}-${index}`} className="relative group w-20 h-20 rounded-md overflow-hidden border border-gray-200 dark:border-zinc-700">
+                                                <img
+                                                    src={URL.createObjectURL(file)}
+                                                    alt={file.name}
+                                                    className="w-full h-full object-cover"
+                                                    onLoad={(e) => URL.revokeObjectURL(e.target.src)}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newImages = [...productForm.data.images];
+                                                        newImages.splice(index, 1);
+                                                        productForm.setData('images', newImages);
+                                                    }}
+                                                    className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
                                                 >
-                                                    {file.name}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                                 {(productForm.errors.images || productForm.errors['images.0']) && (
                                     <div className="space-y-1">
                                         {productForm.errors.images && (

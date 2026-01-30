@@ -32,17 +32,17 @@ class LoyaltyController extends Controller
     public function manualAdjustment(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:users,email',
+            'phone' => 'required|string|exists:users,phone',
             'points' => 'required|integer',
             'action' => 'required|in:add,subtract',
             'description' => 'required|string|max:255',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('phone', $request->phone)->first();
         $client = $user->client;
 
         if (!$client) {
-            return back()->withErrors(['email' => 'Cet utilisateur n\'est pas un client enregistré.']);
+            return back()->withErrors(['phone' => 'Cet utilisateur n\'est pas un client enregistré.']);
         }
 
         $points = (int) $request->points;

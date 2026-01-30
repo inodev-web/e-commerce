@@ -20,10 +20,19 @@ class LocalizationMiddleware
         // Set application locale
         App::setLocale($locale);
         
-        // Store in session for persistence
-        Session::put('locale', $locale);
+        // Store in session for persistence only if changed
+        if (Session::get('locale') !== $locale) {
+            Session::put('locale', $locale);
+        }
         
-        return $next($request);
+        $response = $next($request);
+        
+        // Persist to cookie (30 days) if changed
+        if ($locale && $request->cookie('locale') !== $locale) {
+            $response->withCookie(cookie('locale', $locale, 60 * 24 * 30));
+        }
+
+        return $response;
     }
     
     /**
@@ -44,7 +53,12 @@ class LocalizationMiddleware
             return Session::get('locale');
         }
         
-        // Priority 3: Accept-Language header
+        // Priority 3: Cookie
+        if ($request->hasCookie('locale') && in_array($request->cookie('locale'), $availableLocales)) {
+            return $request->cookie('locale');
+        }
+        
+        // Priority 4: Accept-Language header
         $headerLocale = $request->getPreferredLanguage($availableLocales);
         if ($headerLocale && in_array($headerLocale, $availableLocales)) {
             return $headerLocale;
