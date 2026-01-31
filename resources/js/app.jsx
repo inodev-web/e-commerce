@@ -1,4 +1,5 @@
 import '../css/app.css';
+import { Toaster } from 'sonner';
 import './bootstrap';
 import './i18n';
 
@@ -36,7 +37,12 @@ createInertiaApp({
                 document.documentElement.lang = locale;
             }, [props.initialPage.props.locale]);
 
-            return <App {...props} />;
+            return (
+                <>
+                    <Toaster position="top-right" richColors closeButton />
+                    <App {...props} />
+                </>
+            );
         };
 
         root.render(<AppWrapper />);

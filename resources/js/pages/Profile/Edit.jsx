@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShoppingCart, User, Gift, Award, Package, Copy, Loader2, Users, ChevronRight } from 'lucide-react';
+import { toast } from 'sonner';
 import { usePage, useForm, Head } from '@inertiajs/react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
@@ -22,11 +23,14 @@ export default function UserProfile({ theme, toggleTheme }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        patch(route('profile.update'));
+        patch(route('profile.update'), {
+            onSuccess: () => toast.success(t('profile.updated', 'Profil mis à jour avec succès')),
+        });
     };
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
+        toast.success(t('common.copied', 'Copié dans le presse-papier'));
     };
 
     return (
@@ -56,39 +60,39 @@ export default function UserProfile({ theme, toggleTheme }) {
 
                 {/* Main Tabs */}
                 <div className="max-w-4xl mx-auto px-4">
-                    <div className="flex gap-1 border-b dark:border-neutral-800 overflow-x-auto no-scrollbar">
+                    <div className="grid grid-cols-2 lg:flex gap-2 lg:gap-1 lg:border-b dark:border-neutral-800">
                         <button
                             onClick={() => setActiveTab('personal')}
-                            className={`flex-1 min-w-[120px] px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'personal'
-                                ? 'text-[#DB8B89] border-b-2 border-[#DB8B89]'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                            className={`w-full lg:flex-1 lg:min-w-[120px] px-4 py-3 text-sm font-medium transition-colors rounded-lg lg:rounded-none lg:rounded-t-lg ${activeTab === 'personal'
+                                ? 'bg-[#DB8B89]/10 text-[#DB8B89] lg:bg-transparent lg:border-b-2 border-[#DB8B89]'
+                                : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 lg:hover:bg-transparent lg:hover:text-gray-700'
                                 }`}
                         >
                             {t('profile.personal_info', 'Infos Personnelles')}
                         </button>
                         <button
                             onClick={() => setActiveTab('loyalty')}
-                            className={`flex-1 min-w-[120px] px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'loyalty'
-                                ? 'text-[#DB8B89] border-b-2 border-[#DB8B89]'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                            className={`w-full lg:flex-1 lg:min-w-[120px] px-4 py-3 text-sm font-medium transition-colors rounded-lg lg:rounded-none lg:rounded-t-lg ${activeTab === 'loyalty'
+                                ? 'bg-[#DB8B89]/10 text-[#DB8B89] lg:bg-transparent lg:border-b-2 border-[#DB8B89]'
+                                : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 lg:hover:bg-transparent lg:hover:text-gray-700'
                                 }`}
                         >
                             {t('profile.loyalty_points', 'Fidélité & Points')}
                         </button>
                         <button
                             onClick={() => setActiveTab('orders')}
-                            className={`flex-1 min-w-[120px] px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'orders'
-                                ? 'text-[#DB8B89] border-b-2 border-[#DB8B89]'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                            className={`w-full lg:flex-1 lg:min-w-[120px] px-4 py-3 text-sm font-medium transition-colors rounded-lg lg:rounded-none lg:rounded-t-lg ${activeTab === 'orders'
+                                ? 'bg-[#DB8B89]/10 text-[#DB8B89] lg:bg-transparent lg:border-b-2 border-[#DB8B89]'
+                                : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 lg:hover:bg-transparent lg:hover:text-gray-700'
                                 }`}
                         >
                             {t('nav.orders', 'Mes Commandes')}
                         </button>
                         <button
                             onClick={() => setActiveTab('referral')}
-                            className={`flex-1 min-w-[120px] px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'referral'
-                                ? 'text-[#DB8B89] border-b-2 border-[#DB8B89]'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                            className={`w-full lg:flex-1 lg:min-w-[120px] px-4 py-3 text-sm font-medium transition-colors rounded-lg lg:rounded-none lg:rounded-t-lg ${activeTab === 'referral'
+                                ? 'bg-[#DB8B89]/10 text-[#DB8B89] lg:bg-transparent lg:border-b-2 border-[#DB8B89]'
+                                : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 lg:hover:bg-transparent lg:hover:text-gray-700'
                                 }`}
                         >
                             {t('profile.referral', 'Parrainage')}
@@ -258,7 +262,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                             </div>
 
                             <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-                                <div className="bg-gray-50 dark:bg-neutral-800 px-8 py-4 rounded-xl text-2xl font-mono tracking-widest font-bold text-gray-800 dark:text-white border-2 border-dashed border-pink-200 dark:border-[#DB8B89]/40">
+                                <div className="bg-gray-50 dark:bg-white/5 px-8 py-4 rounded-xl text-2xl font-mono tracking-widest font-bold text-gray-800 dark:text-white border-2 border-dashed border-pink-200 dark:border-white/20">
                                     {(referral_code || user.referral_code) || 'GÉNÉRATION...'}
                                 </div>
                                 <button

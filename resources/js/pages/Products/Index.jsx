@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Star, Filter, Search as SearchIcon } from 'lucide-react';
+import { toast } from 'sonner';
 import { router, Link, usePage } from '@inertiajs/react';
 import { getTranslated } from '@/utils/translation';
 import { getLabel } from '../../utils/i18n';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '../../components/ui/dialog';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import CartConfirmationModal from '../../components/CartConfirmationModal';
@@ -85,6 +86,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
             onSuccess: () => {
                 setAddedProduct(product);
                 setModalOpen(true);
+                toast.success(getLabel('product_added_to_cart') || 'Produit ajouté au panier');
             }
         });
     };
@@ -96,24 +98,6 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
             <main className="shop-container">
                 <div className="shop-header">
                     <h1 className="shop-title">{getLabel('all_products')}</h1>
-                    <p className="shop-subtitle">{getLabel('products_subtitle')}</p>
-                </div>
-
-                {/* Search Bar */}
-                <div className="max-w-xl mx-auto mb-8">
-                    <form onSubmit={handleSearch} className="relative">
-                        <input
-                            type="text"
-                            placeholder={getLabel('search') + "..."}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-12 pr-28 py-3 rounded-full border border-gray-200 bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-shadow"
-                        />
-                        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-[#DB8B89]" size={20} />
-                        <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#DB8B89] text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-[#C07573] transition-colors">
-                            {getLabel('search')}
-                        </button>
-                    </form>
                 </div>
 
                 {/* Filter Bar */}
@@ -159,7 +143,9 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                                     ))}
                                 </div>
                                 <DialogFooter>
-                                    <button className="apply-button" onClick={() => router.reload()}>{getLabel('close')}</button>
+                                    <DialogClose asChild>
+                                        <button className="apply-button">{getLabel('close')}</button>
+                                    </DialogClose>
                                 </DialogFooter>
                             </DialogContent>
                         </Dialog>
@@ -199,26 +185,25 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                                 </div>
 
                                 <DialogFooter>
-                                    <button className="apply-button" onClick={() => router.reload()}>{getLabel('close')}</button>
+                                    <DialogClose asChild>
+                                        <button className="apply-button">{getLabel('close')}</button>
+                                    </DialogClose>
                                 </DialogFooter>
                             </DialogContent>
                         </Dialog>
                     </div>
 
                     <div className="filter-right">
-                        <span>{products.total} produits</span>
-                        <div className="sort-selector">
-                            <select
-                                className="bg-transparent outline-none cursor-pointer"
-                                onChange={(e) => handleFilterChange('sort', e.target.value)}
-                                value={filters.sort ? String(filters.sort) : ''}
-                            >
-                                <option value="">Pertinence</option>
-                                <option value="price_asc">Prix croissant</option>
-                                <option value="price_desc">Prix décroissant</option>
-                                <option value="newest">Nouveautés</option>
-                            </select>
-                        </div>
+                        <form onSubmit={handleSearch} className="relative w-full max-w-xs">
+                            <input
+                                type="text"
+                                placeholder={getLabel('search') + "..."}
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-all text-sm"
+                            />
+                            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-[#DB8B89]" size={16} />
+                        </form>
                     </div>
                 </div>
 

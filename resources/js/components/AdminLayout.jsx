@@ -118,7 +118,7 @@ const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleThem
                     <button
                         onClick={() => router.post(route('logout'))}
                         title={isCollapsed ? t('nav.logout', 'Déconnexion') : ""}
-                        className={`flex items-center gap-3 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-all ${isCollapsed ? "justify-center px-0 w-12 mx-auto" : "px-4 w-full"}`}
+                        className={`flex items-center gap-3 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all ${isCollapsed ? "justify-center px-0 w-12 mx-auto" : "px-4 w-full"}`}
                     >
                         <LogOut size={18} className="shrink-0" />
                         {!isCollapsed && <span>{t('nav.logout', 'Déconnexion')}</span>}

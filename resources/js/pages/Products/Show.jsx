@@ -1,6 +1,7 @@
 import { router, useForm, usePage, Link } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Star, ShoppingCart, Minus, Plus, ChevronLeft, Loader2, CreditCard, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import Header from '../../components/Header';
@@ -73,6 +74,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
             onSuccess: () => {
                 setCartModalOpen(true);
                 setAddingToCart(false);
+                toast.success(t('product.added_to_cart', 'Produit ajouté au panier'));
             },
             onError: () => setAddingToCart(false)
         });
@@ -175,6 +177,9 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
             preserveState: true,
             preserveScroll: true,
             onFinish: () => setPlacingOrder(false),
+            onSuccess: () => {
+                toast.success(t('checkout.order_success', 'Commande effectuée avec succès !'));
+            },
             onError: (err) => {
                 console.error("Erreur commande directe:", err);
                 const firstMsg = Object.values(err)[0];
@@ -409,7 +414,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                     <motion.div
                                         initial={{ opacity: 0, height: 0 }}
                                         animate={{ opacity: 1, height: 'auto' }}
-                                        className="pricing-summary overflow-hidden mt-4 p-4 bg-gray-50 rounded-xl"
+                                        className="pricing-summary overflow-hidden mt-4 p-4 bg-gray-50 dark:bg-white/5 dark:text-gray-200 rounded-xl transition-colors duration-300"
                                     >
                                         <div className="summary-row flex justify-between">
                                             <span>{t('cart.subtotal', 'Sous-total')}</span>
@@ -454,7 +459,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                             onChange={e => setData('use_loyalty_points', Math.min(parseInt(e.target.value) || 0, loyaltyBalance))}
                                                             max={loyaltyBalance}
                                                             placeholder="0"
-                                                            className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89]"
+                                                            className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89] dark:bg-neutral-800 dark:border-neutral-700 dark:text-white"
                                                         />
                                                         <span className="text-green-600 text-sm flex items-center">
                                                             -{finalLoyaltyDiscount.toLocaleString()} DA
@@ -476,11 +481,11 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                 </button>
                                             ) : (
                                                 <div className="space-y-2">
-                                                    <label className="block text-sm font-medium text-gray-700">
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                                         {t('checkout.promo_label', 'Code promo')}
                                                     </label>
                                                     {data.promo_code ? (
-                                                        <div className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded-lg text-sm">
+                                                        <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 rounded-lg text-sm transition-colors">
                                                             <div>
                                                                 <p className="font-medium text-green-800">{data.promo_code}</p>
                                                                 <p className="text-xs text-green-600">
@@ -502,7 +507,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                                 value={promoInput}
                                                                 onChange={e => setPromoInput(e.target.value.toUpperCase())}
                                                                 placeholder={t('checkout.promo_placeholder', 'Entrez votre code')}
-                                                                className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89]"
+                                                                className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89] dark:bg-neutral-800 dark:border-neutral-700 dark:text-white transition-colors"
                                                             />
                                                             <button
                                                                 type="button"

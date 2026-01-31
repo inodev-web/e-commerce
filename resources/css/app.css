@@ -34,30 +34,42 @@
     --color-ring: var(--ring);
 
     /* Semantic mapping for standard Tailwind classes */
+    /* Semantic mapping for standard Tailwind classes */
     --color-white: var(--white);
-    --color-gray-50: var(--bg-light);
-    --color-gray-100: var(--bg-light);
-    --color-gray-200: var(--border);
-    --color-gray-300: var(--text-gray);
-    --color-gray-400: var(--text-gray);
-    --color-gray-500: var(--text-gray);
-    --color-gray-600: var(--text-gray);
-    --color-gray-700: var(--text-gray);
-    --color-gray-800: var(--text-dark);
-    --color-gray-900: var(--text-dark);
+    --color-gray-50: oklch(0.985 0 0);
+    --color-gray-100: oklch(0.97 0 0);
+    --color-gray-200: oklch(0.922 0 0);
+    --color-gray-300: oklch(0.87 0 0);
+    --color-gray-400: oklch(0.708 0 0);
+    --color-gray-500: oklch(0.556 0 0);
+    --color-gray-600: oklch(0.444 0 0);
+    --color-gray-700: oklch(0.35 0 0);
+    --color-gray-800: oklch(0.25 0 0);
+    --color-gray-900: oklch(0.145 0 0);
 
-    --color-zinc-50: var(--bg-light);
-    --color-zinc-100: var(--bg-light);
-    --color-zinc-200: var(--border);
-    --color-zinc-300: var(--text-gray);
-    --color-zinc-400: var(--text-gray);
-    --color-zinc-500: var(--text-gray);
-    --color-zinc-600: var(--text-gray);
-    --color-zinc-700: var(--text-gray);
-    --color-zinc-800: var(--text-dark);
-    --color-zinc-900: var(--white);
-    /* zinc-900 is often the main dark bg */
-    --color-zinc-950: var(--background);
+    --color-zinc-50: oklch(0.985 0 0);
+    --color-zinc-100: oklch(0.97 0 0);
+    --color-zinc-200: oklch(0.922 0 0);
+    --color-zinc-300: oklch(0.87 0 0);
+    --color-zinc-400: oklch(0.708 0 0);
+    --color-zinc-500: oklch(0.556 0 0);
+    --color-zinc-600: oklch(0.444 0 0);
+    --color-zinc-700: oklch(0.35 0 0);
+    --color-zinc-800: oklch(0.25 0 0);
+    --color-zinc-900: oklch(0.145 0 0);
+    --color-zinc-950: oklch(0.1 0 0);
+
+    --color-neutral-50: oklch(0.985 0 0);
+    --color-neutral-100: oklch(0.97 0 0);
+    --color-neutral-200: oklch(0.922 0 0);
+    --color-neutral-300: oklch(0.87 0 0);
+    --color-neutral-400: oklch(0.708 0 0);
+    --color-neutral-500: oklch(0.556 0 0);
+    --color-neutral-600: oklch(0.444 0 0);
+    --color-neutral-700: oklch(0.35 0 0);
+    --color-neutral-800: oklch(0.25 0 0);
+    --color-neutral-900: oklch(0.145 0 0);
+    --color-neutral-950: oklch(0.1 0 0);
 
     --color-chart-1: var(--chart-1);
     --color-chart-2: var(--chart-2);
@@ -242,7 +254,7 @@ body {
     gap: 0.5rem;
     padding: 0.5rem 1.25rem;
     background: rgba(65, 85, 70, 0.5);
-    border: 1px solid rgb(186, 236, 201,0.2);
+    border: 1px solid rgb(186, 236, 201, 0.2);
     backdrop-filter: blur(10px);
     border-radius: 50px;
     color: #BAECC9;
@@ -1081,6 +1093,7 @@ body {
 .social-links a:hover {
     color: var(--primary-blue);
 }
+
 /* ========== PRODUCT CARDS (TOP SELLER STYLE) ========== */
 .top-sellers-grid {
     display: grid;
