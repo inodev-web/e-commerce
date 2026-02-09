@@ -15,34 +15,35 @@ class CartItem extends Model
     protected $fillable = [
         'cart_id',
         'product_id',
+        'product_variant_id',
         'quantity',
         'price_snapshot',
+        'specification_values'
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'quantity' => 'integer',
-            'price_snapshot' => 'decimal:2',
-        ];
-    }
+    protected $casts = [
+        'price_snapshot' => 'decimal:2',
+        'quantity' => 'integer',
+        'specification_values' => 'array'
+    ];
 
-    // Relationships
-
-    public function cart(): BelongsTo
+    public function cart()
     {
         return $this->belongsTo(Cart::class);
     }
 
-    public function product(): BelongsTo
+    public function product()
     {
         return $this->belongsTo(Product::class);
     }
 
-    // Accessors
-
-    public function getSubtotalAttribute(): float
+    public function productVariant()
     {
-        return (float) $this->price_snapshot * $this->quantity;
+        return $this->belongsTo(ProductVariant::class);
+    }
+
+    public function getSubtotalAttribute()
+    {
+        return $this->price_snapshot * $this->quantity;
     }
 }

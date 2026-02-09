@@ -15,6 +15,22 @@ class PlaceOrderRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        // ⚡️ COMPATIBILITÉ : Si la requête vient de la page produit (structure plate)
+        // on la transforme en structure standard 'items' pour la validation
+        if ($this->has('product_id') && !$this->has('items')) {
+            $this->merge([
+                'items' => [
+                    $this->product_id => [
+                        'quantity' => $this->quantity ?? 1,
+                        'specification_values' => $this->specification_values ?? [],
+                    ]
+                ]
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -43,6 +59,9 @@ class PlaceOrderRequest extends FormRequest
                 },
             ],
             'use_loyalty_points' => ['nullable', 'integer', 'min:0'],
+            'items' => ['required_without:cart_id', 'array'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.specification_values' => ['nullable', 'array'],
         ];
     }
 

@@ -14,6 +14,7 @@ class LoyaltySetting extends Model
     protected $fillable = [
         'referral_discount_amount',
         'referral_reward_points',
+        'points_conversion_rate',
     ];
 
     protected function casts(): array
@@ -21,6 +22,7 @@ class LoyaltySetting extends Model
         return [
             'referral_discount_amount' => 'decimal:2',
             'referral_reward_points' => 'integer',
+            'points_conversion_rate' => 'decimal:2',
         ];
     }
 }

@@ -69,6 +69,7 @@ class LoyaltyController extends Controller
         $validated = $request->validate([
             'referral_discount_amount' => 'required|numeric|min:0',
             'referral_reward_points' => 'required|integer|min:0',
+            'points_conversion_rate' => 'required|numeric|min:0.01|max:1000',
         ]);
 
         $settings = LoyaltySetting::first();

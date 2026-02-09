@@ -29,30 +29,45 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $points = 0;
+        
+        if ($user && $user->client) {
+            $points = app(\App\Services\LoyaltyService::class)->getBalance($user->client->id);
+            \Log::info('HandleInertiaRequests - User points loaded', [
+                'user_id' => $user->id,
+                'client_id' => $user->client->id,
+                'points' => $points,
+            ]);
+        } else {
+            \Log::info('HandleInertiaRequests - No user or client', [
+                'has_user' => !is_null($user),
+                'has_client' => $user?->client ? true : false,
+            ]);
+        }
+        
         return [
             ...parent::share($request),
             'locale' => app()->getLocale(),
             'available_locales' => config('app.available_locales', ['fr', 'ar']),
             'auth' => fn () => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'first_name' => $request->user()->client?->first_name,
-                    'last_name' => $request->user()->client?->last_name,
-                    'full_name' => $request->user()->client ? ($request->user()->client->first_name . ' ' . $request->user()->client->last_name) : 'Utilisateur',
-                    'phone' => $request->user()->phone,
-                    'roles' => $request->user()->getRoleNames(),
-                    'status' => $request->user()->status,
-                    // ⚡️ OPTIMISATION : Utiliser le cache pour les points (calculé dans LoyaltyService)
-                    'points' => $request->user()->client ? app(\App\Services\LoyaltyService::class)->getBalance($request->user()->client->id) : 0,
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'first_name' => $user->client?->first_name,
+                    'last_name' => $user->client?->last_name,
+                    'full_name' => $user->client ? ($user->client->first_name . ' ' . $user->client->last_name) : 'Utilisateur',
+                    'phone' => $user->phone,
+                    'roles' => $user->getRoleNames(),
+                    'status' => $user->status,
+                    'points' => $points,
                 ] : null,
             ],
-            'cartCount' => fn () => $request->user()?->client?->cart?->items->sum('quantity') ?? 0,
+            'cartCount' => fn () => $user?->client?->cart?->items->sum('quantity') ?? 0,
             'flash' => [
                 'success' => session('success'),
                 'error' => session('error'),
             ],
             'order' => session('order'),
-            // ⚡️ OPTIMISATION : Supprimé car déjà dans auth.user.points (évite duplication)
         ];
     }
 }

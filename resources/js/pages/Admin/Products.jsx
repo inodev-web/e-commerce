@@ -1,7 +1,11 @@
-﻿import React, { useMemo, useState } from 'react';
-import { Plus, Search, Edit, Trash2, Filter } from 'lucide-react';
+﻿﻿import React, { useMemo, useState } from 'react';
+import { Plus, Search, Edit, Trash2, Filter, Info, X, RefreshCw } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableHeader, TableBody, TableRow, TableCell, TableHead } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import AdminLayout from '../../components/AdminLayout';
 import { Link, router, useForm } from '@inertiajs/react';
 import { getTranslated } from '@/utils/translation';
@@ -26,6 +30,109 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     const [editingSubCategory, setEditingSubCategory] = useState(null);
     const [isSpecificationModalOpen, setIsSpecificationModalOpen] = useState(false);
     const [editingSpecification, setEditingSpecification] = useState(null);
+
+    // Variant management state
+    const [showVariantManager, setShowVariantManager] = useState(false);
+    const [variantAttributes, setVariantAttributes] = useState([]);
+    const [productVariants, setProductVariants] = useState([]);
+    const [selectedSpecificationValues, setSelectedSpecificationValues] = useState({});
+
+    // Variant attribute management functions
+    const addVariantAttribute = () => {
+        const newAttr = {
+            id: Date.now(),
+            name: '',
+            values: [],
+            newValue: ''
+        };
+        setVariantAttributes([...variantAttributes, newAttr]);
+    };
+
+    const updateVariantAttribute = (attrId, field, value) => {
+        setVariantAttributes(variantAttributes.map(attr =>
+            attr.id === attrId ? { ...attr, [field]: value } : attr
+        ));
+    };
+
+    const removeVariantAttribute = (attrId) => {
+        setVariantAttributes(variantAttributes.filter(attr => attr.id !== attrId));
+    };
+
+    const addVariantAttributeValue = (attrId) => {
+        const attr = variantAttributes.find(a => a.id === attrId);
+        if (attr && attr.newValue?.trim()) {
+            const newValue = {
+                id: Date.now(),
+                name: attr.newValue.trim()
+            };
+            setVariantAttributes(variantAttributes.map(attr =>
+                attr.id === attrId
+                    ? { ...attr, values: [...attr.values, newValue], newValue: '' }
+                    : attr
+            ));
+        }
+    };
+
+    const removeVariantAttributeValue = (attrId, valueId) => {
+        setVariantAttributes(variantAttributes.map(attr =>
+            attr.id === attrId
+                ? { ...attr, values: attr.values.filter(v => v.id !== valueId) }
+                : attr
+        ));
+    };
+
+    const addSpecificationValue = () => {
+        const currentValue = specificationForm.data.newValue?.trim();
+        if (currentValue) {
+            specificationForm.setData('values', [...specificationForm.data.values, currentValue]);
+            specificationForm.setData('newValue', '');
+        }
+    };
+
+    const removeSpecificationValue = (index) => {
+        specificationForm.setData('values', specificationForm.data.values.filter((_, i) => i !== index));
+    };
+
+    const generateVariantCombinations = () => {
+        if (variantAttributes.length === 0) return;
+
+        const combinations = cartesianProduct(
+            variantAttributes.map(attr => attr.values.map(v => ({
+                attribute_name: attr.name,
+                value_name: v.name
+            })))
+        );
+
+        const newVariants = combinations.map((combo, index) => ({
+            id: Date.now() + index,
+            sku: '',
+            price: '',
+            stock: '',
+            is_active: true,
+            specifications: combo,
+            image: null,
+            imageFile: null
+        }));
+
+        setProductVariants(newVariants);
+    };
+
+    const cartesianProduct = (arrays) => {
+        if (arrays.length === 0) return [[]];
+        const [first, ...rest] = arrays;
+        const restProduct = cartesianProduct(rest);
+        return first.flatMap(item => restProduct.map(combo => [item, ...combo]));
+    };
+
+    const updateVariantField = (variantId, field, value) => {
+        setProductVariants(productVariants.map(variant =>
+            variant.id === variantId ? { ...variant, [field]: value } : variant
+        ));
+    };
+
+    const deleteVariant = (variantId) => {
+        setProductVariants(productVariants.filter(variant => variant.id !== variantId));
+    };
 
     const allSubCategories = useMemo(() => categories.flatMap((cat) => cat.sub_categories || []), [categories]);
 
@@ -72,6 +179,9 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         free_shipping: false,
         images: [],
         specifications: [],
+        has_variants: false,
+        variants: [],
+        variants_to_delete: [],
     });
 
     const categoryForm = useForm({
@@ -90,12 +200,21 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         sub_category_id: '',
         name: { fr: '', ar: '' },
         required: false,
+        values: [],
     });
 
     const buildSpecValues = (subCategory, product) => {
         if (!subCategory?.specifications) return [];
+        const specValues = product?.specification_values || product?.specificationValues || [];
+        const valuesBySpec = specValues.reduce((acc, item) => {
+            if (!acc[item.specification_id]) {
+                acc[item.specification_id] = {};
+            }
+            acc[item.specification_id][item.value] = item.quantity ?? 0;
+            return acc;
+        }, {});
         const existingValues = new Map(
-            (product?.specification_values || []).map((value) => [value.specification_id, value.value])
+            specValues.map((value) => [value.specification_id, value.value])
         );
 
         return subCategory.specifications.map((spec) => ({
@@ -103,6 +222,8 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
             name: spec.name,
             required: !!spec.required,
             value: existingValues.get(spec.id) ?? '',
+            values: spec.values || [],
+            selectedQuantities: valuesBySpec[spec.id] || {},
         }));
     };
 
@@ -154,6 +275,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     const openCreateProduct = () => {
         setEditingProduct(null);
         setProductCategoryId('');
+        setSelectedSpecificationValues({});
         productForm.reset();
         productForm.clearErrors();
         setIsProductModalOpen(true);
@@ -164,8 +286,31 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         const subCategoryId = product.sub_category_id || product.sub_category?.id || '';
         const categoryId = product.sub_category?.category?.id || '';
         setProductCategoryId(categoryId);
+        const specValues = product?.specification_values || product?.specificationValues || [];
+        const selectedValues = specValues.reduce((acc, item) => {
+            if (!acc[item.specification_id]) {
+                acc[item.specification_id] = {};
+            }
+            acc[item.specification_id][item.value] = item.quantity ?? 0;
+            return acc;
+        }, {});
+        setSelectedSpecificationValues(selectedValues);
 
         const subCategory = allSubCategories.find((sub) => sub.id == subCategoryId);
+        const variants = product.variants?.map(variant => ({
+            id: variant.id,
+            sku: variant.sku || '',
+            price: variant.price ?? '',
+            stock: variant.stock ?? '',
+            is_active: !!variant.is_active,
+            specifications: variant.specification_values?.map(sv => ({
+                specification_id: sv.specification_id,
+                value: sv.value
+            })) || [],
+            image: variant.image_url || null,
+            imageFile: null
+        })) || [];
+
         productForm.setData({
             sub_category_id: subCategoryId,
             name: ensureBilingual(product.name),
@@ -176,6 +321,9 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
             free_shipping: !!product.free_shipping,
             images: [],
             specifications: buildSpecValues(subCategory, product),
+            has_variants: !!product.has_variants,
+            variants: variants,
+            variants_to_delete: [],
         });
         productForm.clearErrors();
         setIsProductModalOpen(true);
@@ -191,6 +339,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         productForm.setData('sub_category_id', value);
         const subCategory = allSubCategories.find((sub) => sub.id == value);
         productForm.setData('specifications', buildSpecValues(subCategory, editingProduct));
+        setSelectedSpecificationValues({});
     };
 
     const handleSpecValueChange = (index, value) => {
@@ -199,28 +348,115 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         productForm.setData('specifications', updated);
     };
 
+    const handleAddVariant = () => {
+        const subCategory = allSubCategories.find((sub) => sub.id == productForm.data.sub_category_id);
+        const specs = subCategory?.specifications || [];
+        const newVariant = {
+            id: null,
+            sku: '',
+            price: '',
+            stock: '',
+            is_active: true,
+            specifications: specs.map(spec => ({
+                specification_id: spec.id,
+                value: ''
+            })),
+            image: null,
+            imageFile: null
+        };
+        productForm.setData('variants', [...productForm.data.variants, newVariant]);
+    };
+
+    const handleVariantChange = (variantIndex, field, value) => {
+        const updated = [...productForm.data.variants];
+        updated[variantIndex] = { ...updated[variantIndex], [field]: value };
+        productForm.setData('variants', updated);
+    };
+
+    const handleVariantSpecChange = (variantIndex, specIndex, value) => {
+        const updated = [...productForm.data.variants];
+        updated[variantIndex].specifications[specIndex] = {
+            ...updated[variantIndex].specifications[specIndex],
+            value
+        };
+        productForm.setData('variants', updated);
+    };
+
+    const handleVariantImageChange = (variantIndex, file) => {
+        const updated = [...productForm.data.variants];
+        updated[variantIndex].imageFile = file;
+        if (file) {
+            updated[variantIndex].image = URL.createObjectURL(file);
+        }
+        productForm.setData('variants', updated);
+    };
+
+    const handleDeleteVariant = (variantIndex) => {
+        const variant = productForm.data.variants[variantIndex];
+        const variantsToDelete = [...productForm.data.variants_to_delete];
+        if (variant.id) {
+            variantsToDelete.push(variant.id);
+        }
+        const updated = productForm.data.variants.filter((_, i) => i !== variantIndex);
+        productForm.setData('variants', updated);
+        productForm.setData('variants_to_delete', variantsToDelete);
+    };
+
+    const getAvailableSpecs = () => {
+        const subCategoryId = productForm.data.sub_category_id;
+        if (!subCategoryId) return [];
+        const subCategory = allSubCategories.find((sub) => sub.id == subCategoryId);
+        return subCategory?.specifications || [];
+    };
+
     const submitProduct = (e) => {
         e.preventDefault();
 
+        const prepareData = (data) => {
+            const specs = [];
+            Object.entries(selectedSpecificationValues).forEach(([specId, values]) => {
+                specs.push({
+                    id: parseInt(specId),
+                    selectedQuantities: values
+                });
+            });
+
+            return {
+                ...data,
+                specifications: specs.length > 0 ? specs : data.specifications
+            };
+        };
+
         if (editingProduct) {
-            productForm.setData('_method', 'put');
+            productForm.transform((data) => ({
+                ...prepareData(data),
+                _method: 'put',
+            }));
+
             productForm.post(route('admin.products.update', editingProduct.id), {
                 forceFormData: true,
                 onSuccess: () => {
                     setIsProductModalOpen(false);
                     setEditingProduct(null);
                     productForm.reset();
+                    router.reload();
                 },
-                onFinish: () => productForm.setData('_method', undefined),
             });
             return;
         }
+
+        productForm.transform((data) => {
+            const prepared = prepareData(data);
+            const { _method, ...rest } = prepared;
+            return rest;
+        });
 
         productForm.post(route('admin.products.store'), {
             forceFormData: true,
             onSuccess: () => {
                 setIsProductModalOpen(false);
                 productForm.reset();
+                router.reload();
             },
         });
     };
@@ -271,7 +507,11 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         });
 
         if (editingCategory) {
-            categoryForm.setData('_method', 'put');
+            categoryForm.transform((data) => ({
+                ...data,
+                _method: 'put',
+            }));
+
             categoryForm.post(route('admin.categories.update', editingCategory.id), {
                 forceFormData: true,
                 onSuccess: () => {
@@ -280,8 +520,9 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                     categoryForm.reset();
                 },
                 onFinish: () => {
-                    categoryForm.setData('_method', undefined);
-                    categoryForm.transform((data) => data);
+                    // Manual reset of transform is not strictly needed if we reset form, 
+                    // but good practice if form persists. 
+                    // However, relying on re-transform for next request is safer.
                 },
             });
             return;
@@ -379,6 +620,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
             sub_category_id: specification.sub_category_id || '',
             name: ensureBilingual(specification.name),
             required: !!specification.required,
+            values: specification.values || [],
         });
         specificationForm.clearErrors();
         setIsSpecificationModalOpen(true);
@@ -1063,30 +1305,164 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                 )}
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Spécifications</label>
-                                {productForm.data.specifications.length ? (
-                                    <div className="grid gap-3">
-                                        {productForm.data.specifications.map((spec, index) => (
-                                            <div key={spec.id} className="space-y-1">
-                                                <label className="text-xs font-medium text-gray-600 dark:text-gray-300">
-                                                    {getTranslated(spec, 'name')}{spec.required ? ' *' : ''}
-                                                </label>
-                                                <input
-                                                    value={spec.value}
-                                                    onChange={(e) => handleSpecValueChange(index, e.target.value)}
-                                                    className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
-                                                    placeholder="Valeur"
-                                                />
-                                                {productForm.errors[`specifications.${index}.value`] && (
-                                                    <p className="text-xs text-red-500">{productForm.errors[`specifications.${index}.value`]}</p>
-                                                )}
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-sm font-medium">Gestion des Variantes</label>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setShowVariantManager(!showVariantManager)}
+                                    >
+                                        {showVariantManager ? 'Masquer' : 'Afficher'}
+                                    </Button>
+                                </div>
+
+                                {showVariantManager && (
+                                    <div className="space-y-4">
+                                        <div className="space-y-4">
+                                            <div className="flex items-center gap-2">
+                                                <label className="text-sm font-medium">Spécifications avec Valeurs</label>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger>
+                                                            <Info size={16} className="text-gray-400" />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p className="text-xs">Sélectionnez les valeurs de chaque spécification et définissez la quantité pour créer des variantes.</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
                                             </div>
-                                        ))}
+
+                                            {(() => {
+                                                const subCategory = allSubCategories.find((sub) => sub.id == productForm.data.sub_category_id);
+                                                const specs = subCategory?.specifications || [];
+
+                                                return specs.length > 0 ? (
+                                                    specs.map((spec) => {
+                                                        const specValues = spec.values || [];
+                                                        const selectedValues = selectedSpecificationValues[spec.id] || {};
+
+                                                        return (
+                                                            <div key={spec.id} className="space-y-2 border rounded-md p-3 dark:border-zinc-700">
+                                                                <label className="text-sm font-medium">
+                                                                    {getTranslated(spec, 'name')}
+                                                                </label>
+                                                                {specValues.length > 0 ? (
+                                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                                                                        {specValues.map((value, valIndex) => (
+                                                                            <div key={valIndex} className="flex items-center gap-2">
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    id={`spec-${spec.id}-val-${valIndex}`}
+                                                                                    checked={selectedValues[value] !== undefined}
+                                                                                    onChange={(e) => {
+                                                                                        const newSelected = { ...selectedSpecificationValues };
+                                                                                        if (!newSelected[spec.id]) {
+                                                                                            newSelected[spec.id] = {};
+                                                                                        }
+                                                                                        if (e.target.checked) {
+                                                                                            newSelected[spec.id][value] = newSelected[spec.id][value] || 0;
+                                                                                        } else {
+                                                                                            delete newSelected[spec.id][value];
+                                                                                        }
+                                                                                        setSelectedSpecificationValues(newSelected);
+                                                                                    }}
+                                                                                    className="rounded"
+                                                                                />
+                                                                                <label
+                                                                                    htmlFor={`spec-${spec.id}-val-${valIndex}`}
+                                                                                    className="text-sm flex-1"
+                                                                                >
+                                                                                    {value}
+                                                                                </label>
+                                                                                <Input
+                                                                                    type="number"
+                                                                                    min="0"
+                                                                                    value={selectedValues[value] || ''}
+                                                                                    onChange={(e) => {
+                                                                                        const newSelected = { ...selectedSpecificationValues };
+                                                                                        if (!newSelected[spec.id]) {
+                                                                                            newSelected[spec.id] = {};
+                                                                                        }
+                                                                                        newSelected[spec.id][value] = parseInt(e.target.value) || 0;
+                                                                                        setSelectedSpecificationValues(newSelected);
+                                                                                    }}
+                                                                                    placeholder="Qté"
+                                                                                    className="w-20 h-8 text-sm"
+                                                                                    disabled={selectedValues[value] === undefined}
+                                                                                />
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                ) : (
+                                                                    <p className="text-sm text-gray-500">Aucune valeur définie pour cette spécification.</p>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })
+                                                ) : (
+                                                    <p className="text-sm text-gray-500">Aucune spécification disponible pour cette sous-catégorie.</p>
+                                                );
+                                            })()}
+                                        </div>
                                     </div>
-                                ) : (
-                                    <p className="text-sm text-gray-500">Aucune spécification pour cette sous-catégorie.</p>
                                 )}
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-sm font-medium">Variantes Générées</label>
+                                </div>
+
+                                {(() => {
+                                    const subCategory = allSubCategories.find((sub) => sub.id == productForm.data.sub_category_id);
+                                    const specs = subCategory?.specifications || [];
+
+                                    const combinations = [];
+
+                                    specs.forEach((spec) => {
+                                        const selected = selectedSpecificationValues[spec.id] || {};
+                                        Object.keys(selected).forEach(value => {
+                                            if (selected[value] > 0) {
+                                                combinations.push({
+                                                    specId: spec.id,
+                                                    specName: getTranslated(spec, 'name'),
+                                                    value: value,
+                                                    quantity: selected[value]
+                                                });
+                                            }
+                                        });
+                                    });
+
+                                    return combinations.length > 0 ? (
+                                        <div className="border rounded-md overflow-hidden dark:border-zinc-700">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead className="min-w-[200px]">Spécification</TableHead>
+                                                        <TableHead className="w-32">Valeur</TableHead>
+                                                        <TableHead className="w-24">Quantité</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {combinations.map((combo, index) => (
+                                                        <TableRow key={index}>
+                                                            <TableCell>{combo.specName}</TableCell>
+                                                            <TableCell>
+                                                                <Badge variant="outline">{combo.value}</Badge>
+                                                            </TableCell>
+                                                            <TableCell>{combo.quantity}</TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-gray-500">Aucune variante générée. Sélectionnez des valeurs et définissez des quantités.</p>
+                                    );
+                                })()}
                             </div>
 
                             <DialogFooter>
@@ -1306,6 +1682,43 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     />
                                     <label htmlFor="spec-required" className="text-sm font-medium">Obligatoire</label>
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Valeurs</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={specificationForm.data.newValue || ''}
+                                            onChange={(e) => specificationForm.setData('newValue', e.target.value)}
+                                            className="flex-1 px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
+                                            placeholder="Ajouter une valeur"
+                                            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecificationValue())}
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={addSpecificationValue}
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                    {specificationForm.data.values && specificationForm.data.values.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                            {specificationForm.data.values.map((value, index) => (
+                                                <Badge key={index} variant="secondary" className="gap-1 pr-1 pl-3">
+                                                    {value}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeSpecificationValue(index)}
+                                                        className="hover:text-red-500"
+                                                    >
+                                                        <X size={12} />
+                                                    </button>
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsSpecificationModalOpen(false)}>
@@ -1319,7 +1732,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                     </DialogContent>
                 </Dialog>
             </div>
-        </AdminLayout>
+        </AdminLayout >
     );
 };
 

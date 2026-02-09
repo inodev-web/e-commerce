@@ -75,6 +75,10 @@ class ProductService
             'subCategory.category',
             'images',
             'specificationValues.specification',
+            'variants' => function ($q) {
+                $q->where('is_active', true)->orderBy('price', 'asc');
+            },
+            'variants.specifications',
         ])->findOrFail($productId);
     }
 }

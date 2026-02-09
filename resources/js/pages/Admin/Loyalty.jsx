@@ -23,6 +23,7 @@ const AdminLoyalty = ({ auth, stats, settings }) => {
     } = useForm({
         referral_discount_amount: settings?.referral_discount_amount || 0,
         referral_reward_points: settings?.referral_reward_points || 0,
+        points_conversion_rate: settings?.points_conversion_rate || 1.00,
     });
 
     const handleAdjust = (e) => {
@@ -95,6 +96,24 @@ const AdminLoyalty = ({ auth, stats, settings }) => {
                                     className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
                                 />
                                 {settingsErrors.referral_reward_points && <p className="text-red-500 text-xs">{settingsErrors.referral_reward_points}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                                    {t('admin.points_conversion_rate', 'Taux de Conversion Points → Dinars')}
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0.01"
+                                    step="0.01"
+                                    value={settingsData.points_conversion_rate}
+                                    onChange={e => setSettingsData('points_conversion_rate', e.target.value)}
+                                    className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
+                                />
+                                {settingsErrors.points_conversion_rate && <p className="text-red-500 text-xs">{settingsErrors.points_conversion_rate}</p>}
+                                <p className="text-xs text-gray-500 mt-1">
+                                    {t('admin.conversion_example', 'Exemple: 1.00 = 1 point vaut 1 DA, 0.50 = 1 point vaut 0.50 DA')}
+                                </p>
                             </div>
 
                             <Button type="submit" disabled={settingsProcessing} className="w-full bg-[#DB8B89] text-white hover:bg-[#C07573]">

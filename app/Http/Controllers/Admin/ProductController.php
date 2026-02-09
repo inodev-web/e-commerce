@@ -103,6 +103,8 @@ class ProductController extends Controller
             'specifications' => 'nullable|array',
             'specifications.*.id' => 'required|exists:specifications,id',
             'specifications.*.value' => 'nullable|string',
+            'specifications.*.selectedQuantities' => 'nullable|array',
+            'specifications.*.selectedQuantities.*' => 'nullable|integer|min:0',
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -120,6 +122,8 @@ class ProductController extends Controller
             foreach ($specifications as $index => $spec) {
                 $specId = $spec['id'] ?? null;
                 $value = $spec['value'] ?? null;
+                $selectedQuantities = $spec['selectedQuantities'] ?? null;
+                $hasQuantities = is_array($selectedQuantities) && collect($selectedQuantities)->filter(fn ($qty) => (int) $qty > 0)->isNotEmpty();
 
                 // IDs can arrive as strings from the frontend; normalize to int for strict comparisons.
                 $normalizedSpecId = is_numeric($specId) ? (int) $specId : $specId;
@@ -131,7 +135,7 @@ class ProductController extends Controller
 
                 if ($specId) {
                     $mapKey = is_numeric($specId) ? (int) $specId : $specId;
-                    if (($specMap[$mapKey]->required ?? false) && ($value === null || $value === '')) {
+                    if (($specMap[$mapKey]->required ?? false) && !$hasQuantities && ($value === null || $value === '')) {
                         $validator->errors()->add("specifications.$index.value", 'Cette spécification est obligatoire.');
                     }
                 }
@@ -188,11 +192,24 @@ class ProductController extends Controller
                 // Handle specifications
                 if (!empty($validated['specifications'])) {
                     foreach ($validated['specifications'] as $spec) {
-                        ProductSpecificationValue::create([
-                            'product_id' => $product->id,
-                            'specification_id' => $spec['id'],
-                            'value' => $spec['value'],
-                        ]);
+                        if (!empty($spec['selectedQuantities']) && is_array($spec['selectedQuantities'])) {
+                            foreach ($spec['selectedQuantities'] as $value => $quantity) {
+                                if ($quantity > 0) {
+                                    ProductSpecificationValue::create([
+                                        'product_id' => $product->id,
+                                        'specification_id' => $spec['id'],
+                                        'value' => $value,
+                                        'quantity' => $quantity,
+                                    ]);
+                                }
+                            }
+                        } elseif (!empty($spec['value'])) {
+                            ProductSpecificationValue::create([
+                                'product_id' => $product->id,
+                                'specification_id' => $spec['id'],
+                                'value' => $spec['value'],
+                            ]);
+                        }
                     }
                 }
             });
@@ -228,6 +245,8 @@ class ProductController extends Controller
             'specifications' => 'nullable|array',
             'specifications.*.id' => 'required|exists:specifications,id',
             'specifications.*.value' => 'nullable|string',
+            'specifications.*.selectedQuantities' => 'nullable|array',
+            'specifications.*.selectedQuantities.*' => 'nullable|integer|min:0',
         ]);
 
         $validator->after(function ($validator) use ($request) {
@@ -243,14 +262,22 @@ class ProductController extends Controller
             foreach ($specifications as $index => $spec) {
                 $specId = $spec['id'] ?? null;
                 $value = $spec['value'] ?? null;
+                $selectedQuantities = $spec['selectedQuantities'] ?? null;
+                $hasQuantities = is_array($selectedQuantities) && collect($selectedQuantities)->filter(fn ($qty) => (int) $qty > 0)->isNotEmpty();
 
-                if ($specId && !in_array($specId, $allowedSpecIds, true)) {
+                // IDs can arrive as strings from the frontend; normalize to int for strict comparisons.
+                $normalizedSpecId = is_numeric($specId) ? (int) $specId : $specId;
+
+                if ($specId && !in_array($normalizedSpecId, $allowedSpecIds, true)) {
                     $validator->errors()->add("specifications.$index.id", "La spécification sélectionnée n'appartient pas à la sous-catégorie.");
                     continue;
                 }
 
-                if ($specId && ($specMap[$specId]->required ?? false) && ($value === null || $value === '')) {
-                    $validator->errors()->add("specifications.$index.value", 'Cette spécification est obligatoire.');
+                if ($specId) {
+                    $mapKey = is_numeric($specId) ? (int) $specId : $specId;
+                    if (($specMap[$mapKey]->required ?? false) && !$hasQuantities && ($value === null || $value === '')) {
+                        $validator->errors()->add("specifications.$index.value", 'Cette spécification est obligatoire.');
+                    }
                 }
             }
         });
@@ -283,11 +310,24 @@ class ProductController extends Controller
             if (isset($validated['specifications'])) {
                 $product->specificationValues()->delete();
                 foreach ($validated['specifications'] as $spec) {
-                    ProductSpecificationValue::create([
-                        'product_id' => $product->id,
-                        'specification_id' => $spec['id'],
-                        'value' => $spec['value'],
-                    ]);
+                    if (!empty($spec['selectedQuantities']) && is_array($spec['selectedQuantities'])) {
+                        foreach ($spec['selectedQuantities'] as $value => $quantity) {
+                            if ($quantity > 0) {
+                                ProductSpecificationValue::create([
+                                    'product_id' => $product->id,
+                                    'specification_id' => $spec['id'],
+                                    'value' => $value,
+                                    'quantity' => $quantity,
+                                ]);
+                            }
+                        }
+                    } elseif (!empty($spec['value'])) {
+                        ProductSpecificationValue::create([
+                            'product_id' => $product->id,
+                            'specification_id' => $spec['id'],
+                            'value' => $spec['value'],
+                        ]);
+                    }
                 }
             }
         });

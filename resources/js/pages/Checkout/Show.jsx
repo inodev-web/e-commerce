@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useForm, usePage, Link } from '@inertiajs/react';
+import { useForm, usePage, Link, router } from '@inertiajs/react';
 import { Truck, MapPin, Phone, CreditCard, ShoppingBag, Loader2, X, CheckCircle } from 'lucide-react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
@@ -30,6 +30,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
         delivery_type: deliveryTypes[0].value,
         promo_code: '',
         use_loyalty_points: 0,
+        cart_id: cart?.id,
     });
 
     const [shippingPrice, setShippingPrice] = useState(0);
@@ -46,6 +47,12 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
     const [loyaltyDiscount, setLoyaltyDiscount] = useState(0);
 
     // Initial load or update when wilaya changes
+    useEffect(() => {
+        if (cart?.id) {
+            setData('cart_id', cart.id);
+        }
+    }, [cart]);
+
     useEffect(() => {
         if (!data.wilaya_id) return;
 
@@ -343,6 +350,16 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                         </div>
                                         <div className="flex-grow">
                                             <p className="font-medium line-clamp-1">{getTranslated(item.product, 'name')}</p>
+                                            {item.product_variant && item.product_variant.variant_specifications && (
+                                                <div className="text-xs text-gray-500 mt-0.5">
+                                                    {item.product_variant.variant_specifications.map((spec, idx) => (
+                                                        <span key={spec.id}>
+                                                            {idx > 0 && ' / '}
+                                                            {getTranslated(spec, 'name')}: {spec.pivot.value}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
                                             <p className="text-gray-500">{item.price_snapshot.toLocaleString()} DA</p>
                                         </div>
                                     </div>

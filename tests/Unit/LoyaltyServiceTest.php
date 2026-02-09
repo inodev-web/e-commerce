@@ -40,6 +40,9 @@ class LoyaltyServiceTest extends TestCase
     public function it_converts_points_to_discount_correctly()
     {
         $client = Client::factory()->create();
+        \App\Models\LoyaltySetting::create([
+            'points_conversion_rate' => 1.00,
+        ]);
         LoyaltyPoint::factory()->create([
             'client_id' => $client->id,
             'points' => 500,
@@ -49,7 +52,7 @@ class LoyaltyServiceTest extends TestCase
 
         $this->assertEquals(200.00, $discount);
         $this->assertEquals(300, $this->service->getBalance($client->id));
-        
+
         $this->assertDatabaseHas('loyalty_points', [
             'client_id' => $client->id,
             'points' => -200,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\LoyaltyPoint;
 use App\Models\Order;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -52,12 +53,30 @@ class ProfileController extends Controller
                 ];
             });
 
+        // Load loyalty points history
+        $loyaltyHistory = [];
+        if ($client) {
+            $loyaltyHistory = LoyaltyPoint::where('client_id', $client->id)
+                ->orderByDesc('created_at')
+                ->limit(50)
+                ->get()
+                ->map(function ($point) {
+                    return [
+                        'id' => $point->id,
+                        'points' => $point->points,
+                        'description' => $point->description,
+                        'created_at' => $point->created_at->format('d/m/Y H:i'),
+                    ];
+                });
+        }
+
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
             'referral_code' => $user->referral_code,
             'referrals' => $referrals,
             'orders' => $orders,
+            'loyaltyHistory' => $loyaltyHistory,
         ]);
     }
 

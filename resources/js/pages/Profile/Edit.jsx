@@ -8,9 +8,10 @@ import { useTranslation } from 'react-i18next';
 
 export default function UserProfile({ theme, toggleTheme }) {
     const { t } = useTranslation();
-    const { auth, referral_code, referrals = [], orders = null } = usePage().props;
+    const { auth, referral_code, referrals = [], orders = null, loyaltyHistory = [] } = usePage().props;
     const ordersList = Array.isArray(orders?.data) ? orders.data : [];
     const user = auth.user;
+    const points = user.points || 0;
     const client = user.client || {};
 
     const [activeTab, setActiveTab] = useState('personal');
@@ -52,7 +53,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                     <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">{user.name}</h1>
                     <div className="flex items-center justify-center gap-2">
                         <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-500 px-3 py-1 rounded text-xs font-semibold border border-amber-200 dark:border-amber-800 uppercase">
-                            {client.points > 1000 ? 'GOLD MEMBER' : 'MEMBER'}
+                            {points > 1000 ? 'GOLD MEMBER' : 'MEMBER'}
                         </span>
                         <span className="text-gray-500 dark:text-gray-400 text-sm">• {user.phone}</span>
                     </div>
@@ -161,16 +162,16 @@ export default function UserProfile({ theme, toggleTheme }) {
                                         Score de Fidélité
                                     </h2>
                                     <div className="flex items-baseline gap-2 mb-4">
-                                        <span className="text-5xl font-bold text-gray-900 dark:text-white">{client.points || 0}</span>
+                                        <span className="text-5xl font-bold text-gray-900 dark:text-white">{points}</span>
                                         <span className="text-gray-500 dark:text-gray-400">points</span>
                                     </div>
                                     <div className="mb-2">
                                         <div className="flex items-center justify-between text-sm mb-1">
                                             <span className="text-gray-600 dark:text-gray-400">Palier actuel</span>
-                                            <span className="text-[#DB8B89] font-medium">{1000 - (client.points || 0)} pts pour le prochain palier</span>
+                                            <span className="text-[#DB8B89] font-medium">{1000 - points} pts pour le prochain palier</span>
                                         </div>
                                         <div className="w-full bg-gray-200 dark:bg-neutral-700 rounded-full h-2">
-                                            <div className="bg-[#DB8B89] h-2 rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (client.points || 0) / 10)}%` }}></div>
+                                            <div className="bg-[#DB8B89] h-2 rounded-full transition-all duration-500" style={{ width: `${Math.min(100, points / 10)}%` }}></div>
                                         </div>
                                     </div>
                                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">Gagnez 1 point pour chaque 100 DA dépensé.</p>
@@ -186,6 +187,31 @@ export default function UserProfile({ theme, toggleTheme }) {
                                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Dès 1000 points atteints.</p>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Loyalty History */}
+                        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-sm p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Historique des points</h3>
+                            {loyaltyHistory.length === 0 ? (
+                                <p className="text-sm text-gray-400 italic text-center py-6">Aucun historique de points disponible.</p>
+                            ) : (
+                                <div className="space-y-2">
+                                    {loyaltyHistory.map((entry) => (
+                                        <div
+                                            key={entry.id}
+                                            className="flex items-center justify-between px-4 py-3 rounded-lg bg-gray-50 dark:bg-neutral-800"
+                                        >
+                                            <div className="flex-1">
+                                                <p className="text-sm font-medium text-gray-900 dark:text-white">{entry.description}</p>
+                                                <p className="text-xs text-gray-500">{entry.created_at}</p>
+                                            </div>
+                                            <span className={`text-sm font-bold ${entry.points > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                                {entry.points > 0 ? '+' : ''}{entry.points}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Tag, Trash2, Edit, Check, X } from 'lucide-react';
+import { Plus, Trash2, Edit, Check, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import AdminLayout from '../../components/AdminLayout';
 import { Head, useForm, router } from '@inertiajs/react';
@@ -87,10 +87,6 @@ const AdminPromotions = ({ auth, promoCodes }) => {
                 <div className="grid gap-4 md:grid-cols-3">
                     {promoCodes.data.map((promo) => (
                         <div key={promo.id} className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 p-6 shadow-sm relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                                <Tag className="w-24 h-24 rotate-12" />
-                            </div>
-
                             <div className="relative z-10">
                                 <div className="flex justify-between items-start mb-4">
                                     <span className="px-3 py-1 bg-pink-100 text-pink-800 dark:bg-[#DB8B89]/20 dark:text-[#DB8B89] rounded-full text-xs font-bold uppercase tracking-wider">

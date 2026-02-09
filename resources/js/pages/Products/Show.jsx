@@ -29,7 +29,9 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     const [first = '', ...rest] = fullName.split(' ');
     const last = rest.join(' ');
     const [selectedImage, setSelectedImage] = useState(0);
+    const [selectedVariant, setSelectedVariant] = useState(null);
     const [activeTab, setActiveTab] = useState('description');
+    const [selectedSpecValues, setSelectedSpecValues] = useState({});
 
     const [wilayas, setWilayas] = useState([]);
     const [shippingPrice, setShippingPrice] = useState(0);
@@ -38,7 +40,9 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     // Form handling
     const { data, setData, post, processing, errors } = useForm({
         product_id: currentProduct?.id || 0,
+        product_variant_id: null,
         quantity: 1,
+        specification_values: {},
         first_name: auth?.user?.client?.first_name || '',
         last_name: auth?.user?.client?.last_name || '',
         phone: auth?.user?.phone || auth?.user?.client?.phone || '',
@@ -49,6 +53,11 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
         promo_code: '',
         use_loyalty_points: 0,
     });
+
+    // Update form variant_id when selection changes
+    useEffect(() => {
+        setData('product_variant_id', selectedVariant?.id || null);
+    }, [selectedVariant]);
 
     // Promo code state
     const [showPromo, setShowPromo] = useState(false);
@@ -67,7 +76,11 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
         setAddingToCart(true);
         router.post(route('cart.add'), {
             product_id: currentProduct?.id || 0,
-            quantity: data.quantity
+            product_variant_id: selectedVariant?.id || null,
+            quantity: data.quantity,
+            price: selectedVariant?.price || currentProduct?.price || 0,
+            stock: selectedVariant?.stock || currentProduct?.stock || 0,
+            specification_values: selectedSpecValues
         }, {
             preserveScroll: true,
             preserveState: true,
@@ -116,13 +129,59 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
         }
     }, [selected_tariff, data.delivery_type]);
 
+    // Update form specification_values when selection changes
+    useEffect(() => {
+        setData('specification_values', selectedSpecValues);
+    }, [selectedSpecValues]);
+
     const [useLoyaltyEnabled, setUseLoyaltyEnabled] = useState(false);
     // ⚡️ OPTIMISATION : Utiliser le nouveau solde si disponible (après commande), sinon le solde actuel
     const loyaltyBalance = newLoyaltyBalance !== undefined ? newLoyaltyBalance : (auth.user?.points || 0);
 
+    // Automatically enable loyalty points and set the discount if user has points
+    useEffect(() => {
+        console.log('Loyalty useEffect triggered:', {
+            loyaltyBalance,
+            hasAuth: !!auth.user,
+            shouldEnable: loyaltyBalance > 0 && !!auth.user,
+            currentUseLoyaltyEnabled: useLoyaltyEnabled,
+            currentUseLoyaltyPoints: data.use_loyalty_points,
+        });
+        
+        if (loyaltyBalance > 0 && auth.user) {
+            console.log('Enabling loyalty points automatically:', loyaltyBalance);
+            setUseLoyaltyEnabled(true);
+            setData('use_loyalty_points', loyaltyBalance);
+        }
+    }, [loyaltyBalance, auth.user]);
+
+    console.log('Show.jsx Debug:', {
+        user: auth.user,
+        points: auth.user?.points,
+        loyaltyBalance,
+        useLoyaltyEnabled,
+        use_loyalty_points: data.use_loyalty_points,
+        wilaya_id: data.wilaya_id,
+        showCondition: auth.user && loyaltyBalance > 0
+    });
+
     const productsTotal = (currentProduct?.price || 0) * data.quantity;
-    const finalLoyaltyDiscount = useLoyaltyEnabled ? Math.min(data.use_loyalty_points, productsTotal, loyaltyBalance) : 0;
-    const finalTotal = productsTotal + shippingPrice - finalLoyaltyDiscount;
+    // ⚡️ Calcul du montant maximum convertible en points (Total + Livraison - Remise Promo)
+    const maxLoyaltyAmount = Math.max(0, productsTotal + shippingPrice - promoDiscount);
+    const finalLoyaltyDiscount = useLoyaltyEnabled ? Math.min(data.use_loyalty_points, maxLoyaltyAmount, loyaltyBalance) : 0;
+    const finalTotal = productsTotal + shippingPrice - promoDiscount - finalLoyaltyDiscount;
+
+    console.log('Loyalty calculation:', {
+        productsTotal,
+        shippingPrice,
+        promoDiscount,
+        useLoyaltyEnabled,
+        use_loyalty_points: data.use_loyalty_points,
+        loyaltyBalance,
+        maxLoyaltyAmount,
+        finalLoyaltyDiscount,
+        finalTotal,
+    });
 
     const calculateTotal = () => {
         const subtotal = (currentProduct?.price || 0) * data.quantity;
@@ -163,70 +222,65 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
     const handlePlaceOrder = (e) => {
         e.preventDefault();
+
+        // Validate required fields before submitting
+        if (!data.wilaya_id || !data.commune_id || !data.first_name || !data.last_name || !data.phone || !data.address) {
+            toast.error(t('checkout.fill_all_fields', 'Veuillez remplir tous les champs requis'));
+            return;
+        }
+
+        // Inject the direct-purchase structure into the Inertia form state
+        setData(prev => ({
+            ...prev,
+            specification_values: selectedSpecValues,
+            items: {
+                [currentProduct?.id || 0]: {
+                    quantity: prev.quantity,
+                    specification_values: selectedSpecValues,
+                },
+            },
+            clear_cart: false,
+        }));
+
         setPlacingOrder(true);
 
-        // ⚡️ OPTIMISATION RADICALE : Une seule requête (Single Hit)
-        // On envoie les items directement, le backend les prioritizes
+        // Safety timeout to prevent infinite loading (30 seconds)
+        const timeoutId = setTimeout(() => {
+            setPlacingOrder(false);
+            toast.error(t('checkout.timeout_error', 'La requête a pris trop de temps. Veuillez réessayer.'));
+        }, 30000);
+
+        // With useForm, the payload comes from `data`. We only pass options here.
         post(route('checkout.place'), {
-            ...data,
-            items: {
-                [currentProduct?.id || 0]: { quantity: data.quantity }
+            preserveState: false, // ⚡️ CRITIQUE : Il faut laisser Inertia charger la nouvelle page (Success)
+            preserveScroll: false,
+            onFinish: () => {
+                clearTimeout(timeoutId);
+                setPlacingOrder(false);
             },
-            clear_cart: false
-        }, {
-            preserveState: true,
-            preserveScroll: true,
-            onFinish: () => setPlacingOrder(false),
             onSuccess: () => {
-                toast.success(t('checkout.order_success', 'Commande effectuée avec succès !'));
+                clearTimeout(timeoutId);
+                setPlacingOrder(false);
             },
             onError: (err) => {
+                clearTimeout(timeoutId);
                 console.error("Erreur commande directe:", err);
-                const firstMsg = Object.values(err)[0];
-                if (firstMsg) alert(firstMsg);
-            }
+                setPlacingOrder(false); // ⚡️ CRITIQUE : Reset loading state on error
+                const firstMsg = Array.isArray(err)
+                    ? err[0]
+                    : (typeof err === 'object' && err !== null ? Object.values(err)[0] : err);
+                if (firstMsg) {
+                    toast.error(typeof firstMsg === 'string'
+                        ? firstMsg
+                        : t('checkout.order_error', 'Une erreur est survenue lors de la commande'));
+                } else {
+                    toast.error(t('checkout.order_error', 'Une erreur est survenue lors de la commande'));
+                }
+            },
         });
     };
 
-    // ⚡️ VUE SUCCÈS SPA (Si la commande vient d'être passée)
-    if (order) {
-        return (
-            <div className={`checkout-page min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
-                <Header theme={theme} toggleTheme={toggleTheme} />
-                <main className="flex-grow flex items-center justify-center p-4">
-                    <div className="bg-white p-8 md:p-12 rounded-3xl shadow-lg max-w-2xl w-full text-center slide-in">
-                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
-                            <CheckCircle size={40} />
-                        </div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Commande Réussie !</h1>
-                        <p className="text-gray-500 mb-8">
-                            Merci <span className="font-semibold">{order.first_name}</span>. Votre commande <span className="font-mono text-[#DB8B89]">#{order.id}</span> est confirmée.
-                        </p>
-                        <div className="bg-gray-50 p-6 rounded-2xl mb-8 text-left border border-gray-100">
-                            <div className="flex justify-between mb-2">
-                                <span className="text-gray-500">Montant total:</span>
-                                <span className="font-bold">{order.total_price.toLocaleString()} DA</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Livraison à:</span>
-                                <span className="font-medium">{order.commune_name}, {order.wilaya_name}</span>
-                            </div>
-                            {newLoyaltyBalance !== undefined && (
-                                <div className="flex justify-between mt-2 pt-2 border-t">
-                                    <span className="text-gray-500">Nouveaux points de fidélité:</span>
-                                    <span className="font-bold text-[#DB8B89]">{newLoyaltyBalance} pts</span>
-                                </div>
-                            )}
-                        </div>
-                        <div className="flex gap-4 justify-center">
-                            <Link href={route('products.index')} className="bg-[#DB8B89] text-white px-8 py-3 rounded-xl font-bold">Continuer les achats</Link>
-                        </div>
-                    </div>
-                </main>
-                <Footer />
-            </div>
-        );
-    }
+
 
     return (
         <div className="product-page">
@@ -291,16 +345,64 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         </div>
 
                         <div className="product-price-section">
-                            <span className="current-price">{(currentProduct?.price || 0).toLocaleString()} {t('currency.symbol', 'DA')}</span>
+                            <span className="current-price">{(selectedVariant?.price || currentProduct?.price || 0).toLocaleString()} {t('currency.symbol', 'DA')}</span>
                         </div>
 
                         <div className="stock-status">
-                            {(currentProduct?.stock || 0) > 0 ? (
-                                <span className="in-stock">✓ {t('product.in_stock', 'En stock')} ({currentProduct?.stock || 0} {t('product.available', 'disponibles')})</span>
+                            {(selectedVariant?.stock || currentProduct?.stock || 0) > 0 ? (
+                                <span className="in-stock">✓ {t('product.in_stock', 'En stock')} ({selectedVariant?.stock || currentProduct?.stock || 0} {t('product.available', 'disponibles')})</span>
                             ) : (
                                 <span className="out-of-stock">{t('product.out_of_stock', 'En rupture de stock')}</span>
-                            )}
-                        </div>
+                            )
+                            }</div>
+
+                        {/* Product Variants */}
+                        {currentProduct?.variants && currentProduct.variants.length > 0 && (
+                            <div className="mt-4">
+                                <h3 className="text-sm font-medium text-gray-900">{t('product.variants', 'Variantes')}</h3>
+                                <div className="mt-3 space-y-3">
+                                    {currentProduct.variants.map((variant) => (
+                                        <div
+                                            key={variant.id}
+                                            onClick={() => setSelectedVariant(variant)}
+                                            className={`flex flex-col p-4 border rounded-lg cursor-pointer transition-colors ${selectedVariant?.id === variant.id
+                                                ? 'border-[#DB8B89] bg-[#DB8B89]/5 ring-2 ring-[#DB8B89]/20'
+                                                : 'border-gray-200 hover:border-[#DB8B89]'
+                                                } ${variant.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900">
+                                                        {variant.sku}
+                                                    </p>
+                                                    {variant.specifications && variant.specifications.length > 0 && (
+                                                        <div className="mt-1">
+                                                            <p className="text-xs text-gray-500">
+                                                                {variant.specifications.map(spec => getTranslated(spec, 'name')).join(' / ')}
+                                                            </p>
+                                                            <p className="text-xs text-gray-500">
+                                                                {variant.specifications.map(spec => spec.pivot.value).join(' / ')}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className="font-semibold">{variant.price.toLocaleString()} {t('currency.symbol', 'DA')}</span>
+                                            </div>
+                                            <div className="mt-2 flex items-center gap-2">
+                                                {variant.stock > 0 ? (
+                                                    <span className="in-stock text-xs">✓ {t('product.in_stock', 'En stock')} ({variant.stock})</span>
+                                                ) : (
+                                                    <span className="out-of-stock text-xs">{t('product.out_of_stock', 'En rupture de stock')}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                {!selectedVariant && (
+                                    <p className="mt-2 text-xs text-amber-600">* {t('product.select_variant', 'Veuillez sélectionner une variante')}</p>
+                                )}
+                            </div>
+                        )}
 
                         <div className="quantity-section">
                             <label>{t('cart.quantity', 'Quantité')}:</label>
@@ -314,6 +416,72 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                 </button>
                             </div>
                         </div>
+
+                        {/* Specification Values Selector */}
+                        {currentProduct?.specification_values && currentProduct.specification_values.length > 0 && (
+                            <div className="mt-6">
+                                <h3 className="text-sm font-medium text-gray-900 mb-3">{t('product.specifications', 'Spécifications')}</h3>
+                                <div className="space-y-4">
+                                    {(() => {
+                                        const specsBySpecId = {};
+                                        currentProduct.specification_values.forEach(psv => {
+                                            if (!specsBySpecId[psv.specification_id]) {
+                                                specsBySpecId[psv.specification_id] = [];
+                                            }
+                                            specsBySpecId[psv.specification_id].push(psv);
+                                        });
+
+                                        return Object.entries(specsBySpecId).map(([specId, values]) => {
+                                            const spec = values[0]?.specification;
+                                            if (!spec) return null;
+
+                                            return (
+                                                <div key={specId} className="space-y-2">
+                                                    <label className="text-sm font-medium text-gray-700">
+                                                        {getTranslated(spec, 'name')}
+                                                    </label>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {values.map((psv, idx) => {
+                                                            const isSelected = selectedSpecValues[specId] === psv.value;
+                                                            const isOutOfStock = (psv.quantity || 0) === 0;
+
+                                                            return (
+                                                                <button
+                                                                    key={idx}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        if (!isOutOfStock) {
+                                                                            setSelectedSpecValues(prev => ({
+                                                                                ...prev,
+                                                                                [specId]: isSelected ? null : psv.value
+                                                                            }));
+                                                                        }
+                                                                    }}
+                                                                    className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all ${isSelected
+                                                                        ? 'border-[#DB8B89] bg-[#DB8B89]/10 text-[#DB8B89]'
+                                                                        : isOutOfStock
+                                                                            ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60'
+                                                                            : 'border-gray-200 hover:border-[#DB8B89] text-gray-700'
+                                                                        }`}
+                                                                    disabled={isOutOfStock}
+                                                                >
+                                                                    {psv.value}
+                                                                    {psv.quantity !== undefined && psv.quantity !== null && (
+                                                                        <span className={`ml-2 text-xs ${isOutOfStock ? 'text-red-500' : 'text-green-600'}`}>
+                                                                            ({psv.quantity})
+                                                                        </span>
+                                                                    )}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            );
+                                        });
+                                    })()}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Order Form (Publicly accessible) */}
                         <form onSubmit={handlePlaceOrder} className="order-form-section">
@@ -436,38 +604,35 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                         </div>
 
                                         {/* Loyalty Points Section */}
-                                        {auth.user && loyaltyBalance > 0 && (
-                                            <div className="mt-4 border-t pt-4">
-                                                <label className="flex items-center gap-2 cursor-pointer text-sm font-medium mb-2">
+                                        <div className="mt-4 border-t pt-4">
+                                            <label className="flex items-center justify-between cursor-pointer p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors">
+                                                <div className="flex items-center gap-3">
                                                     <input
                                                         type="checkbox"
                                                         checked={useLoyaltyEnabled}
                                                         onChange={e => {
-                                                            setUseLoyaltyEnabled(e.target.checked);
-                                                            if (!e.target.checked) setData('use_loyalty_points', 0);
+                                                            const isChecked = e.target.checked;
+                                                            setUseLoyaltyEnabled(isChecked);
+                                                            // Auto-fill max points (balance) when checked, 0 when unchecked
+                                                            // calculation logic downstream handles the capping
+                                                            setData('use_loyalty_points', isChecked ? loyaltyBalance : 0);
                                                         }}
-                                                        className="text-[#DB8B89] rounded focus:ring-[#DB8B89]"
+                                                        className="w-5 h-5 text-[#DB8B89] rounded focus:ring-[#DB8B89] border-gray-300"
                                                     />
-                                                    {t('loyalty.use_points', 'Utiliser mes points')} ({loyaltyBalance} pts)
-                                                </label>
-
-                                                {useLoyaltyEnabled && (
-                                                    <div className="flex gap-2">
-                                                        <input
-                                                            type="number"
-                                                            value={data.use_loyalty_points || ''}
-                                                            onChange={e => setData('use_loyalty_points', Math.min(parseInt(e.target.value) || 0, loyaltyBalance))}
-                                                            max={loyaltyBalance}
-                                                            placeholder="0"
-                                                            className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89] dark:bg-neutral-800 dark:border-neutral-700 dark:text-white"
-                                                        />
-                                                        <span className="text-green-600 text-sm flex items-center">
-                                                            -{finalLoyaltyDiscount.toLocaleString()} DA
+                                                    <div>
+                                                        <span className="font-medium block">{t('loyalty.use_points', 'Utiliser mes points')}</span>
+                                                        <span className="text-sm text-gray-500">
+                                                            {t('loyalty.available', 'Disponible')}: {loyaltyBalance} pts
                                                         </span>
                                                     </div>
+                                                </div>
+                                                {useLoyaltyEnabled && finalLoyaltyDiscount > 0 && (
+                                                    <span className="text-green-600 font-bold">
+                                                        -{finalLoyaltyDiscount.toLocaleString()} DA
+                                                    </span>
                                                 )}
-                                            </div>
-                                        )}
+                                            </label>
+                                        </div>
 
                                         {/* Promo code section */}
                                         <div className="mt-4">
@@ -536,7 +701,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                             <div className="product-actions mt-6 flex gap-2">
                                 <button
                                     type="submit"
-                                    disabled={processing || placingOrder || (currentProduct?.stock || 0) <= 0}
+                                    disabled={processing || placingOrder || (currentProduct?.stock || 0) <= 0 || !data.wilaya_id || !data.commune_id || (currentProduct?.variants?.length > 0 && !selectedVariant)}
                                     className="add-to-cart-btn primary flex-1 bg-[#DB8B89] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#C07573] disabled:opacity-50"
                                 >
                                     {processing || placingOrder ? <Loader2 className="animate-spin" /> : <><CreditCard size={20} /> {t('checkout.place_order', 'Acheter maintenant')}</>}
@@ -544,7 +709,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                 <button
                                     type="button"
                                     onClick={handleAddToCart}
-                                    disabled={addingToCart || (currentProduct?.stock || 0) <= 0}
+                                    disabled={addingToCart || (currentProduct?.stock || 0) <= 0 || (currentProduct?.variants?.length > 0 && !selectedVariant)}
                                     className="flex-1 bg-white border-2 border-[#DB8B89] py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#F8E4E0] disabled:opacity-50 text-[#DB8B89]"
                                 >
                                     {addingToCart ? <Loader2 className="animate-spin" /> : <><ShoppingCart size={20} /> {t('product.add_to_cart', 'Ajouter au panier')}</>}
@@ -574,7 +739,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         </div>
                     </motion.div>
                 </div>
-            </motion.div>
+            </motion.div >
 
             <Footer />
             <CartConfirmationModal
@@ -582,7 +747,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                 onClose={() => setCartModalOpen(false)}
                 product={product}
             />
-        </div>
+        </div >
     );
 };
 

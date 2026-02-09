@@ -5,7 +5,7 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import confetti from 'canvas-confetti';
 
-const Success = ({ order }) => {
+const Success = ({ order, newLoyaltyBalance }) => {
     useEffect(() => {
         // Confetti effect on load
         const duration = 3 * 1000;
@@ -58,6 +58,20 @@ const Success = ({ order }) => {
                             </div>
                         </div>
                     </div>
+
+                    {newLoyaltyBalance !== undefined && newLoyaltyBalance !== null && (
+                        <div className="bg-gradient-to-r from-[#F8E4E0] to-[#FDF6F5] p-6 rounded-2xl mb-8 border border-[#F3CFCB]">
+                            <div className="flex items-center justify-center gap-4">
+                                <div className="w-12 h-12 bg-[#DB8B89] rounded-full flex items-center justify-center">
+                                    <span className="text-white text-xl">★</span>
+                                </div>
+                                <div>
+                                    <p className="text-gray-600 text-sm">Votre nouveau solde de points fidélité</p>
+                                    <p className="font-bold text-2xl text-[#DB8B89]">{newLoyaltyBalance} points</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link

@@ -44,9 +44,10 @@ const AdminOrders = ({ auth, orders, filters }) => {
         { key: 'CANCELLED', label: t('status.cancelled', 'Annulée') },
     ];
 
-    // Status Badge Component
-    const StatusBadge = ({ status }) => {
-        const currentStatus = status || 'PENDING';
+    // Status Selector Component
+    const StatusSelector = ({ order }) => {
+        const [isUpdating, setIsUpdating] = useState(false);
+        const currentStatus = order.status || 'PENDING';
 
         const statusMap = {
             'PENDING': { label: t('status.pending', 'En Attente'), style: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
@@ -57,12 +58,43 @@ const AdminOrders = ({ auth, orders, filters }) => {
             'CANCELLED': { label: t('status.cancelled', 'Annulée'), style: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
         };
 
+        const handleStatusChange = (e) => {
+            const newStatus = e.target.value;
+            if (newStatus === currentStatus) return;
+
+            setIsUpdating(true);
+            router.patch(
+                route('admin.orders.status.update', order.id),
+                { status: newStatus },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        setIsUpdating(false);
+                    },
+                    onError: (errors) => {
+                        setIsUpdating(false);
+                        console.error('Failed to update status:', errors);
+                    },
+                }
+            );
+        };
+
         const config = statusMap[currentStatus] || statusMap['PENDING'];
 
         return (
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.style}`}>
-                {config.label}
-            </span>
+            <select
+                value={currentStatus}
+                onChange={handleStatusChange}
+                disabled={isUpdating}
+                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border-0 cursor-pointer transition-opacity ${config.style} ${isUpdating ? 'opacity-50 cursor-wait' : 'hover:opacity-80'}`}
+            >
+                <option value="PENDING">{t('status.pending', 'En Attente')}</option>
+                <option value="PROCESSING">{t('status.processing', 'En Traitement')}</option>
+                <option value="CONFIRMED">{t('status.confirmed', 'Confirmée')}</option>
+                <option value="SHIPPED">{t('status.shipped', 'Expédiée')}</option>
+                <option value="DELIVERED">{t('status.delivered', 'Livrée')}</option>
+                <option value="CANCELLED">{t('status.cancelled', 'Annulée')}</option>
+            </select>
         );
     };
 
@@ -150,7 +182,7 @@ const AdminOrders = ({ auth, orders, filters }) => {
                                             {parseFloat(order.total_price).toLocaleString()} {t('currency.symbol', 'DA')}
                                         </td>
                                         <td className="px-4 py-4">
-                                            <StatusBadge status={order.status} />
+                                            <StatusSelector order={order} />
                                         </td>
                                         <td className="px-4 py-4 text-end">
                                             <div className={`flex ${isRtl ? 'justify-start' : 'justify-end'} gap-1`}>

@@ -30,6 +30,28 @@ const AdminOrderDetails = ({ auth, order }) => {
         return getTranslated(item?.product, 'name');
     };
 
+    const renderSpecifications = (item) => {
+        const specifications = item?.metadata_snapshot?.specifications;
+        if (!specifications || !Array.isArray(specifications) || specifications.length === 0) {
+            return null;
+        }
+
+        return (
+            <div className="mt-2 space-y-1">
+                {specifications.map((spec, index) => {
+                    const specName = typeof spec.n === 'object' 
+                        ? getTranslated({ name: spec.n }, 'name')
+                        : spec.n || 'Specification';
+                    return (
+                        <div key={index} className="text-xs text-gray-500 dark:text-gray-400">
+                            <span className="font-medium">{specName}:</span> {spec.v}
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
     const StatusBadge = ({ status }) => {
         let styles = '';
         let icon = null;
@@ -151,6 +173,7 @@ const AdminOrderDetails = ({ auth, order }) => {
                                             <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                                 {item.quantity} x {item.price_snapshot.toLocaleString()} DA
                                             </div>
+                                            {renderSpecifications(item)}
                                         </div>
                                         <div className="text-right font-semibold text-gray-900 dark:text-gray-100">
                                             {(item.quantity * item.price_snapshot).toLocaleString()} DA

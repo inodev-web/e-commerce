@@ -18,6 +18,9 @@ class AddToCartRequest extends FormRequest
         return [
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'quantity' => ['required', 'integer', 'min:1', 'max:100'],
+            'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
+            'specification_values' => ['nullable', 'array'],
+            'specification_values.*' => ['nullable', 'string'],
         ];
     }
 
@@ -29,6 +32,7 @@ class AddToCartRequest extends FormRequest
             'quantity.required' => 'La quantité est requise',
             'quantity.min' => 'La quantité minimum est 1',
             'quantity.max' => 'La quantité maximum est 100',
+            'product_variant_id.exists' => 'La variante n\'existe pas',
         ];
     }
 }

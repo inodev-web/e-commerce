@@ -12,6 +12,7 @@ use App\Services\CartService;
 use App\Services\LocationService;
 use App\Services\OrderService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -187,6 +188,15 @@ class CheckoutController extends Controller
             $data = $request->validated();
             $isDirect = $request->has('items');
             
+            \Log::info('CheckoutController - placeOrder', [
+                'has_items' => $isDirect,
+                'request_items' => $request->input('items'),
+                'data' => $data,
+                'use_loyalty_points' => $data['use_loyalty_points'] ?? 'NOT SET',
+                'user_id' => auth()->id(),
+                'client_id' => auth()->user()?->client?->id,
+            ]);
+            
             $dto = CreateOrderDTO::fromRequest([
                 ...$data,
                 'client_id' => auth()->user()?->client?->id,
@@ -194,14 +204,18 @@ class CheckoutController extends Controller
                 'clear_cart' => !$isDirect,
             ]);
             
+            \Log::info('CheckoutController - DTO created', ['items' => $dto->items]);
+            
             $order = $this->orderService->create($dto);
+            
+            \Log::info('CheckoutController - Order created', ['order_id' => $order->id, 'items_count' => $order->items()->count()]);
             
             // ⚡️ OPTIMISATION RADICALE : Calculer les nouveaux points AVANT la réponse
             $newLoyaltyBalance = 0;
             if ($dto->clientId) {
-                $newLoyaltyBalance = app(\App\Services\LoyaltyService::class)->getBalance($dto->clientId);
-                // Invalider le cache des points pour ce client
+                // Invalider le cache des points pour ce client (AVANT de récupérer le solde)
                 \Illuminate\Support\Facades\Cache::forget("loyalty_balance_{$dto->clientId}");
+                $newLoyaltyBalance = app(\App\Services\LoyaltyService::class)->getBalance($dto->clientId);
             }
             
             // ⚡️ OPTIMISATION RADICALE : Réponse minimale SANS redirect pour éviter le 302
@@ -220,25 +234,8 @@ class CheckoutController extends Controller
             session()->flash('newLoyaltyBalance', $newLoyaltyBalance);
             session()->flash('success', "Commande #{$order->id} créée avec succès!");
             
-            // ⚡️ CRITIQUE : Pour les commandes directes, utiliser l'URL de référence sans paramètres
-            // pour éviter le 302 redirect vers une URL avec ?wilaya_id=16 qui déclenche un rechargement
-            if ($isDirect && !empty($dto->items)) {
-                $productId = array_key_first($dto->items);
-                if ($productId) {
-                    // Utiliser redirect()->route() au lieu de back() pour éviter les paramètres de requête
-                    // qui causent le rechargement complet
-                    return redirect()->route('products.show', $productId)->with([
-                        'order' => $orderData,
-                        'newLoyaltyBalance' => $newLoyaltyBalance,
-                        'success' => "Commande #{$order->id} créée avec succès!"
-                    ]);
-                }
-            }
-            
-            // Pour le checkout classique, utiliser back() mais avec preserveState côté frontend
-            return back()->with([
-                'order' => $orderData,
-                'newLoyaltyBalance' => $newLoyaltyBalance,
+            // ⚡️ CRITIQUE : Redirection vers la page de succès dédiée
+            return redirect()->route('checkout.success', $order)->with([
                 'success' => "Commande #{$order->id} créée avec succès!"
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -270,6 +267,7 @@ class CheckoutController extends Controller
         
         return Inertia::render('Checkout/Success', [
             'order' => $order,
+            'newLoyaltyBalance' => session('newLoyaltyBalance'),
         ]);
     }
 
@@ -285,7 +283,17 @@ class CheckoutController extends Controller
         
         $items = [];
         foreach ($cart->items as $item) {
-            $items[$item->product_id] = ['quantity' => $item->quantity];
+            $specificationValues = $item->specification_values;
+            
+            if (empty($specificationValues) && $item->productVariant) {
+                $specificationValues = $item->productVariant->getSpecificationIdsAndValues();
+            }
+            
+            $items[$item->product_id] = [
+                'quantity' => $item->quantity,
+                'product_variant_id' => $item->product_variant_id,
+                'specification_values' => $specificationValues, 
+            ];
         }
         
         return $items;

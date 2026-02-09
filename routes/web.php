@@ -102,6 +102,28 @@ Route::prefix('checkout')->name('checkout.')->group(function () {
     Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
 });
 
+// Debug route for loyalty points
+Route::get('/debug/loyalty-points', function (Request $request) {
+    if (!auth()->check()) {
+        return response()->json(['error' => 'Not authenticated'], 401);
+    }
+    
+    $client = auth()->user()->client;
+    if (!$client) {
+        return response()->json(['error' => 'No client found'], 404);
+    }
+    
+    $points = \App\Models\LoyaltyPoint::where('client_id', $client->id)->get();
+    $balance = $points->sum('points');
+    
+    return response()->json([
+        'client_id' => $client->id,
+        'balance' => $balance,
+        'points_count' => $points->count(),
+        'points' => $points,
+    ]);
+})->middleware('auth')->name('debug.loyalty-points');
+
 // Admin Routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

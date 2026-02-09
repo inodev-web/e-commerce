@@ -23,6 +23,8 @@ class SpecificationController extends Controller
             'name.fr' => 'required|string|max:255',
             'name.ar' => 'nullable|string|max:255',
             'required' => 'boolean',
+            'values' => 'array',
+            'values.*' => 'nullable|string|max:255',
         ]);
 
         Specification::create($validated);
@@ -40,6 +42,8 @@ class SpecificationController extends Controller
             'name.fr' => 'required|string|max:255',
             'name.ar' => 'nullable|string|max:255',
             'required' => 'boolean',
+            'values' => 'array',
+            'values.*' => 'nullable|string|max:255',
         ]);
 
         $specification->update($validated);

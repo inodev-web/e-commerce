@@ -16,6 +16,7 @@ class ProductSpecificationValue extends Model
         'product_id',
         'specification_id',
         'value',
+        'quantity',
     ];
 
     // Relationships

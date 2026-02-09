@@ -131,13 +131,20 @@ class ProductController extends Controller
             'sub_category_id' => 'required|exists:sub_categories,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
+            'price' => 'nullable|numeric|min:0',
+            'stock' => 'nullable|integer|min:0',
             'status' => ['required', Rule::enum(ProductStatus::class)],
             'images.*' => 'nullable|image|max:2048',
-            'specifications' => 'nullable|array',
-            'specifications.*.id' => 'required|exists:specifications,id',
-            'specifications.*.value' => 'nullable|string',
+            'has_variants' => 'required|boolean',
+            'variants' => 'required_if:has_variants,true|array',
+            'variants.*.sku' => 'nullable|string|max:255',
+            'variants.*.price' => 'required_if:has_variants,true|numeric|min:0',
+            'variants.*.stock' => 'required_if:has_variants,true|integer|min:0',
+            'variants.*.is_active' => 'required|boolean',
+            'variants.*.specifications' => 'required_if:has_variants,true|array',
+            'variants.*.specifications.*.id' => 'required|exists:specifications,id',
+            'variants.*.specifications.*.value' => 'required|string',
+            'variants.*.image' => 'nullable|image|max:2048',
         ]);
 
         $validator->after(function ($validator) use ($request) {
@@ -190,14 +197,47 @@ class ProductController extends Controller
                 }
             }
 
-            // Gérer les spécifications
-            if (!empty($validated['specifications'])) {
+            // Gérer les spécifications (pour produits sans variants)
+            if (!$validated['has_variants'] && !empty($validated['specifications'])) {
                 foreach ($validated['specifications'] as $spec) {
                     ProductSpecificationValue::create([
                         'product_id' => $product->id,
                         'specification_id' => $spec['id'],
                         'value' => $spec['value'],
                     ]);
+                }
+            }
+
+            // Gérer les variants
+            if ($validated['has_variants'] && !empty($validated['variants'])) {
+                foreach ($validated['variants'] as $variantData) {
+                    // Gérer l'image du variant si fournie
+                    $variantImagePath = null;
+                    if (isset($variantData['image']) && $variantData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                        $filename = uniqid() . '_variant.webp';
+                        $path = 'products/variants/' . $filename;
+                        $image = Image::read($variantData['image']);
+                        $image->cover(800, 800);
+                        Storage::disk('public')->put($path, (string) $image->encodeByMediaType('image/webp', quality: 80));
+                        $variantImagePath = $path;
+                    }
+
+                    $variant = ProductVariant::create([
+                        'product_id' => $product->id,
+                        'sku' => $variantData['sku'] ?? null,
+                        'price' => $variantData['price'],
+                        'stock' => $variantData['stock'],
+                        'image' => $variantImagePath,
+                        'is_active' => $variantData['is_active'],
+                    ]);
+
+                    // Gérer les spécifications du variant
+                    foreach ($variantData['specifications'] as $spec) {
+                        $variant->variantSpecifications()->create([
+                            'specification_id' => $spec['id'],
+                            'value' => $spec['value'],
+                        ]);
+                    }
                 }
             }
         });
@@ -214,13 +254,23 @@ class ProductController extends Controller
             'sub_category_id' => 'required|exists:sub_categories,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
+            'price' => 'nullable|numeric|min:0',
+            'stock' => 'nullable|integer|min:0',
             'status' => ['required', Rule::enum(ProductStatus::class)],
             'images.*' => 'nullable|image|max:2048',
-            'specifications' => 'nullable|array',
-            'specifications.*.id' => 'required|exists:specifications,id',
-            'specifications.*.value' => 'nullable|string',
+            'has_variants' => 'required|boolean',
+            'variants' => 'required_if:has_variants,true|array',
+            'variants.*.id' => 'nullable|integer|exists:product_variants,id',
+            'variants.*.sku' => 'nullable|string|max:255',
+            'variants.*.price' => 'required_if:has_variants,true|numeric|min:0',
+            'variants.*.stock' => 'required_if:has_variants,true|integer|min:0',
+            'variants.*.is_active' => 'required|boolean',
+            'variants.*.specifications' => 'required_if:has_variants,true|array',
+            'variants.*.specifications.*.id' => 'required|exists:specifications,id',
+            'variants.*.specifications.*.value' => 'required|string',
+            'variants.*.image' => 'nullable|image|max:2048',
+            'variants_to_delete' => 'nullable|array',
+            'variants_to_delete.*' => 'integer',
         ]);
 
         $validator->after(function ($validator) use ($request) {
@@ -272,15 +322,101 @@ class ProductController extends Controller
                 }
             }
 
-            // Mettre à jour les spécifications
-            if (isset($validated['specifications'])) {
+            // Supprimer les variants marqués pour suppression
+            if (!empty($validated['variants_to_delete'])) {
+                foreach ($validated['variants_to_delete'] as $variantId) {
+                    $variant = $product->variants()->find($variantId);
+                    if ($variant) {
+                        if ($variant->image) {
+                            Storage::disk('public')->delete($variant->image);
+                        }
+                        $variant->variantSpecifications()->delete();
+                        $variant->delete();
+                    }
+                }
+            }
+
+            // Mettre à jour les spécifications (pour produits sans variants)
+            if (!$validated['has_variants']) {
                 $product->specificationValues()->delete();
-                foreach ($validated['specifications'] as $spec) {
-                    ProductSpecificationValue::create([
-                        'product_id' => $product->id,
-                        'specification_id' => $spec['id'],
-                        'value' => $spec['value'],
-                    ]);
+                if (!empty($validated['specifications'])) {
+                    foreach ($validated['specifications'] as $spec) {
+                        ProductSpecificationValue::create([
+                            'product_id' => $product->id,
+                            'specification_id' => $spec['id'],
+                            'value' => $spec['value'],
+                        ]);
+                    }
+                }
+                // Supprimer tous les variants existants si on passe en mode simple
+                foreach ($product->variants as $existingVariant) {
+                    if ($existingVariant->image) {
+                        Storage::disk('public')->delete($existingVariant->image);
+                    }
+                    $existingVariant->variantSpecifications()->delete();
+                    $existingVariant->delete();
+                }
+            } else {
+                // Gérer les variants
+                foreach ($validated['variants'] as $variantData) {
+                    // Gérer l'image du variant si fournie
+                    $variantImagePath = null;
+                    if (isset($variantData['image']) && $variantData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                        $filename = uniqid() . '_variant.webp';
+                        $path = 'products/variants/' . $filename;
+                        $image = Image::read($variantData['image']);
+                        $image->cover(800, 800);
+                        Storage::disk('public')->put($path, (string) $image->encodeByMediaType('image/webp', quality: 80));
+                        $variantImagePath = $path;
+                    }
+
+                    // Vérifier si c'est une mise à jour ou une création
+                    if (isset($variantData['id'])) {
+                        // Mise à jour
+                        $variant = $product->variants()->find($variantData['id']);
+                        if ($variant) {
+                            $updateData = [
+                                'sku' => $variantData['sku'] ?? null,
+                                'price' => $variantData['price'],
+                                'stock' => $variantData['stock'],
+                                'is_active' => $variantData['is_active'],
+                            ];
+                            if ($variantImagePath) {
+                                if ($variant->image) {
+                                    Storage::disk('public')->delete($variant->image);
+                                }
+                                $updateData['image'] = $variantImagePath;
+                            }
+                            $variant->update($updateData);
+
+                            // Mettre à jour les spécifications du variant
+                            $variant->variantSpecifications()->delete();
+                            foreach ($variantData['specifications'] as $spec) {
+                                $variant->variantSpecifications()->create([
+                                    'specification_id' => $spec['id'],
+                                    'value' => $spec['value'],
+                                ]);
+                            }
+                        }
+                    } else {
+                        // Création
+                        $variant = ProductVariant::create([
+                            'product_id' => $product->id,
+                            'sku' => $variantData['sku'] ?? null,
+                            'price' => $variantData['price'],
+                            'stock' => $variantData['stock'],
+                            'image' => $variantImagePath,
+                            'is_active' => $variantData['is_active'],
+                        ]);
+
+                        // Gérer les spécifications du variant
+                        foreach ($variantData['specifications'] as $spec) {
+                            $variant->variantSpecifications()->create([
+                                'specification_id' => $spec['id'],
+                                'value' => $spec['value'],
+                            ]);
+                        }
+                    }
                 }
             }
         });

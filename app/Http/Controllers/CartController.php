@@ -66,7 +66,11 @@ class CartController extends Controller
     public function updateItem(UpdateCartItemRequest $request, CartItem $item): RedirectResponse
     {
         try {
-            $this->cartService->updateQuantity($item, $request->validated('quantity'));
+            $this->cartService->updateQuantity(
+                $item, 
+                $request->validated('quantity'),
+                $request->validated('specification_values')
+            );
             
             return redirect()->back()->with('success', 'Quantité mise à jour');
         } catch (\Exception $e) {

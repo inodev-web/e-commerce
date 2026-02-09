@@ -52,6 +52,12 @@ class Product extends Model
         return $this->hasMany(ProductSpecificationValue::class);
     }
 
+    public function specifications()
+    {
+        return $this->belongsToMany(Specification::class, 'product_specification_values')
+            ->withPivot('value');
+    }
+
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class)->orderBy('is_main', 'desc');
@@ -67,6 +73,11 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
     // Scopes
 
     public function scopeActive($query)
@@ -76,7 +87,9 @@ class Product extends Model
 
     public function scopeInStock($query)
     {
-        return $query->where('stock', '>', 0);
+        return $query->whereHas('variants', function ($q) {
+            $q->where('stock', '>', 0)->where('is_active', true);
+        });
     }
 
     // Accessors
@@ -96,30 +109,88 @@ class Product extends Model
 
     public function isAvailable(): bool
     {
-        return $this->status === ProductStatus::ACTIF && $this->stock > 0;
+        if ($this->status !== ProductStatus::ACTIF) {
+            return false;
+        }
+        
+        // If product has variants, check if any variant is active and in stock
+        if ($this->hasVariants()) {
+            return $this->variants()->active()->inStock()->exists();
+        }
+        
+        // If product has no variants, check direct stock
+        return $this->stock > 0;
     }
 
-    public function decrementStock(int $quantity): bool
+    public function getTotalStockAttribute(): int
     {
-        if ($this->stock < $quantity) {
+        return $this->variants()->active()->sum('stock');
+    }
+
+    public function hasVariants(): bool
+    {
+        return $this->variants()->exists();
+    }
+
+    public function getLowestPriceAttribute(): float
+    {
+        $minVariantPrice = $this->variants()->active()->min('price');
+        return $minVariantPrice ? min($minVariantPrice, $this->price) : $this->price;
+    }
+
+    public function getHighestPriceAttribute(): float
+    {
+        $maxVariantPrice = $this->variants()->active()->max('price');
+        return $maxVariantPrice ? max($maxVariantPrice, $this->price) : $this->price;
+    }
+
+    public function getPriceRangeAttribute(): string
+    {
+        if (!$this->hasVariants()) {
+            return $this->formatted_price;
+        }
+
+        $lowest = number_format($this->lowest_price, 2) . ' DA';
+        $highest = number_format($this->highest_price, 2) . ' DA';
+        
+        return $lowest === $highest ? $lowest : $lowest . ' - ' . $highest;
+    }
+
+    public function decrementStock(int $quantity, ?int $variantId = null): bool
+    {
+        if ($variantId) {
+            $variant = $this->variants()->findOrFail($variantId);
+            if ($variant->stock < $quantity) {
+                return false;
+            }
+            $variant->decrement('stock', $quantity);
+            return true;
+        }
+
+        if ($this->total_stock < $quantity) {
             return false;
         }
 
-        $this->decrement('stock', $quantity);
-        
-        if ($this->stock === 0) {
-            $this->update(['status' => ProductStatus::HORS_STOCK]);
-        }
-        
+        $this->variants()->active()->inStock()->get()->each(function ($variant) use (&$quantity) {
+            if ($quantity <= 0) return false;
+            $deduct = min($variant->stock, $quantity);
+            $variant->decrement('stock', $deduct);
+            $quantity -= $deduct;
+            return $quantity > 0;
+        });
+
         return true;
     }
 
-    public function incrementStock(int $quantity): void
+    public function incrementStock(int $quantity, ?int $variantId = null): void
     {
-        $this->increment('stock', $quantity);
-        
-        if ($this->stock > 0 && $this->status === ProductStatus::HORS_STOCK) {
-            $this->update(['status' => ProductStatus::ACTIF]);
+        if ($variantId) {
+            $variant = $this->variants()->findOrFail($variantId);
+            $variant->increment('stock', $quantity);
+        } else {
+            $this->variants()->active()->get()->each(function ($variant) use ($quantity) {
+                $variant->increment('stock', $quantity);
+            });
         }
     }
 }

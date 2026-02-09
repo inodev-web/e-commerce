@@ -8,6 +8,7 @@ use App\DTOs\AddToCartDTO;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Support\Collection;
 
 class CartService
@@ -40,24 +41,49 @@ class CartService
         $cart = $this->getOrCreate($dto->clientId, $dto->sessionId);
         $product = Product::findOrFail($dto->productId);
         
-        // Vérifier disponibilité
+        // Si une variante est fournie, récupérer la variante
+        $variant = null;
+        if ($dto->productVariantId) {
+            $variant = ProductVariant::where('product_id', $dto->productId)
+                ->where('id', $dto->productVariantId)
+                ->where('is_active', true)
+                ->firstOrFail();
+        }
+        
+        // Vérifier disponibilité du produit
         if (!$product->isAvailable()) {
             throw new \Exception("Ce produit n'est pas disponible");
         }
         
+        // Vérifier disponibilité de la variante si fournie
+        if ($variant && !$variant->is_active) {
+            throw new \Exception("Cette variante n'est pas disponible");
+        }
+        
+        // Déterminer le prix et le stock à utiliser
+        $price = $variant ? $variant->price : $product->price;
+        $stock = $variant ? $variant->stock : $product->stock;
+        
         // Vérifier stock
-        $existingItem = $cart->items()->where('product_id', $dto->productId)->first();
+        $existingItemQuery = $cart->items()->where('product_id', $dto->productId);
+        if ($dto->productVariantId) {
+            $existingItemQuery->where('product_variant_id', $dto->productVariantId);
+        } else {
+            $existingItemQuery->whereNull('product_variant_id');
+        }
+        $existingItem = $existingItemQuery->first();
+        
         $totalQuantity = $dto->quantity + ($existingItem?->quantity ?? 0);
         
-        if ($totalQuantity > $product->stock) {
-            throw new \Exception("Stock insuffisant. Disponible: {$product->stock}");
+        if ($totalQuantity > $stock) {
+            throw new \Exception("Stock insuffisant. Disponible: {$stock}");
         }
         
         // Si l'item existe déjà, mettre à jour la quantité
         if ($existingItem) {
             $existingItem->update([
                 'quantity' => $totalQuantity,
-                'price_snapshot' => $product->price, // Mettre à jour le prix snapshot
+                'price_snapshot' => $price,
             ]);
             
             return $existingItem;
@@ -67,26 +93,34 @@ class CartService
         return CartItem::create([
             'cart_id' => $cart->id,
             'product_id' => $dto->productId,
+            'product_variant_id' => $dto->productVariantId,
             'quantity' => $dto->quantity,
-            'price_snapshot' => $product->price, // SNAPSHOT du prix actuel
+            'price_snapshot' => $price,
+            'specification_values' => $dto->specificationValues,
         ]);
     }
 
     /**
      * Mettre à jour la quantité d'un item
      */
-    public function updateQuantity(CartItem $item, int $quantity): CartItem
+    public function updateQuantity(CartItem $item, int $quantity, ?array $specificationValues = null): CartItem
     {
         if ($quantity <= 0) {
             throw new \Exception("La quantité doit être positive");
         }
         
         // Vérifier le stock
-        if ($quantity > $item->product->stock) {
-            throw new \Exception("Stock insuffisant. Disponible: {$item->product->stock}");
+        $stock = $item->productVariant ? $item->productVariant->stock : $item->product->stock;
+        if ($quantity > $stock) {
+            throw new \Exception("Stock insuffisant. Disponible: {$stock}");
         }
         
-        $item->update(['quantity' => $quantity]);
+        $updateData = ['quantity' => $quantity];
+        if ($specificationValues !== null) {
+            $updateData['specification_values'] = $specificationValues;
+        }
+        
+        $item->update($updateData);
         
         return $item;
     }
@@ -122,7 +156,13 @@ class CartService
         
         // Fusionner les items
         foreach ($guestCart->items as $item) {
-            $existingItem = $clientCart->items()->where('product_id', $item->product_id)->first();
+            $existingItemQuery = $clientCart->items()->where('product_id', $item->product_id);
+            if ($item->product_variant_id) {
+                $existingItemQuery->where('product_variant_id', $item->product_variant_id);
+            } else {
+                $existingItemQuery->whereNull('product_variant_id');
+            }
+            $existingItem = $existingItemQuery->first();
             
             if ($existingItem) {
                 $existingItem->update([
@@ -154,7 +194,9 @@ class CartService
             ->with([
                 'product.images',
                 'product.subCategory.category',
-                'product.specificationValues.specification'
+                'product.specificationValues.specification',
+                'productVariant',
+                'productVariant.variantSpecifications',
             ])
             ->get();
     }

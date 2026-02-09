@@ -50,6 +50,12 @@ class OrderService
             $productIds = array_keys($dto->items);
             $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
             
+            \Log::info('OrderService - Processing items', [
+                'product_ids' => $productIds,
+                'items' => $dto->items,
+                'products_count' => $products->count(),
+            ]);
+            
             $productsTotal = 0;
             $validatedItems = [];
             
@@ -62,11 +68,20 @@ class OrderService
                 
                 // Vérifier disponibilité
                 if (!$product->isAvailable()) {
-                    throw new \Exception("Le produit {$product->name} n'est pas disponible");
+                    $productName = is_array($product->name) 
+                        ? ($product->getTranslation('name', app()->getLocale()) ?? $product->getTranslation('name', 'fr') ?? 'Produit')
+                        : $product->name;
+                    throw new \Exception("Le produit {$productName} n'est pas disponible");
                 }
                 
-                if ($product->stock < $item['quantity']) {
-                    throw new \Exception("Stock insuffisant pour {$product->name}");
+                // Determine available stock: use total_stock if variants exist, otherwise use direct stock
+                $availableStock = $product->hasVariants() ? $product->total_stock : $product->stock;
+                
+                if ($availableStock < $item['quantity']) {
+                    $productName = is_array($product->name) 
+                        ? ($product->getTranslation('name', app()->getLocale()) ?? $product->getTranslation('name', 'fr') ?? 'Produit')
+                        : $product->name;
+                    throw new \Exception("Stock insuffisant pour {$productName}. Disponible: {$availableStock}");
                 }
                 
                 $subtotal = $product->price * $item['quantity'];
@@ -77,8 +92,11 @@ class OrderService
                     'quantity' => $item['quantity'],
                     'price' => $product->price,
                     'subtotal' => $subtotal,
+                    'specification_values' => $item['specification_values'] ?? [],
                 ];
             }
+            
+            \Log::info('OrderService - Validated items count', ['count' => count($validatedItems)]);
             
             // 4. Appliquer code promo (admin) ou parrainage si présent
             $discountTotal = 0;
@@ -115,13 +133,42 @@ class OrderService
             }
             // 4.5. Appliquer points de fidélité si demandé
             $loyaltyDiscount = 0;
+            \Log::info('OrderService - Loyalty check', [
+                'loyaltyPointsUsed' => $dto->loyaltyPointsUsed,
+                'clientId' => $dto->clientId,
+                'productsTotal' => $productsTotal,
+                'deliveryPrice' => $deliveryTariff->price,
+                'discountTotal' => $discountTotal,
+            ]);
+            
             if ($dto->loyaltyPointsUsed > 0 && $dto->clientId) {
                 try {
-                    $loyaltyDiscount = $this->loyaltyService->convertToDiscount(
-                        $dto->clientId,
-                        $dto->loyaltyPointsUsed
-                    );
+                    // Calculer le montant maximum déductible (Total produits + Livraison - Autres remises)
+                    // On veut éviter un total négatif
+                    $currentTotal = $productsTotal + $deliveryTariff->price - $discountTotal;
+                    
+                    \Log::info('OrderService - Converting points', [
+                        'clientId' => $dto->clientId,
+                        'pointsToConvert' => $dto->loyaltyPointsUsed,
+                        'currentTotal' => $currentTotal,
+                    ]);
+                    
+                    if ($currentTotal > 0) {
+                        $loyaltyDiscount = $this->loyaltyService->convertToDiscount(
+                            $dto->clientId,
+                            $dto->loyaltyPointsUsed,
+                            (float) $currentTotal 
+                        );
+                        
+                        \Log::info('OrderService - Points converted', [
+                            'loyaltyDiscount' => $loyaltyDiscount,
+                        ]);
+                    }
                 } catch (\Exception $e) {
+                    \Log::error('OrderService - Points conversion error', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
                     throw new \Exception("Erreur points fidélité: " . $e->getMessage());
                 }
             }
@@ -149,20 +196,70 @@ class OrderService
             ]);
             
             // 7. Créer les order items avec MINIMAL SNAPSHOT
+            \Log::info('OrderService - Creating order items', ['order_id' => $order->id, 'validated_items_count' => count($validatedItems)]);
+            
             foreach ($validatedItems as $productId => $item) {
                 $product = $item['product'];
+                $selectedSpecValues = $item['specification_values'] ?? [];
+                
+                \Log::info('OrderService - Creating item', [
+                    'order_id' => $order->id,
+                    'product_id' => $productId,
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'spec_values' => $selectedSpecValues,
+                ]);
+                
+                // Get specification names and decrement quantities
+                $specificationDetails = [];
+                if (!empty($selectedSpecValues)) {
+                    $specificationIds = array_keys($selectedSpecValues);
+                    $specifications = \App\Models\Specification::whereIn('id', $specificationIds)
+                        ->get()
+                        ->keyBy('id');
+                    
+                    foreach ($selectedSpecValues as $specId => $value) {
+                        if (isset($specifications[$specId])) {
+                            $specificationDetails[] = [
+                                'n' => $specifications[$specId]->name,
+                                'v' => $value,
+                            ];
+
+                            // Decrement specification value quantity
+                            try {
+                                $specValue = \App\Models\ProductSpecificationValue::where('product_id', $productId)
+                                    ->where('specification_id', $specId)
+                                    ->where('value', $value)
+                                    ->first();
+
+                                if ($specValue) {
+                                    $specValue->decrement('quantity', $item['quantity']);
+                                } else {
+                                     \Log::warning("OrderService - ProductSpecificationValue not found for decrement", [
+                                        'product_id' => $productId,
+                                        'spec_id' => $specId,
+                                        'value' => $value
+                                    ]);
+                                }
+                            } catch (\Exception $e) {
+                                \Log::error("OrderService - Failed to decrement specification value", [
+                                    'error' => $e->getMessage(),
+                                    'product_id' => $productId,
+                                    'spec_id' => $specId,
+                                    'value' => $value
+                                ]);
+                            }
+                        }
+                    }
+                }
                 
                 // ⚡️ OPTIMISATION : Snapshot ultra-léger (pas de descriptions fleuves)
                 $metadataSnapshot = [
                     'name' => $product->name,
-                    // On ne stocke que les specs essentielles si besoin
-                    'specifications' => $product->specificationValues->map(fn($sv) => [
-                        'n' => $sv->specification->name,
-                        'v' => $sv->value,
-                    ])->toArray(),
+                    'specifications' => $specificationDetails,
                 ];
                 
-                OrderItem::create([
+                $orderItem = OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $productId,
                     'quantity' => $item['quantity'],
@@ -170,7 +267,10 @@ class OrderService
                     'metadata_snapshot' => $metadataSnapshot,
                 ]);
                 
+                \Log::info('OrderService - Item created', ['order_item_id' => $orderItem->id]);
+                
                 // 8. Décrémenter le stock
+                $product->decrement('stock', $item['quantity']);
                 $product->decrementStock($item['quantity']);
             }
             

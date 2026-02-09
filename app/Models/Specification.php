@@ -18,6 +18,7 @@ class Specification extends Model
         'sub_category_id',
         'name',
         'required',
+        'values',
     ];
 
     public array $translatable = ['name'];
@@ -27,6 +28,7 @@ class Specification extends Model
         return [
             'name' => 'array',
             'required' => 'boolean',
+            'values' => 'array',
         ];
     }
 
@@ -47,5 +49,25 @@ class Specification extends Model
     public function scopeRequired($query)
     {
         return $query->where('required', true);
+    }
+
+    // Methods
+
+    public function hasPredefinedValues(): bool
+    {
+        return !empty($this->values) && is_array($this->values);
+    }
+
+    public function getPredefinedValues(): array
+    {
+        return $this->values ?? [];
+    }
+
+    public function isValueValid(string $value): bool
+    {
+        if (!$this->hasPredefinedValues()) {
+            return true;
+        }
+        return in_array($value, $this->values, true);
     }
 }
