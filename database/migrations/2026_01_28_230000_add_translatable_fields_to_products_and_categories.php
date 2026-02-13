@@ -10,6 +10,10 @@ return new class extends Migration
     public function up(): void
     {
         $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            return;
+        }
         
         if ($driver === 'pgsql') {
             // PostgreSQL requires explicit casting
@@ -31,6 +35,10 @@ return new class extends Migration
     public function down(): void
     {
         $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            return;
+        }
         
         if ($driver === 'pgsql') {
             DB::statement('ALTER TABLE categories ALTER COLUMN name TYPE VARCHAR(255) USING name::text');

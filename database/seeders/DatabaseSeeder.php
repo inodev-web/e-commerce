@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
         // 1. Système de localisation complet depuis GitHub
         // Import des 58 wilayas + ~1500 communes + tarifs par défaut
         $this->call(AlgeriaCitiesSeeder::class);
-        
+        $this->call(AdminUserSeeder::class);
         // 2. Rôles et permissions Spatie
         $this->call(RolesSeeder::class);
     }

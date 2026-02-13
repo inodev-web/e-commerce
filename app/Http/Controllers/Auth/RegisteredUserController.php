@@ -25,9 +25,15 @@ class RegisteredUserController extends Controller
     
     public function create(): Response
     {
+        $activeWilayas = \App\Models\Wilaya::active()
+            ->orderBy('name')
+            ->get()
+            ->map(fn($w) => ['id' => $w->id, 'name' => $w->name]);
+
+        \Illuminate\Support\Facades\Log::info('RegisteredUserController: Active Wilayas Count', ['count' => $activeWilayas->count(), 'data' => $activeWilayas->toArray()]);
+
         return Inertia::render('Auth/Login', [
-            'wilayas' => $this->locationService->getActiveWilayas()
-                ->map(fn($w) => ['id' => $w->id, 'name' => $w->name])
+            'wilayas' => $activeWilayas
         ]);
     }
 

@@ -19,22 +19,20 @@ class OrderController extends Controller
     /**
      * Lister les commandes de l'utilisateur connecté
      */
-    public function index(): Response
+    public function index()
     {
-        $client = auth()->user()->client;
-        
-        if (!$client) {
-            abort(403, 'Client profile not found');
+        // Les admins gardent l'accès à la liste globale (ou via dashboard)
+        if (auth()->user()->hasRole('admin')) {
+            $orders = Order::with('items.product.images', 'client')
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
+            return Inertia::render('Orders/Index', [
+                'orders' => $orders,
+            ]);
         }
-        
-        $orders = Order::where('client_id', $client->id)
-            ->with('items.product.images')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-        
-        return Inertia::render('Orders/Index', [
-            'orders' => $orders,
-        ]);
+
+        // Les clients sont redirigés vers leur profil unifié
+        return redirect()->route('profile.edit', ['tab' => 'orders']);
     }
 
     /**
@@ -45,7 +43,7 @@ class OrderController extends Controller
         // Vérifier que la commande appartient au client
         $client = auth()->user()->client;
         
-        if ($order->client_id !== $client->id && !auth()->user()->hasRole('admin')) {
+        if ($order->client_id !== $client?->id && !auth()->user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
         

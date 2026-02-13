@@ -44,7 +44,7 @@ class CheckoutController extends Controller
                 $this->cartService->getOrCreate(auth()->user()?->client?->id, session()->getId())
             ),
             
-            'wilayas' => fn() => $this->locationService->getWilayasWithTariffs(),
+            'wilayas' => fn() => $this->locationService->getActiveWilayas(),
             
             'communes' => fn() => request('wilaya_id') 
                 ? $this->locationService->getCommunesByWilaya((int)request('wilaya_id')) 
@@ -142,13 +142,15 @@ class CheckoutController extends Controller
                 return response()->json(['error' => 'Ce code promo ne peut pas être utilisé'], 403);
             }
 
-            $discount = min($promoCode->calculateDiscount((float) $amount), (float) $amount);
+            $promoResult = $promoCode->calculateDiscount((float) $amount);
+            $discount = min($promoResult['discount'], (float) $amount);
 
             return response()->json([
                 'code' => $promoCode->code,
                 'discount' => $discount,
                 'type' => $promoCode->type->value,
                 'discount_value' => $promoCode->discount_value,
+                'is_free_shipping' => $promoResult['free_shipping'],
             ]);
         }
 
@@ -235,6 +237,7 @@ class CheckoutController extends Controller
             session()->flash('success', "Commande #{$order->id} créée avec succès!");
             
             // ⚡️ CRITIQUE : Redirection vers la page de succès dédiée
+            \Log::info('CheckoutController - Redirecting to success', ['order_id' => $order->id]);
             return redirect()->route('checkout.success', $order)->with([
                 'success' => "Commande #{$order->id} créée avec succès!"
             ]);
@@ -264,6 +267,8 @@ class CheckoutController extends Controller
         $order->load(['items' => function($q) {
             $q->select('id', 'order_id', 'product_id', 'quantity', 'price_snapshot', 'metadata_snapshot');
         }]);
+        
+        \Log::info('CheckoutController - Success page rendered', ['order_id' => $order->id]);
         
         return Inertia::render('Checkout/Success', [
             'order' => $order,

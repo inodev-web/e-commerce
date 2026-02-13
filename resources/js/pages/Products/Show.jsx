@@ -1,6 +1,6 @@
 import { router, useForm, usePage, Link } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
-import { Star, ShoppingCart, Minus, Plus, ChevronLeft, Loader2, CreditCard, CheckCircle } from 'lucide-react';
+import { Star, ShoppingCart, Minus, Plus, ChevronLeft, Loader2, CreditCard, CheckCircle, Phone, MapPin, Truck, Building, User, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -10,11 +10,52 @@ import CartConfirmationModal from '../../components/CartConfirmationModal';
 import '../../../css/productPage.css';
 import { useTranslation } from 'react-i18next';
 import { getTranslated, isRTL } from '@/utils/translation';
+import { trackEvent } from '@/utils/analytics';
 
 const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     const { t, i18n } = useTranslation();
     const { auth, communes: pageCommunes, delivery_tariffs, selected_tariff, order, newLoyaltyBalance, flash } = usePage().props;
     const communes = pageCommunes || [];
+
+    // ⚡️ VUE SUCCÈS SPA (Si la commande vient d'être passée)
+    if (order) {
+        return (
+            <div className={`checkout-page min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
+                <Header theme={theme} toggleTheme={toggleTheme} />
+                <main className="flex-grow flex items-center justify-center p-4">
+                    <div className="bg-white p-8 md:p-12 rounded-3xl shadow-lg max-w-2xl w-full text-center slide-in">
+                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
+                            <CheckCircle size={40} />
+                        </div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Commande Réussie !</h1>
+                        <p className="text-gray-500 mb-8">
+                            Merci <span className="font-semibold">{order.first_name}</span>. Votre commande <span className="font-mono text-[#DB8B89]">#{order.id}</span> est confirmée.
+                        </p>
+                        <div className="bg-gray-50 p-6 rounded-2xl mb-8 text-left border border-gray-100">
+                            <div className="flex justify-between mb-2">
+                                <span className="text-gray-500">Montant total:</span>
+                                <span className="font-bold">{order.total_price.toLocaleString()} DA</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-500">Livraison à:</span>
+                                <span className="font-medium">{order.commune_name}, {order.wilaya_name}</span>
+                            </div>
+                            {newLoyaltyBalance != null && (
+                                <div className="flex justify-between mt-2 pt-2 border-t">
+                                    <span className="text-gray-500">Nouveaux points de fidélité:</span>
+                                    <span className="font-bold text-[#DB8B89]">{newLoyaltyBalance} pts</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex gap-4 justify-center">
+                            <Link href={route('products.index')} className="bg-[#DB8B89] text-white px-8 py-3 rounded-xl font-bold">Continuer les achats</Link>
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
 
     // ⚡️ CRITIQUE : Garder le produit en mémoire même si il devient null après commande
     const productRef = useRef(product);
@@ -36,6 +77,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     const [wilayas, setWilayas] = useState([]);
     const [shippingPrice, setShippingPrice] = useState(0);
     const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
+    const [deliveryTypeError, setDeliveryTypeError] = useState('');
 
     // Form handling
     const { data, setData, post, processing, errors } = useForm({
@@ -65,6 +107,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     const [promoDiscount, setPromoDiscount] = useState(0);
     const [promoError, setPromoError] = useState('');
     const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+    const [isFreeShipping, setIsFreeShipping] = useState(false);
 
     // Cart Modal State
     const [cartModalOpen, setCartModalOpen] = useState(false);
@@ -88,6 +131,15 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                 setCartModalOpen(true);
                 setAddingToCart(false);
                 toast.success(t('product.added_to_cart', 'Produit ajouté au panier'));
+
+                // Track AddToCart event
+                trackEvent('AddToCart', {
+                    content_name: getTranslated(currentProduct, 'name'),
+                    content_ids: [currentProduct.id],
+                    content_type: 'product',
+                    value: selectedVariant?.price || currentProduct?.price || 0,
+                    currency: 'DZD'
+                });
             },
             onError: () => setAddingToCart(false)
         });
@@ -125,9 +177,19 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     // Mise à jour locale immédiate du prix quand le type change (sans requête réseau)
     useEffect(() => {
         if (selected_tariff && data.delivery_type) {
-            setShippingPrice(selected_tariff[data.delivery_type] || 0);
+            const price = selected_tariff[data.delivery_type];
+            if (price !== undefined) {
+                setShippingPrice(price);
+                setDeliveryTypeError('');
+            } else {
+                setShippingPrice(0);
+                setDeliveryTypeError(`Ce type de livraison (${data.delivery_type === 'DOMICILE' ? 'Domicile' : 'Bureau'}) n'est pas supporté pour cette wilaya`);
+            }
+        } else if (selected_tariff === null && data.wilaya_id) {
+            setDeliveryTypeError('Cette wilaya n\'est pas disponible pour la livraison');
+            setShippingPrice(0);
         }
-    }, [selected_tariff, data.delivery_type]);
+    }, [selected_tariff, data.delivery_type, data.wilaya_id]);
 
     // Update form specification_values when selection changes
     useEffect(() => {
@@ -136,7 +198,10 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
     const [useLoyaltyEnabled, setUseLoyaltyEnabled] = useState(false);
     // ⚡️ OPTIMISATION : Utiliser le nouveau solde si disponible (après commande), sinon le solde actuel
-    const loyaltyBalance = newLoyaltyBalance !== undefined ? newLoyaltyBalance : (auth.user?.points || 0);
+    // Correction: On s'assure que loyaltyBalance n'est jamais null si auth.user.points existe
+    const pointsAvailable = auth?.user?.points ?? 0;
+    const loyaltyBalance = (newLoyaltyBalance !== null && newLoyaltyBalance !== undefined) ? newLoyaltyBalance : pointsAvailable;
+    const loyaltyRate = auth?.user?.loyalty_conversion_rate || 1.0;
 
     // Automatically enable loyalty points and set the discount if user has points
     useEffect(() => {
@@ -147,7 +212,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
             currentUseLoyaltyEnabled: useLoyaltyEnabled,
             currentUseLoyaltyPoints: data.use_loyalty_points,
         });
-        
+
         if (loyaltyBalance > 0 && auth.user) {
             console.log('Enabling loyalty points automatically:', loyaltyBalance);
             setUseLoyaltyEnabled(true);
@@ -167,9 +232,14 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
     const productsTotal = (currentProduct?.price || 0) * data.quantity;
     // ⚡️ Calcul du montant maximum convertible en points (Total + Livraison - Remise Promo)
-    const maxLoyaltyAmount = Math.max(0, productsTotal + shippingPrice - promoDiscount);
-    const finalLoyaltyDiscount = useLoyaltyEnabled ? Math.min(data.use_loyalty_points, maxLoyaltyAmount, loyaltyBalance) : 0;
-    const finalTotal = productsTotal + shippingPrice - promoDiscount - finalLoyaltyDiscount;
+    const activeShippingPrice = isFreeShipping ? 0 : shippingPrice;
+    const maxReducibleAmount = Math.max(0, productsTotal + activeShippingPrice - promoDiscount);
+
+    // Calcul de la remise fidélité réelle
+    const potentialLoyaltyDiscount = useLoyaltyEnabled ? (data.use_loyalty_points * loyaltyRate) : 0;
+    const finalLoyaltyDiscount = Math.min(potentialLoyaltyDiscount, maxReducibleAmount);
+
+    const finalTotal = productsTotal + activeShippingPrice - promoDiscount - finalLoyaltyDiscount;
 
     console.log('Loyalty calculation:', {
         productsTotal,
@@ -178,14 +248,15 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
         useLoyaltyEnabled,
         use_loyalty_points: data.use_loyalty_points,
         loyaltyBalance,
-        maxLoyaltyAmount,
+        maxReducibleAmount,
         finalLoyaltyDiscount,
         finalTotal,
     });
 
     const calculateTotal = () => {
         const subtotal = (currentProduct?.price || 0) * data.quantity;
-        const total = subtotal + shippingPrice - promoDiscount;
+        const activeShipping = isFreeShipping ? 0 : shippingPrice;
+        const total = subtotal + activeShipping - promoDiscount;
         return Math.max(0, total);
     };
 
@@ -202,6 +273,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
             });
 
             setPromoDiscount(response.data.discount);
+            setIsFreeShipping(!!response.data.is_free_shipping);
             setData('promo_code', response.data.code);
             setPromoError('');
         } catch (error) {
@@ -216,6 +288,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     const removePromoCode = () => {
         setPromoInput('');
         setPromoDiscount(0);
+        setIsFreeShipping(false);
         setData('promo_code', '');
         setPromoError('');
     };
@@ -224,23 +297,10 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
         e.preventDefault();
 
         // Validate required fields before submitting
-        if (!data.wilaya_id || !data.commune_id || !data.first_name || !data.last_name || !data.phone || !data.address) {
+        if (!data.wilaya_id || !data.commune_id || !data.first_name || !data.last_name || !data.phone) {
             toast.error(t('checkout.fill_all_fields', 'Veuillez remplir tous les champs requis'));
             return;
         }
-
-        // Inject the direct-purchase structure into the Inertia form state
-        setData(prev => ({
-            ...prev,
-            specification_values: selectedSpecValues,
-            items: {
-                [currentProduct?.id || 0]: {
-                    quantity: prev.quantity,
-                    specification_values: selectedSpecValues,
-                },
-            },
-            clear_cart: false,
-        }));
 
         setPlacingOrder(true);
 
@@ -250,29 +310,35 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
             toast.error(t('checkout.timeout_error', 'La requête a pris trop de temps. Veuillez réessayer.'));
         }, 30000);
 
-        // With useForm, the payload comes from `data`. We only pass options here.
-        post(route('checkout.place'), {
-            preserveState: false, // ⚡️ CRITIQUE : Il faut laisser Inertia charger la nouvelle page (Success)
+        // ⚡️ FIX: Utiliser router.post avec l'objet de données direct pour éviter l'asynchronisme de setData
+        const submissionData = {
+            ...data,
+            specification_values: selectedSpecValues,
+            items: {
+                [currentProduct?.id || 0]: {
+                    quantity: data.quantity,
+                    specification_values: selectedSpecValues,
+                },
+            },
+            clear_cart: false,
+        };
+
+        router.post(route('checkout.place'), submissionData, {
+            preserveState: false,
             preserveScroll: false,
             onFinish: () => {
-                clearTimeout(timeoutId);
-                setPlacingOrder(false);
-            },
-            onSuccess: () => {
                 clearTimeout(timeoutId);
                 setPlacingOrder(false);
             },
             onError: (err) => {
                 clearTimeout(timeoutId);
                 console.error("Erreur commande directe:", err);
-                setPlacingOrder(false); // ⚡️ CRITIQUE : Reset loading state on error
+                setPlacingOrder(false);
                 const firstMsg = Array.isArray(err)
                     ? err[0]
                     : (typeof err === 'object' && err !== null ? Object.values(err)[0] : err);
                 if (firstMsg) {
-                    toast.error(typeof firstMsg === 'string'
-                        ? firstMsg
-                        : t('checkout.order_error', 'Une erreur est survenue lors de la commande'));
+                    toast.error(typeof firstMsg === 'string' ? firstMsg : t('checkout.order_error', 'Une erreur est survenue lors de la commande'));
                 } else {
                     toast.error(t('checkout.order_error', 'Une erreur est survenue lors de la commande'));
                 }
@@ -484,244 +550,313 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         )}
 
                         {/* Order Form (Publicly accessible) */}
-                        <form onSubmit={handlePlaceOrder} className="order-form-section">
-                            <h3 className="order-form-title">{t('checkout.title', 'Complétez votre commande')}</h3>
-                            <div className="order-form-content">
-                                <div className="form-group grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label className="form-label">{t('checkout.first_name', 'Prénom')} *</label>
-                                        <input
-                                            type="text"
-                                            value={data.first_name}
-                                            onChange={e => setData('first_name', e.target.value)}
-                                            placeholder={t('checkout.first_name', 'Prénom')}
-                                            className="form-input"
-                                            required
-                                        />
-                                        {errors.first_name && <p className="text-red-500 text-xs">{errors.first_name}</p>}
-                                    </div>
-                                    <div>
-                                        <label className="form-label">{t('checkout.last_name', 'Nom')} *</label>
-                                        <input
-                                            type="text"
-                                            value={data.last_name}
-                                            onChange={e => setData('last_name', e.target.value)}
-                                            placeholder={t('checkout.last_name', 'Nom')}
-                                            className="form-input"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">{t('checkout.phone', 'Téléphone')} *</label>
-                                    <input
-                                        type="tel"
-                                        value={data.phone}
-                                        onChange={e => setData('phone', e.target.value)}
-                                        placeholder="0XXXXXXXXX"
-                                        className="form-input"
-                                        required
-                                    />
-                                    {errors.phone && <p className="text-red-500 text-xs">{errors.phone}</p>}
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">{t('checkout.wilaya', 'Wilaya')} *</label>
-                                    <select
-                                        className="form-select"
-                                        value={data.wilaya_id}
-                                        onChange={(e) => handleWilayaChange(e.target.value)}
-                                        required
-                                    >
-                                        <option value="">{t('common.select', 'Sélectionner')}</option>
-                                        {wilayas.map(w => (
-                                            <option key={w.id} value={w.id}>{w.code} - {isRTL() || i18n.language === 'ar' ? (w.name_ar || w.name) : w.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">{t('checkout.commune', 'Commune')} *</label>
-                                    <select
-                                        className="form-select"
-                                        value={data.commune_id}
-                                        onChange={e => setData('commune_id', e.target.value)}
-                                        required
-                                    >
-                                        <option value="">{t('common.select', 'Sélectionner')}</option>
-                                        {communes.map(c => (
-                                            <option key={c.id} value={c.id}>{isRTL() || i18n.language === 'ar' ? (c.name_ar || c.name) : c.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">{t('checkout.address', 'Adresse')} *</label>
-                                    <input
-                                        type="text"
-                                        value={data.address}
-                                        onChange={e => setData('address', e.target.value)}
-                                        placeholder={t('checkout.address', 'Adresse exacte')}
-                                        className="form-input"
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">{t('checkout.delivery_type', 'Type de livraison')}</label>
-                                    <div className="flex gap-4">
-                                        <label className="flex items-center gap-2">
-                                            <input type="radio" name="delivery_type" value="DOMICILE" checked={data.delivery_type === 'DOMICILE'} onChange={e => setData('delivery_type', e.target.value)} /> {t('checkout.home_delivery', 'Domicile')}
-                                        </label>
-                                        <label className="flex items-center gap-2">
-                                            <input type="radio" name="delivery_type" value="BUREAU" checked={data.delivery_type === 'BUREAU'} onChange={e => setData('delivery_type', e.target.value)} /> {t('checkout.office_delivery', 'Bureau / Point relais')}
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="mt-8">
+                            <form onSubmit={handlePlaceOrder} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
+                                <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900">
+                                    <ShoppingBag size={22} className="text-[#DB8B89]" />
+                                    {t('checkout.title', 'Complétez votre commande')}
+                                </h2>
 
-                            {/* Pricing Summary */}
-                            <AnimatePresence>
-                                {data.wilaya_id && (
-                                    <motion.div
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: 'auto' }}
-                                        className="pricing-summary overflow-hidden mt-4 p-4 bg-gray-50 dark:bg-white/5 dark:text-gray-200 rounded-xl transition-colors duration-300"
-                                    >
-                                        <div className="summary-row flex justify-between">
-                                            <span>{t('cart.subtotal', 'Sous-total')}</span>
-                                            <span>{((currentProduct?.price || 0) * data.quantity).toLocaleString()} {t('currency.symbol', 'DA')}</span>
+                                {/* Contact Person Section */}
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                        <User size={16} /> {t('checkout.contact_info', 'Informations personnelles')}
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('checkout.first_name', 'Prénom')}</label>
+                                            <input
+                                                type="text"
+                                                value={data.first_name}
+                                                onChange={e => setData('first_name', e.target.value)}
+                                                className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.first_name ? 'border-red-500' : 'border-gray-300'}`}
+                                                required
+                                            />
+                                            {errors.first_name && <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>}
                                         </div>
-                                        {promoDiscount > 0 && (
-                                            <div className="summary-row flex justify-between text-green-600 text-sm">
-                                                <span>{t('admin.promo_codes', 'Code promo')}</span>
-                                                <span>-{promoDiscount.toLocaleString()} {t('currency.symbol', 'DA')}</span>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('checkout.last_name', 'Nom')}</label>
+                                            <input
+                                                type="text"
+                                                value={data.last_name}
+                                                onChange={e => setData('last_name', e.target.value)}
+                                                className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.last_name ? 'border-red-500' : 'border-gray-300'}`}
+                                                required
+                                            />
+                                            {errors.last_name && <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>}
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('checkout.phone', 'Téléphone')}</label>
+                                            <div className="relative">
+                                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                                <input
+                                                    type="tel"
+                                                    value={data.phone}
+                                                    onChange={e => setData('phone', e.target.value)}
+                                                    className={`w-full pl-10 border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                                                    required
+                                                />
                                             </div>
-                                        )}
-                                        <div className="summary-row flex justify-between">
-                                            <span>{t('cart.shipping', 'Livraison')}</span>
-                                            <span>{isCalculatingShipping ? '...' : `${shippingPrice.toLocaleString()} ${t('currency.symbol', 'DA')}`}</span>
+                                            {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                                         </div>
-                                        <div className="summary-row total flex justify-between font-bold border-t mt-2 pt-2 text-lg">
-                                            <span>{t('cart.total', 'Total à payer')}</span>
-                                            <span>{finalTotal.toLocaleString()} {t('currency.symbol', 'DA')}</span>
-                                        </div>
+                                    </div>
+                                </div>
 
-                                        {/* Loyalty Points Section */}
-                                        <div className="mt-4 border-t pt-4">
-                                            <label className="flex items-center justify-between cursor-pointer p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors">
-                                                <div className="flex items-center gap-3">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={useLoyaltyEnabled}
-                                                        onChange={e => {
-                                                            const isChecked = e.target.checked;
-                                                            setUseLoyaltyEnabled(isChecked);
-                                                            // Auto-fill max points (balance) when checked, 0 when unchecked
-                                                            // calculation logic downstream handles the capping
-                                                            setData('use_loyalty_points', isChecked ? loyaltyBalance : 0);
-                                                        }}
-                                                        className="w-5 h-5 text-[#DB8B89] rounded focus:ring-[#DB8B89] border-gray-300"
-                                                    />
-                                                    <div>
-                                                        <span className="font-medium block">{t('loyalty.use_points', 'Utiliser mes points')}</span>
-                                                        <span className="text-sm text-gray-500">
-                                                            {t('loyalty.available', 'Disponible')}: {loyaltyBalance} pts
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                {useLoyaltyEnabled && finalLoyaltyDiscount > 0 && (
-                                                    <span className="text-green-600 font-bold">
-                                                        -{finalLoyaltyDiscount.toLocaleString()} DA
-                                                    </span>
-                                                )}
-                                            </label>
-                                        </div>
+                                <hr className="border-gray-100" />
 
-                                        {/* Promo code section */}
-                                        <div className="mt-4">
-                                            {!showPromo ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowPromo(true)}
-                                                    className="text-sm text-red-500 underline"
+                                {/* Delivery Section */}
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                        <MapPin size={16} /> {t('checkout.delivery', 'Livraison')}
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('checkout.wilaya', 'Wilaya')}</label>
+                                            <div className="relative">
+                                                <Building className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                                <select
+                                                    value={data.wilaya_id}
+                                                    onChange={(e) => handleWilayaChange(e.target.value)}
+                                                    className={`w-full pl-10 border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] appearance-none ${errors.wilaya_id ? 'border-red-500' : 'border-gray-300'}`}
+                                                    required
                                                 >
-                                                    {t('checkout.promo_link', 'code promo ?')}
-                                                </button>
-                                            ) : (
-                                                <div className="space-y-2">
-                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                        {t('checkout.promo_label', 'Code promo')}
-                                                    </label>
-                                                    {data.promo_code ? (
-                                                        <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 rounded-lg text-sm transition-colors">
-                                                            <div>
-                                                                <p className="font-medium text-green-800">{data.promo_code}</p>
-                                                                <p className="text-xs text-green-600">
-                                                                    -{promoDiscount.toLocaleString()} {t('currency.symbol', 'DA')}
-                                                                </p>
+                                                    <option value="">{t('common.select', 'Sélectionner')}</option>
+                                                    {wilayas.map(w => (
+                                                        <option key={w.id} value={w.id}>{w.code} - {isRTL() || i18n.language === 'ar' ? (w.name_ar || w.name) : w.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            {errors.wilaya_id && <p className="text-red-500 text-xs mt-1">{errors.wilaya_id}</p>}
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('checkout.commune', 'Commune')}</label>
+                                            <select
+                                                value={data.commune_id}
+                                                onChange={e => setData('commune_id', e.target.value)}
+                                                className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.commune_id ? 'border-red-500' : 'border-gray-300'}`}
+                                                required
+                                                disabled={!data.wilaya_id}
+                                            >
+                                                <option value="">{t('common.select', 'Sélectionner')}</option>
+                                                {communes.map(c => (
+                                                    <option key={c.id} value={c.id}>{isRTL() || i18n.language === 'ar' ? (c.name_ar || c.name) : c.name}</option>
+                                                ))}
+                                            </select>
+                                            {errors.commune_id && <p className="text-red-500 text-xs mt-1">{errors.commune_id}</p>}
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                {t('checkout.address_placeholder', 'Adresse complète (optionnelle)')}
+                                            </label>
+                                            <textarea
+                                                value={data.address}
+                                                onChange={e => setData('address', e.target.value)}
+                                                rows="2"
+                                                className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
+                                                placeholder="Quartier, N° rue, Bâtiment..."
+                                            ></textarea>
+                                            {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+                                        </div>
+
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-3">{t('checkout.delivery_type', 'Type de livraison')}</label>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {[
+                                                    { value: 'DOMICILE', label: t('checkout.home_delivery', 'À Domicile'), icon: <MapPin size={18} /> },
+                                                    { value: 'BUREAU', label: t('checkout.office_delivery', 'Bureau / Point Relais'), icon: <Building size={18} /> }
+                                                ].map(type => {
+                                                    const isSupported = selected_tariff && selected_tariff[type.value] !== undefined;
+                                                    const isSelected = data.delivery_type === type.value;
+                                                    return (
+                                                        <label
+                                                            key={type.value}
+                                                            className={`border rounded-xl p-4 cursor-pointer flex items-center justify-between transition-all ${isSelected ? 'border-[#DB8B89] bg-[#F8E4E0] ring-1 ring-[#DB8B89]' :
+                                                                isSupported ? 'hover:border-gray-400 bg-white' : 'opacity-50 cursor-not-allowed bg-gray-50'
+                                                                }`}
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="delivery_type"
+                                                                    value={type.value}
+                                                                    checked={isSelected}
+                                                                    onChange={e => setData('delivery_type', e.target.value)}
+                                                                    className="text-[#DB8B89] focus:ring-[#DB8B89]"
+                                                                    disabled={!isSupported}
+                                                                />
+                                                                <span className="font-medium text-sm">{type.label}</span>
                                                             </div>
-                                                            <button
-                                                                type="button"
-                                                                onClick={removePromoCode}
-                                                                className="text-red-500 hover:text-red-700 text-xs font-medium"
-                                                            >
-                                                                {t('common.remove', 'Retirer')}
-                                                            </button>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="flex gap-2">
-                                                            <input
-                                                                type="text"
-                                                                value={promoInput}
-                                                                onChange={e => setPromoInput(e.target.value.toUpperCase())}
-                                                                placeholder={t('checkout.promo_placeholder', 'Entrez votre code')}
-                                                                className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89] dark:bg-neutral-800 dark:border-neutral-700 dark:text-white transition-colors"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                onClick={validatePromoCode}
-                                                                disabled={isValidatingPromo || !promoInput.trim()}
-                                                                className="px-4 py-2 bg-[#DB8B89] text-white rounded-lg text-sm font-medium hover:bg-[#C07573] disabled:opacity-50"
-                                                            >
-                                                                {isValidatingPromo
-                                                                    ? t('common.loading', 'Vérification...')
-                                                                    : t('common.apply', 'Appliquer')}
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                    {promoError && (
-                                                        <p className="text-xs text-red-500">
-                                                            {promoError}
-                                                        </p>
-                                                    )}
-                                                </div>
+                                                            <div className="flex items-center gap-2">
+                                                                {selected_tariff && selected_tariff[type.value] !== undefined && (
+                                                                    <span className="text-xs font-bold text-[#DB8B89]">{selected_tariff[type.value].toLocaleString()} DA</span>
+                                                                )}
+                                                                <div className={isSelected ? 'text-[#DB8B89]' : 'text-gray-400'}>
+                                                                    {type.icon}
+                                                                </div>
+                                                            </div>
+                                                        </label>
+                                                    );
+                                                })}
+                                            </div>
+                                            {deliveryTypeError && (
+                                                <p className="text-red-500 text-xs mt-2 bg-red-50 p-2 rounded border border-red-100">{deliveryTypeError}</p>
                                             )}
                                         </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                                    </div>
+                                </div>
 
-                            <div className="product-actions mt-6 flex gap-2">
-                                <button
-                                    type="submit"
-                                    disabled={processing || placingOrder || (currentProduct?.stock || 0) <= 0 || !data.wilaya_id || !data.commune_id || (currentProduct?.variants?.length > 0 && !selectedVariant)}
-                                    className="add-to-cart-btn primary flex-1 bg-[#DB8B89] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#C07573] disabled:opacity-50"
-                                >
-                                    {processing || placingOrder ? <Loader2 className="animate-spin" /> : <><CreditCard size={20} /> {t('checkout.place_order', 'Acheter maintenant')}</>}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleAddToCart}
-                                    disabled={addingToCart || (currentProduct?.stock || 0) <= 0 || (currentProduct?.variants?.length > 0 && !selectedVariant)}
-                                    className="flex-1 bg-white border-2 border-[#DB8B89] py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#F8E4E0] disabled:opacity-50 text-[#DB8B89]"
-                                >
-                                    {addingToCart ? <Loader2 className="animate-spin" /> : <><ShoppingCart size={20} /> {t('product.add_to_cart', 'Ajouter au panier')}</>}
-                                </button>
-                            </div>
-                        </form>
+                                {/* Pricing Summary */}
+                                <AnimatePresence>
+                                    {data.wilaya_id && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            className="pricing-summary overflow-hidden mt-4 p-4 bg-gray-50 dark:bg-white/5 dark:text-gray-200 rounded-xl transition-colors duration-300"
+                                        >
+                                            <div className="summary-row flex justify-between">
+                                                <span>{t('cart.subtotal', 'Sous-total')}</span>
+                                                <span>{((currentProduct?.price || 0) * data.quantity).toLocaleString()} {t('currency.symbol', 'DA')}</span>
+                                            </div>
+                                            {promoDiscount > 0 && (
+                                                <div className="summary-row flex justify-between text-green-600 text-sm">
+                                                    <span>{t('admin.promo_codes', 'Code promo')}</span>
+                                                    <span>-{promoDiscount.toLocaleString()} {t('currency.symbol', 'DA')}</span>
+                                                </div>
+                                            )}
+                                            <div className="summary-row flex justify-between">
+                                                <span>{t('cart.shipping', 'Livraison')}</span>
+                                                <span className={isFreeShipping ? "text-green-600 font-bold" : ""}>
+                                                    {isCalculatingShipping
+                                                        ? '...'
+                                                        : (isFreeShipping ? t('cart.free_shipping', 'Gratuit (Promo)') : `${shippingPrice.toLocaleString()} ${t('currency.symbol', 'DA')}`)
+                                                    }
+                                                </span>
+                                            </div>
+                                            <div className="summary-row total flex justify-between font-bold border-t mt-2 pt-2 text-lg">
+                                                <span>{t('cart.total', 'Total à payer')}</span>
+                                                <span>{finalTotal.toLocaleString()} {t('currency.symbol', 'DA')}</span>
+                                            </div>
+
+                                            {/* Loyalty Points Section */}
+                                            <div className="mt-4 border-t pt-4">
+                                                <label className="flex items-center justify-between cursor-pointer p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors">
+                                                    <div className="flex items-center gap-3">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={useLoyaltyEnabled}
+                                                            onChange={e => {
+                                                                const isChecked = e.target.checked;
+                                                                setUseLoyaltyEnabled(isChecked);
+                                                                // Auto-fill max points (balance) when checked, 0 when unchecked
+                                                                // calculation logic downstream handles the capping
+                                                                setData('use_loyalty_points', isChecked ? loyaltyBalance : 0);
+                                                            }}
+                                                            className="w-5 h-5 text-[#DB8B89] rounded focus:ring-[#DB8B89] border-gray-300"
+                                                        />
+                                                        <div>
+                                                            <span className="font-medium block">{t('loyalty.use_points', 'Utiliser mes points')}</span>
+                                                            <span className="text-sm text-gray-500">
+                                                                {t('loyalty.available', 'Disponible')}: {loyaltyBalance} pts
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    {useLoyaltyEnabled && finalLoyaltyDiscount > 0 && (
+                                                        <span className="text-green-600 font-bold">
+                                                            -{finalLoyaltyDiscount.toLocaleString()} DA
+                                                        </span>
+                                                    )}
+                                                </label>
+                                            </div>
+
+                                            {/* Promo code section */}
+                                            <div className="mt-4">
+                                                {!showPromo ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPromo(true)}
+                                                        className="text-sm text-[#DB8B89] underline"
+                                                    >
+                                                        {t('checkout.promo_link', 'code promo ?')}
+                                                    </button>
+                                                ) : (
+                                                    <div className="space-y-2">
+                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            {t('checkout.promo_label', 'Code promo')}
+                                                        </label>
+                                                        {data.promo_code ? (
+                                                            <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 rounded-lg text-sm transition-colors">
+                                                                <div>
+                                                                    <p className="font-medium text-green-800">{data.promo_code}</p>
+                                                                    <p className="text-xs text-green-600">
+                                                                        {isFreeShipping ? t('cart.free_shipping', 'Livraison Gratuite') : `-${promoDiscount.toLocaleString()} ${t('currency.symbol', 'DA')}`}
+                                                                    </p>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={removePromoCode}
+                                                                    className="text-red-500 hover:text-red-700 text-xs font-medium"
+                                                                >
+                                                                    {t('common.remove', 'Retirer')}
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex gap-2">
+                                                                <input
+                                                                    type="text"
+                                                                    value={promoInput}
+                                                                    onChange={e => setPromoInput(e.target.value.toUpperCase())}
+                                                                    placeholder={t('checkout.promo_placeholder', 'Entrez votre code')}
+                                                                    className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89] dark:bg-neutral-800 dark:border-neutral-700 dark:text-white transition-colors"
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={validatePromoCode}
+                                                                    disabled={isValidatingPromo || !promoInput.trim()}
+                                                                    className="px-4 py-2 bg-[#DB8B89] text-white rounded-lg text-sm font-medium hover:bg-[#C07573] disabled:opacity-50"
+                                                                >
+                                                                    {isValidatingPromo
+                                                                        ? t('common.loading', 'Vérification...')
+                                                                        : t('common.apply', 'Appliquer')}
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                        {promoError && (
+                                                            <p className="text-xs text-red-500">
+                                                                {promoError}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                <div className="product-actions mt-6 flex gap-2">
+                                    <button
+                                        type="submit"
+                                        disabled={processing || placingOrder || (currentProduct?.stock || 0) <= 0 || !data.wilaya_id || !data.commune_id || (currentProduct?.variants?.length > 0 && !selectedVariant) || deliveryTypeError}
+                                        className="add-to-cart-btn primary flex-1 bg-[#DB8B89] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#C07573] disabled:opacity-50"
+                                    >
+                                        {processing || placingOrder ? <Loader2 className="animate-spin" /> : <><CreditCard size={20} /> {t('checkout.place_order', 'Acheter maintenant')}</>}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleAddToCart}
+                                        disabled={addingToCart || (currentProduct?.stock || 0) <= 0 || (currentProduct?.variants?.length > 0 && !selectedVariant)}
+                                        className="flex-1 bg-white border-2 border-[#DB8B89] py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#F8E4E0] disabled:opacity-50 text-[#DB8B89]"
+                                    >
+                                        {addingToCart ? <Loader2 className="animate-spin" /> : <><ShoppingCart size={20} /> {t('product.add_to_cart', 'Ajouter au panier')}</>}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
 
                         {/* Tabs */}
                         <div className="product-tabs mt-8">
                             <div className="tab-headers border-b flex gap-6">
-                                <button className={`pb-2 ${activeTab === 'description' ? 'border-b-2 border-teal-600 font-bold' : ''}`} onClick={() => setActiveTab('description')}>{t('product.description', 'Description')}</button>
-                                <button className={`pb-2 ${activeTab === 'features' ? 'border-b-2 border-teal-600 font-bold' : ''}`} onClick={() => setActiveTab('features')}>{t('product.specifications', 'Spécifications')}</button>
+                                <button className={`pb-2 ${activeTab === 'description' ? 'border-b-2 border-[#DB8B89] font-bold text-[#DB8B89]' : ''}`} onClick={() => setActiveTab('description')}>{t('product.description', 'Description')}</button>
+                                <button className={`pb-2 ${activeTab === 'features' ? 'border-b-2 border-[#DB8B89] font-bold text-[#DB8B89]' : ''}`} onClick={() => setActiveTab('features')}>{t('product.specifications', 'Spécifications')}</button>
                             </div>
                             <div className="tab-content py-4">
                                 {activeTab === 'description' && <p>{currentProduct ? getTranslated(currentProduct, 'description') : ''}</p>}

@@ -19,7 +19,7 @@ Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->name('h
 
 Route::get('/auth', function () {
     return Inertia::render('Auth/Login', [
-        'wilayas' => \App\Models\Wilaya::select('id', 'name', 'code')->orderBy('code')->get()
+        'wilayas' => \App\Models\Wilaya::active()->select('id', 'name', 'code')->orderBy('name')->get()
     ]);
 })->name('auth');
 
@@ -138,6 +138,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
     // Loyalty Program
     Route::get('loyalty', [\App\Http\Controllers\Admin\LoyaltyController::class, 'index'])->name('loyalty.index');
+    Route::get('loyalty/stats', [\App\Http\Controllers\Admin\LoyaltyController::class, 'getStats'])->name('loyalty.stats');
     Route::post('loyalty/adjust', [\App\Http\Controllers\Admin\LoyaltyController::class, 'manualAdjustment'])->name('loyalty.adjust');
     Route::get('loyalty/client/{client}', [\App\Http\Controllers\Admin\LoyaltyController::class, 'clientHistory'])->name('loyalty.client');
     Route::put('loyalty/settings', [\App\Http\Controllers\Admin\LoyaltyController::class, 'updateSettings'])->name('loyalty.settings.update');

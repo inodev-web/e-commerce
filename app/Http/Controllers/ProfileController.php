@@ -70,6 +70,13 @@ class ProfileController extends Controller
                 });
         }
 
+        // Load wilayas and communes for the form
+        $wilayas = \App\Models\Wilaya::active()->orderBy('name')->get(['id', 'name']);
+        $communes = [];
+        if ($client && $client->wilaya_id) {
+            $communes = \App\Models\Commune::where('wilaya_id', $client->wilaya_id)->orderBy('name')->get(['id', 'name']);
+        }
+
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
@@ -77,6 +84,9 @@ class ProfileController extends Controller
             'referrals' => $referrals,
             'orders' => $orders,
             'loyaltyHistory' => $loyaltyHistory,
+            'wilayas' => $wilayas,
+            'communes' => $communes,
+            'activeTab' => $request->query('tab', 'personal'),
         ]);
     }
 
@@ -106,9 +116,15 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
-        $oldPhone = $user->phone;
+        $client = $user->client;
         
-        $user->fill($request->validated());
+        $validated = $request->validated();
+        
+        // Update User
+        $user->fill([
+            'name' => $validated['first_name'] . ' ' . $validated['last_name'],
+            'phone' => $validated['phone'],
+        ]);
 
         if ($user->isDirty('phone')) {
             $user->phone_verified_at = null;
@@ -116,7 +132,19 @@ class ProfileController extends Controller
 
         $user->save();
 
-        return Redirect::route('profile.edit');
+        // Update Client
+        if ($client) {
+            $client->update([
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'phone' => $validated['phone'],
+                'address' => $validated['address'],
+                'wilaya_id' => $validated['wilaya_id'],
+                'commune_id' => $validated['commune_id'],
+            ]);
+        }
+
+        return Redirect::route('profile.edit')->with('success', 'Profil mis à jour avec succès');
     }
 
     /**

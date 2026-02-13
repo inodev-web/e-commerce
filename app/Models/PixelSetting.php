@@ -12,8 +12,9 @@ class PixelSetting extends Model
     use HasFactory;
 
     protected $fillable = [
-        'meta_pixel_id',
-        'google_pixel_id',
+        'platform',
+        'pixel_id',
+        'name',
         'is_active',
     ];
 
@@ -26,8 +27,14 @@ class PixelSetting extends Model
 
     // Methods
 
-    public static function getActive(): ?self
+    public static function getActiveGrouped(): array
     {
-        return static::where('is_active', true)->first();
+        return static::where('is_active', true)
+            ->get()
+            ->groupBy('platform')
+            ->map(function ($pixels) {
+                return $pixels->pluck('pixel_id')->toArray();
+            })
+            ->toArray();
     }
 }

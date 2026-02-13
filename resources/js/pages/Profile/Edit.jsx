@@ -1,26 +1,49 @@
-import React, { useState } from 'react';
-import { ShoppingCart, User, Gift, Award, Package, Copy, Loader2, Users, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingCart, User, Gift, Award, Package, Copy, Loader2, Users, ChevronRight, MapPin, Phone, Home } from 'lucide-react';
 import { toast } from 'sonner';
-import { usePage, useForm, Head } from '@inertiajs/react';
+import { usePage, useForm, Head, router, Link } from '@inertiajs/react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 
 export default function UserProfile({ theme, toggleTheme }) {
     const { t } = useTranslation();
-    const { auth, referral_code, referrals = [], orders = null, loyaltyHistory = [] } = usePage().props;
+    const { auth, referral_code, referrals = [], orders = null, loyaltyHistory = [], wilayas = [], communes: pageCommunes = [], activeTab: initialTab = 'personal' } = usePage().props;
     const ordersList = Array.isArray(orders?.data) ? orders.data : [];
     const user = auth.user;
     const points = user.points || 0;
     const client = user.client || {};
 
-    const [activeTab, setActiveTab] = useState('personal');
+    const [activeTab, setActiveTab] = useState(initialTab);
+    const [availableCommunes, setAvailableCommunes] = useState(pageCommunes);
 
     const { data, setData, patch, processing, errors } = useForm({
-        name: user.name,
-        phone: user.phone,
-        email: user.email || '',
+        first_name: client.first_name || '',
+        last_name: client.last_name || '',
+        phone: user.phone || '',
+        address: client.address || '',
+        wilaya_id: client.wilaya_id || '',
+        commune_id: client.commune_id || '',
     });
+
+    const handleWilayaChange = async (wilayaId) => {
+        setData('wilaya_id', wilayaId);
+        setData('commune_id', '');
+
+        if (!wilayaId) {
+            setAvailableCommunes([]);
+            return;
+        }
+
+        try {
+            const response = await axios.get(`/api/wilayas/${wilayaId}/communes`);
+            setAvailableCommunes(response.data);
+        } catch (error) {
+            console.error('Error fetching communes:', error);
+            toast.error(t('common.error_fetching_communes', 'Erreur lors de la récupération des communes'));
+        }
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -110,9 +133,9 @@ export default function UserProfile({ theme, toggleTheme }) {
                             <div>
                                 <h2 className="text-xl font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
                                     <User className="text-[#DB8B89]" size={24} />
-                                    Informations Personnelles
+                                    {t('profile.personal_info', 'Informations Personnelles')}
                                 </h2>
-                                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Gérez vos coordonnées.</p>
+                                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{t('profile.manage_contact', 'Gérez vos coordonnées.')}</p>
                             </div>
                             <div className="flex gap-2 w-full sm:w-auto">
                                 <button
@@ -120,32 +143,101 @@ export default function UserProfile({ theme, toggleTheme }) {
                                     disabled={processing}
                                     className="flex-1 sm:flex-none px-6 py-2 bg-[#DB8B89] text-white rounded-lg text-sm font-medium hover:bg-[#C07573] transition-colors disabled:opacity-50"
                                 >
-                                    {processing ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Enregistrer'}
+                                    {processing ? <Loader2 className="animate-spin mx-auto" size={18} /> : t('common.save', 'Enregistrer')}
                                 </button>
                             </div>
                         </div>
 
                         <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nom Complet</label>
-                                <input
-                                    type="text"
-                                    value={data.name}
-                                    onChange={e => setData('name', e.target.value)}
-                                    className="w-full px-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-colors"
-                                />
-                                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('checkout.first_name', 'Prénom')}</label>
+                                    <input
+                                        type="text"
+                                        value={data.first_name}
+                                        onChange={e => setData('first_name', e.target.value)}
+                                        className="w-full px-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-colors"
+                                        required
+                                    />
+                                    {errors.first_name && <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('checkout.last_name', 'Nom')}</label>
+                                    <input
+                                        type="text"
+                                        value={data.last_name}
+                                        onChange={e => setData('last_name', e.target.value)}
+                                        className="w-full px-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-colors"
+                                        required
+                                    />
+                                    {errors.last_name && <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>}
+                                </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Numéro de Téléphone</label>
-                                <input
-                                    type="tel"
-                                    value={data.phone}
-                                    onChange={e => setData('phone', e.target.value)}
-                                    className="w-full px-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-colors"
-                                />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('checkout.phone', 'Numéro de Téléphone')}</label>
+                                <div className="relative">
+                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                    <input
+                                        type="tel"
+                                        value={data.phone}
+                                        onChange={e => setData('phone', e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-colors"
+                                        required
+                                    />
+                                </div>
                                 {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('checkout.wilaya', 'Wilaya')}</label>
+                                    <select
+                                        value={data.wilaya_id}
+                                        onChange={e => handleWilayaChange(e.target.value)}
+                                        className="w-full px-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-colors"
+                                        required
+                                    >
+                                        <option value="">{t('checkout.select_wilaya', 'Sélectionner la wilaya')}</option>
+                                        {wilayas.map(w => (
+                                            <option key={w.id} value={w.id}>{w.name}</option>
+                                        ))}
+                                    </select>
+                                    {errors.wilaya_id && <p className="text-red-500 text-xs mt-1">{errors.wilaya_id}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('checkout.commune', 'Commune')}</label>
+                                    <select
+                                        value={data.commune_id}
+                                        onChange={e => setData('commune_id', e.target.value)}
+                                        className="w-full px-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-colors"
+                                        required
+                                        disabled={!data.wilaya_id}
+                                    >
+                                        <option value="">{t('checkout.select_commune', 'Sélectionner la commune')}</option>
+                                        {availableCommunes.map(c => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                    {errors.commune_id && <p className="text-red-500 text-xs mt-1">{errors.commune_id}</p>}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('checkout.address', 'Adresse Exacte')}</label>
+                                <div className="relative">
+                                    <Home className="absolute left-3 top-3 text-gray-400" size={18} />
+                                    <textarea
+                                        value={data.address}
+                                        onChange={e => setData('address', e.target.value)}
+                                        rows="3"
+                                        className="w-full pl-10 pr-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-colors"
+                                        placeholder={t('checkout.address_placeholder', 'Cité, Bâtiment, N° Appartement...')}
+                                    ></textarea>
+                                </div>
+                                {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
                             </div>
                         </div>
                     </form>
@@ -236,21 +328,24 @@ export default function UserProfile({ theme, toggleTheme }) {
                             ) : (
                                 <div className="space-y-3">
                                     {ordersList.map((order) => (
-                                        <div
+                                        <Link
                                             key={order.id}
-                                            className="bg-pink-50/60 border border-pink-100 rounded-xl px-4 py-3 flex items-center justify-between gap-4"
+                                            href={route('orders.show', order.id)}
+                                            className="bg-pink-50/60 dark:bg-[#DB8B89]/5 border border-pink-100 dark:border-[#DB8B89]/20 rounded-xl px-4 py-3 flex items-center justify-between gap-4 hover:shadow-md transition-all duration-300 group"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-white text-[#DB8B89] flex items-center justify-center text-sm font-bold border border-pink-100">
+                                                <div className="w-10 h-10 rounded-full bg-white dark:bg-neutral-800 text-[#DB8B89] flex items-center justify-center text-sm font-bold border border-pink-100 dark:border-neutral-700">
                                                     #{order.id}
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-semibold text-gray-900">
+                                                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
                                                         {new Date(order.created_at).toLocaleDateString()}
                                                         <span className="text-gray-400 mx-1">•</span>
                                                         {(order.items?.length || 0)} {t('orders.items', 'articles')}
                                                     </p>
-                                                    <p className="text-xs text-gray-500">
+                                                    <p className={`text-xs font-medium ${order.status === 'En attente' ? 'text-orange-500' :
+                                                        order.status === 'Livrée' ? 'text-green-600' : 'text-gray-500'
+                                                        }`}>
                                                         {order.status}
                                                     </p>
                                                 </div>
@@ -258,14 +353,33 @@ export default function UserProfile({ theme, toggleTheme }) {
                                             <div className="flex items-center gap-4">
                                                 <div className="text-right">
                                                     <p className="text-xs text-gray-500">{t('cart.total', 'Total')}</p>
-                                                    <p className="text-base font-bold text-gray-900">
+                                                    <p className="text-base font-bold text-gray-900 dark:text-white">
                                                         {order.total_price.toLocaleString()} DA
                                                     </p>
                                                 </div>
-                                                <ChevronRight className="text-gray-400" size={18} />
+                                                <ChevronRight className="text-gray-400 group-hover:text-[#DB8B89] transition-colors" size={18} />
                                             </div>
-                                        </div>
+                                        </Link>
                                     ))}
+
+                                    {/* Pagination Link if needed */}
+                                    {orders.links && orders.links.length > 3 && (
+                                        <div className="flex justify-center mt-6 gap-2">
+                                            {orders.links.map((link, i) => (
+                                                link.url ? (
+                                                    <Link
+                                                        key={i}
+                                                        href={link.url}
+                                                        data={{ tab: 'orders' }}
+                                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                                        className={`px-3 py-1 rounded text-sm border transition-colors ${link.active ? 'bg-[#DB8B89] text-white border-[#DB8B89]' : 'bg-white dark:bg-neutral-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-neutral-700 hover:border-[#DB8B89]'}`}
+                                                    />
+                                                ) : (
+                                                    <span key={i} dangerouslySetInnerHTML={{ __html: link.label }} className="px-3 py-1 text-sm text-gray-400" />
+                                                )
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

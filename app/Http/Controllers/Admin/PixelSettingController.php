@@ -11,11 +11,7 @@ class PixelSettingController extends Controller
 {
     public function show()
     {
-        $settings = PixelSetting::first();
-
-        // If no settings exist, return default structure (or mock it in frontend, but better here)
-        // Or create one effectively if singleton?
-        // Let's just return what we have (null is fine, frontend handles it)
+        $settings = PixelSetting::all();
         
         return Inertia::render('Admin/Settings', [
             'pixelSettings' => $settings
@@ -24,20 +20,21 @@ class PixelSettingController extends Controller
 
     public function update(Request $request)
     {
-        $validated = $request->validate([
-            'meta_pixel_id' => 'nullable|string|max:50',
-            'google_pixel_id' => 'nullable|string|max:50',
-            'is_active' => 'boolean',
+        $request->validate([
+            'pixels' => 'array',
+            'pixels.*.platform' => 'required|string',
+            'pixels.*.pixel_id' => 'required|string',
+            'pixels.*.is_active' => 'boolean',
+            'pixels.*.name' => 'nullable|string',
         ]);
 
-        $settings = PixelSetting::first();
+        // Clear and re-insert for simplicity (or use upsert)
+        PixelSetting::truncate();
 
-        if ($settings) {
-            $settings->update($validated);
-        } else {
-            PixelSetting::create($validated);
+        foreach ($request->pixels as $pixelData) {
+            PixelSetting::create($pixelData);
         }
 
-        return redirect()->back()->with('success', 'Paramètres mis à jour.');
+        return redirect()->back()->with('success', 'Paramètres des pixels mis à jour.');
     }
 }
