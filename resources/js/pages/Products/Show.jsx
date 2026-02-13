@@ -205,30 +205,16 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
     // Automatically enable loyalty points and set the discount if user has points
     useEffect(() => {
-        console.log('Loyalty useEffect triggered:', {
-            loyaltyBalance,
-            hasAuth: !!auth.user,
-            shouldEnable: loyaltyBalance > 0 && !!auth.user,
-            currentUseLoyaltyEnabled: useLoyaltyEnabled,
-            currentUseLoyaltyPoints: data.use_loyalty_points,
-        });
+
 
         if (loyaltyBalance > 0 && auth.user) {
-            console.log('Enabling loyalty points automatically:', loyaltyBalance);
+
             setUseLoyaltyEnabled(true);
             setData('use_loyalty_points', loyaltyBalance);
         }
     }, [loyaltyBalance, auth.user]);
 
-    console.log('Show.jsx Debug:', {
-        user: auth.user,
-        points: auth.user?.points,
-        loyaltyBalance,
-        useLoyaltyEnabled,
-        use_loyalty_points: data.use_loyalty_points,
-        wilaya_id: data.wilaya_id,
-        showCondition: auth.user && loyaltyBalance > 0
-    });
+
 
     const productsTotal = (currentProduct?.price || 0) * data.quantity;
     // ⚡️ Calcul du montant maximum convertible en points (Total + Livraison - Remise Promo)
@@ -241,17 +227,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
     const finalTotal = productsTotal + activeShippingPrice - promoDiscount - finalLoyaltyDiscount;
 
-    console.log('Loyalty calculation:', {
-        productsTotal,
-        shippingPrice,
-        promoDiscount,
-        useLoyaltyEnabled,
-        use_loyalty_points: data.use_loyalty_points,
-        loyaltyBalance,
-        maxReducibleAmount,
-        finalLoyaltyDiscount,
-        finalTotal,
-    });
+
 
     const calculateTotal = () => {
         const subtotal = (currentProduct?.price || 0) * data.quantity;

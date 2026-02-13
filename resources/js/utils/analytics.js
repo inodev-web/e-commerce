@@ -27,6 +27,6 @@ export const trackEvent = (eventName, data = {}) => {
 
     // Debug log for development (can be removed in production)
     if (import.meta.env.DEV) {
-        console.log(`[Analytics] Tracked ${eventName}:`, data);
+
     }
 };
