@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import CartConfirmationModal from '../../components/CartConfirmationModal';
+import { trackEvent } from '@/utils/analytics';
 import '../../../css/shopPage.css';
 
 const Index = ({ products, categories, filters, theme, toggleTheme }) => {
@@ -87,6 +88,15 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                 setAddedProduct(product);
                 setModalOpen(true);
                 toast.success(getLabel('product_added_to_cart') || 'Produit ajouté au panier');
+
+                // Track AddToCart event
+                trackEvent('AddToCart', {
+                    content_name: getTranslated(product, 'name'),
+                    content_ids: [product.id],
+                    content_type: 'product',
+                    value: product.price,
+                    currency: 'DZD'
+                });
             }
         });
     };

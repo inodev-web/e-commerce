@@ -67,8 +67,14 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
     };
 
     const handleDeleteCategory = (categoryId) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ? Cela supprimera également toutes ses sous-catégories et les produits associés.')) {
             categoryForm.delete(route('admin.categories.destroy', categoryId));
+        }
+    };
+
+    const handleDeleteSubCategory = (subCategoryId) => {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette sous-catégorie ? Cela supprimera également les produits associés.')) {
+            subCategoryForm.delete(route('admin.sub-categories.destroy', subCategoryId));
         }
     };
 
@@ -184,7 +190,10 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                                         <button className="p-2 text-gray-400 hover:text-[#DB8B89] dark:hover:text-[#DB8B89] transition-colors">
                                                             <Edit className="w-4 h-4" />
                                                         </button>
-                                                        <button className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                                                        <button
+                                                            onClick={() => handleDeleteSubCategory(subCategory.id)}
+                                                            className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                                                        >
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
                                                     </div>
@@ -259,7 +268,7 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                 <Dialog open={isAddSubCategoryOpen} onOpenChange={setIsAddSubCategoryOpen}>
                     <DialogContent className="sm:max-w-[500px]">
                         <DialogHeader>
-                            <DialogTitle>Ajouter une sous-catégorie à "{selectedCategory?.name}"</DialogTitle>
+                            <DialogTitle>Ajouter une sous-catégorie à "{selectedCategory ? getTranslated(selectedCategory, 'name') : ''}"</DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleAddSubCategory}>
                             <div className="grid gap-4 py-4">

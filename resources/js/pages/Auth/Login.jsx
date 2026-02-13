@@ -11,6 +11,8 @@ const AuthPage = ({ wilayas }) => {
     const [communes, setCommunes] = useState([]);
     const [loadingCommunes, setLoadingCommunes] = useState(false);
 
+
+
     const { data, setData, post, processing, errors, reset } = useForm({
         // Champs communs / Login
         phone: '',

@@ -25,7 +25,9 @@ class AuthenticatedSessionController extends Controller
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
-            'wilayas' => $this->locationService->getActiveWilayas()
+            'wilayas' => \App\Models\Wilaya::active()
+                ->orderBy('name')
+                ->get()
                 ->map(fn($w) => ['id' => $w->id, 'name' => $w->name])
         ]);
     }

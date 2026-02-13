@@ -14,10 +14,7 @@ class PromoCodeController extends Controller
 {
     public function index()
     {
-        $promoCodes = PromoCode::latest()->paginate(10);
-        return Inertia::render('Admin/Promotions', [
-            'promoCodes' => $promoCodes
-        ]);
+        return redirect()->route('admin.loyalty.index');
     }
 
     public function store(Request $request)
@@ -25,13 +22,16 @@ class PromoCodeController extends Controller
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:promo_codes,code',
             'type' => ['required', new Enum(PromoCodeType::class)],
-            'usage_type' => ['required', new Enum(PromoCodeUsage::class)],
-            'discount_value' => 'required|numeric|min:0',
+            'discount_value' => 'required_unless:type,' . PromoCodeType::FREE_SHIPPING->value . '|nullable|numeric|min:0',
             'max_use' => 'nullable|integer|min:1',
             'expiry_date' => 'nullable|date|after:today',
             'is_active' => 'boolean',
-            'client_id' => 'nullable|exists:clients,id|required_if:usage_type,' . PromoCodeUsage::PERSONAL->value,
         ]);
+
+        // Default discount_value to 0 if FREE_SHIPPING
+        if ($validated['type'] === PromoCodeType::FREE_SHIPPING->value) {
+            $validated['discount_value'] = 0;
+        }
 
         PromoCode::create($validated);
 
@@ -43,13 +43,15 @@ class PromoCodeController extends Controller
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:promo_codes,code,' . $promoCode->id,
             'type' => ['required', new Enum(PromoCodeType::class)],
-            'usage_type' => ['required', new Enum(PromoCodeUsage::class)],
-            'discount_value' => 'required|numeric|min:0',
+            'discount_value' => 'required_unless:type,' . PromoCodeType::FREE_SHIPPING->value . '|nullable|numeric|min:0',
             'max_use' => 'nullable|integer|min:1',
             'expiry_date' => 'nullable|date',
             'is_active' => 'boolean',
-            'client_id' => 'nullable|exists:clients,id|required_if:usage_type,' . PromoCodeUsage::PERSONAL->value,
         ]);
+
+        if ($validated['type'] === PromoCodeType::FREE_SHIPPING->value) {
+            $validated['discount_value'] = 0;
+        }
 
         $promoCode->update($validated);
 
@@ -65,6 +67,9 @@ class PromoCodeController extends Controller
     public function toggle(PromoCode $promoCode)
     {
         $promoCode->update(['is_active' => !$promoCode->is_active]);
-        return redirect()->back()->with('success', 'Statut modifié.');
+        
+        $status = $promoCode->is_active ? 'activé' : 'désactivé';
+        
+        return back()->with('success', "Code {$status} avec succès.");
     }
 }

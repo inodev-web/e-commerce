@@ -23,26 +23,48 @@ const AdminDelivery = ({ wilayas, theme, toggleTheme }) => {
     const updateWilaya = (id, field, value) => {
         setData('wilayas', data.wilayas.map(w => {
             if (w.id !== id) return w;
-
-            // If updating the master "active" checkbox
-            if (field === 'active') {
-                return {
-                    ...w,
-                    active: value,
-                    homeActive: value, // Toggle both delivery types
-                    deskActive: value
-                };
-            }
-
             return { ...w, [field]: value };
         }));
     };
 
+    const handleToggleAll = (id, checked) => {
+        setData('wilayas', data.wilayas.map(w => {
+            if (w.id !== id) return w;
+            return { ...w, homeActive: checked, deskActive: checked };
+        }));
+    };
+
     const handleSave = () => {
-        // Filter only modified wilayas using JSON comparison
-        const modifiedWilayas = data.wilayas.filter((wilaya) => {
+        // Track which fields were modified for each wilaya
+        const modifiedWilayas = [];
+
+        data.wilayas.forEach((wilaya) => {
             const original = originalData.current.find(w => w.id === wilaya.id);
-            return JSON.stringify(wilaya) !== JSON.stringify(original);
+            if (!original) return;
+
+            const modifiedFields = {};
+
+            // Check each field individually
+            if (wilaya.homeActive !== original.homeActive) {
+                modifiedFields.homeActive = wilaya.homeActive;
+            }
+            if (wilaya.deskActive !== original.deskActive) {
+                modifiedFields.deskActive = wilaya.deskActive;
+            }
+            if (wilaya.homePrice !== original.homePrice) {
+                modifiedFields.homePrice = wilaya.homePrice;
+            }
+            if (wilaya.deskPrice !== original.deskPrice) {
+                modifiedFields.deskPrice = wilaya.deskPrice;
+            }
+
+            // Only include wilayas that have at least one modified field
+            if (Object.keys(modifiedFields).length > 0) {
+                modifiedWilayas.push({
+                    id: wilaya.id,
+                    ...modifiedFields
+                });
+            }
         });
 
         if (modifiedWilayas.length === 0) {
@@ -115,8 +137,8 @@ const AdminDelivery = ({ wilayas, theme, toggleTheme }) => {
                                         <td className="px-6 py-4 text-center">
                                             <input
                                                 type="checkbox"
-                                                checked={wilaya.homeActive && wilaya.deskActive}
-                                                onChange={(e) => updateWilaya(wilaya.id, 'active', e.target.checked)}
+                                                checked={wilaya.homeActive || wilaya.deskActive}
+                                                onChange={(e) => handleToggleAll(wilaya.id, e.target.checked)}
                                                 className="w-4 h-4 rounded border-gray-300 text-[#DB8B89] focus:ring-[#DB8B89]"
                                             />
                                         </td>

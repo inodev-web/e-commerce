@@ -541,7 +541,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     };
 
     const deleteCategory = (categoryId) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ? Cela supprimera également toutes ses sous-catégories et les produits associés.')) {
             categoryForm.delete(route('admin.categories.destroy', categoryId));
         }
     };
@@ -593,7 +593,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     };
 
     const deleteSubCategory = (subCategoryId) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cette sous-catégorie ?')) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette sous-catégorie ? Cela supprimera également tous les produits associés.')) {
             router.delete(route('admin.sub-categories.destroy', subCategoryId));
         }
     };
@@ -1346,59 +1346,84 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
 
                                                         return (
                                                             <div key={spec.id} className="space-y-2 border rounded-md p-3 dark:border-zinc-700">
-                                                                <label className="text-sm font-medium">
-                                                                    {getTranslated(spec, 'name')}
-                                                                </label>
-                                                                {specValues.length > 0 ? (
-                                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                                                                        {specValues.map((value, valIndex) => (
-                                                                            <div key={valIndex} className="flex items-center gap-2">
-                                                                                <input
-                                                                                    type="checkbox"
-                                                                                    id={`spec-${spec.id}-val-${valIndex}`}
-                                                                                    checked={selectedValues[value] !== undefined}
-                                                                                    onChange={(e) => {
-                                                                                        const newSelected = { ...selectedSpecificationValues };
-                                                                                        if (!newSelected[spec.id]) {
-                                                                                            newSelected[spec.id] = {};
-                                                                                        }
-                                                                                        if (e.target.checked) {
-                                                                                            newSelected[spec.id][value] = newSelected[spec.id][value] || 0;
-                                                                                        } else {
-                                                                                            delete newSelected[spec.id][value];
-                                                                                        }
-                                                                                        setSelectedSpecificationValues(newSelected);
-                                                                                    }}
-                                                                                    className="rounded"
-                                                                                />
-                                                                                <label
-                                                                                    htmlFor={`spec-${spec.id}-val-${valIndex}`}
-                                                                                    className="text-sm flex-1"
-                                                                                >
-                                                                                    {value}
-                                                                                </label>
-                                                                                <Input
-                                                                                    type="number"
-                                                                                    min="0"
-                                                                                    value={selectedValues[value] || ''}
-                                                                                    onChange={(e) => {
-                                                                                        const newSelected = { ...selectedSpecificationValues };
-                                                                                        if (!newSelected[spec.id]) {
-                                                                                            newSelected[spec.id] = {};
-                                                                                        }
-                                                                                        newSelected[spec.id][value] = parseInt(e.target.value) || 0;
-                                                                                        setSelectedSpecificationValues(newSelected);
-                                                                                    }}
-                                                                                    placeholder="Qté"
-                                                                                    className="w-20 h-8 text-sm"
-                                                                                    disabled={selectedValues[value] === undefined}
-                                                                                />
-                                                                            </div>
-                                                                        ))}
-                                                                    </div>
-                                                                ) : (
-                                                                    <p className="text-sm text-gray-500">Aucune valeur définie pour cette spécification.</p>
-                                                                )}
+                                                                <div className="flex items-center justify-between">
+                                                                    <label className="text-sm font-medium">
+                                                                        {getTranslated(spec, 'name')}
+                                                                    </label>
+                                                                    {(() => {
+                                                                        const sum = Object.values(selectedValues).reduce((a, b) => a + (parseInt(b) || 0), 0);
+                                                                        const totalStock = parseInt(productForm.data.stock) || 0;
+                                                                        const isOver = sum > totalStock;
+                                                                        return (
+                                                                            <span className={`text-xs font-medium ${isOver ? 'text-red-500' : 'text-gray-500'}`}>
+                                                                                Total: {sum} / {totalStock}
+                                                                            </span>
+                                                                        );
+                                                                    })()}
+                                                                </div>
+                                                                {
+                                                                    (() => {
+                                                                        // Find the error for this spec if it exists
+                                                                        // We need to know which index this spec has in the payload
+                                                                        const specIds = Object.keys(selectedSpecificationValues);
+                                                                        const payloadIndex = specIds.indexOf(spec.id.toString());
+                                                                        const errorKey = `specifications.${payloadIndex}.selectedQuantities`;
+                                                                        const error = productForm.errors[errorKey];
+                                                                        return error ? <p className="text-xs text-red-500 mt-1">{error}</p> : null;
+                                                                    })()
+                                                                }
+                                                                {
+                                                                    specValues.length > 0 ? (
+                                                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                                                                            {specValues.map((value, valIndex) => (
+                                                                                <div key={valIndex} className="flex items-center gap-2">
+                                                                                    <input
+                                                                                        type="checkbox"
+                                                                                        id={`spec-${spec.id}-val-${valIndex}`}
+                                                                                        checked={selectedValues[value] !== undefined}
+                                                                                        onChange={(e) => {
+                                                                                            const newSelected = { ...selectedSpecificationValues };
+                                                                                            if (!newSelected[spec.id]) {
+                                                                                                newSelected[spec.id] = {};
+                                                                                            }
+                                                                                            if (e.target.checked) {
+                                                                                                newSelected[spec.id][value] = newSelected[spec.id][value] || 0;
+                                                                                            } else {
+                                                                                                delete newSelected[spec.id][value];
+                                                                                            }
+                                                                                            setSelectedSpecificationValues(newSelected);
+                                                                                        }}
+                                                                                        className="rounded"
+                                                                                    />
+                                                                                    <label
+                                                                                        htmlFor={`spec-${spec.id}-val-${valIndex}`}
+                                                                                        className="text-sm flex-1"
+                                                                                    >
+                                                                                        {value}
+                                                                                    </label>
+                                                                                    <Input
+                                                                                        type="number"
+                                                                                        min="0"
+                                                                                        value={selectedValues[value] || ''}
+                                                                                        onChange={(e) => {
+                                                                                            const newSelected = { ...selectedSpecificationValues };
+                                                                                            if (!newSelected[spec.id]) {
+                                                                                                newSelected[spec.id] = {};
+                                                                                            }
+                                                                                            newSelected[spec.id][value] = parseInt(e.target.value) || 0;
+                                                                                            setSelectedSpecificationValues(newSelected);
+                                                                                        }}
+                                                                                        placeholder="Qté"
+                                                                                        className="w-20 h-8 text-sm"
+                                                                                        disabled={selectedValues[value] === undefined}
+                                                                                    />
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <p className="text-sm text-gray-500">Aucune valeur définie pour cette spécification.</p>
+                                                                    )
+                                                                }
                                                             </div>
                                                         );
                                                     })

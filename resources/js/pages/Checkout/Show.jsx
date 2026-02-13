@@ -5,6 +5,7 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { useTranslation } from 'react-i18next';
 import { getTranslated, isRTL } from '@/utils/translation';
+import { trackEvent } from '@/utils/analytics';
 
 const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalance: propLoyaltyBalance, communes: propCommunes }) => {
     // Theme state
@@ -35,16 +36,38 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
 
     const [shippingPrice, setShippingPrice] = useState(0);
     const [isLoadingShipping, setIsLoadingShipping] = useState(false);
+    const [deliveryTypeError, setDeliveryTypeError] = useState('');
 
     // Promo code state
     const [promoInput, setPromoInput] = useState('');
     const [promoDiscount, setPromoDiscount] = useState(0);
     const [promoError, setPromoError] = useState('');
     const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+    const [isFreeShipping, setIsFreeShipping] = useState(false);
 
     // Loyalty points state (⚡️ Utilise les points du user partagés par Inertia)
     const loyaltyBalance = auth.user?.points || 0;
-    const [loyaltyDiscount, setLoyaltyDiscount] = useState(0);
+    const loyaltyRate = auth.user?.loyalty_conversion_rate || 1.0;
+    const [useLoyaltyEnabled, setUseLoyaltyEnabled] = useState(false);
+
+    // Automatically enable loyalty points if user has some
+    useEffect(() => {
+        if (loyaltyBalance > 0 && !useLoyaltyEnabled && data.use_loyalty_points === 0) {
+            setUseLoyaltyEnabled(true);
+            setData('use_loyalty_points', loyaltyBalance);
+        }
+    }, [loyaltyBalance]);
+
+    // Track InitiateCheckout on mount
+    useEffect(() => {
+        trackEvent('InitiateCheckout', {
+            value: productsTotal,
+            currency: 'DZD',
+            content_ids: items.map(i => i.product_id),
+            num_items: items.length,
+            content_type: 'product'
+        });
+    }, []);
 
     // Initial load or update when wilaya changes
     useEffect(() => {
@@ -70,9 +93,19 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
     // Mise à jour locale immédiate du prix quand le type change
     useEffect(() => {
         if (selected_tariff && data.delivery_type) {
-            setShippingPrice(selected_tariff[data.delivery_type] || 0);
+            const price = selected_tariff[data.delivery_type];
+            if (price !== undefined) {
+                setShippingPrice(price);
+                setDeliveryTypeError('');
+            } else {
+                setShippingPrice(0);
+                setDeliveryTypeError(`Ce type de livraison (${data.delivery_type === 'domicile' ? 'Domicile' : 'Bureau'}) n'est pas supporté pour cette wilaya`);
+            }
+        } else if (selected_tariff === null && data.wilaya_id) {
+            setDeliveryTypeError('Cette wilaya n\'est pas disponible pour la livraison');
+            setShippingPrice(0);
         }
-    }, [selected_tariff, data.delivery_type]);
+    }, [selected_tariff, data.delivery_type, data.wilaya_id]);
 
     const calculateShipping = () => {
         if (selected_tariff) {
@@ -103,6 +136,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
             });
 
             setPromoDiscount(response.data.discount);
+            setIsFreeShipping(!!response.data.is_free_shipping);
             setData('promo_code', response.data.code);
             setPromoError('');
         } catch (error) {
@@ -117,17 +151,14 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
     const removePromoCode = () => {
         setPromoInput('');
         setPromoDiscount(0);
+        setIsFreeShipping(false);
         setData('promo_code', '');
         setPromoError('');
     };
 
     const handleLoyaltyPointsChange = (points) => {
-        // ⚡️ Calcul local instantané (SPA)
-        const maxPointsPossible = Math.min(loyaltyBalance, productsTotal - promoDiscount);
-        const usePoints = Math.min(Math.max(0, parseInt(points) || 0), maxPointsPossible);
-
-        setData('use_loyalty_points', usePoints);
-        setLoyaltyDiscount(usePoints);
+        const p = Math.max(0, parseInt(points) || 0);
+        setData('use_loyalty_points', p);
     };
 
     const handleSubmit = (e) => {
@@ -167,7 +198,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                 <span className="text-gray-500">Livraison à:</span>
                                 <span className="font-medium">{order.commune_name}, {order.wilaya_name}</span>
                             </div>
-                            {newLoyaltyBalance !== undefined && (
+                            {newLoyaltyBalance != null && (
                                 <div className="flex justify-between mt-2 pt-2 border-t">
                                     <span className="text-gray-500">Nouveaux points de fidélité:</span>
                                     <span className="font-bold text-[#DB8B89]">{newLoyaltyBalance} pts</span>
@@ -184,7 +215,14 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
         );
     }
 
-    const total = productsTotal + shippingPrice - promoDiscount - loyaltyDiscount;
+    const activeShippingPrice = isFreeShipping ? 0 : shippingPrice;
+
+    // Calcul de la remise fidélité réelle (plafonnée par le total restant)
+    const maxReducibleAmount = Math.max(0, productsTotal + activeShippingPrice - promoDiscount);
+    const potentialLoyaltyDiscount = useLoyaltyEnabled ? (data.use_loyalty_points * loyaltyRate) : 0;
+    const loyaltyDiscount = Math.min(potentialLoyaltyDiscount, maxReducibleAmount);
+
+    const total = productsTotal + activeShippingPrice - promoDiscount - loyaltyDiscount;
 
     return (
         <div className={`checkout-page min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-gray-900 text-white' : 'bg-gray-50'}`}>
@@ -267,6 +305,9 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                             ))}
                                         </select>
                                         {errors.wilaya_id && <p className="text-red-500 text-xs mt-1">{errors.wilaya_id}</p>}
+                                        {deliveryTypeError && !selected_tariff && (
+                                            <p className="text-red-500 text-xs mt-1">{deliveryTypeError}</p>
+                                        )}
                                     </div>
 
                                     {/* Commune Selector */}
@@ -289,14 +330,13 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
 
                                     {/* Address */}
                                     <div className="md:col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Adresse complète</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Adresse complète (optionnelle)</label>
                                         <textarea
                                             value={data.address}
                                             onChange={e => setData('address', e.target.value)}
                                             rows="2"
                                             className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
                                             placeholder="Quartier, N° rue, Bâtiment..."
-                                            required
                                         ></textarea>
                                         {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
                                     </div>
@@ -305,26 +345,48 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                     <div className="md:col-span-2">
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Mode de livraison</label>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {deliveryTypes.map(type => (
-                                                <label
-                                                    key={type.value}
-                                                    className={`border rounded-xl p-4 cursor-pointer flex items-center justify-between transition-all ${data.delivery_type === type.value ? 'border-[#DB8B89] bg-[#F8E4E0] ring-1 ring-[#DB8B89]' : 'hover:border-gray-400'}`}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <input
-                                                            type="radio"
-                                                            name="delivery_type"
-                                                            value={type.value}
-                                                            checked={data.delivery_type === type.value}
-                                                            onChange={e => setData('delivery_type', e.target.value)}
-                                                            className="text-[#DB8B89] focus:ring-[#DB8B89]"
-                                                        />
-                                                        <span className="font-medium">{type.label}</span>
-                                                    </div>
-                                                    <Truck size={18} className={data.delivery_type === type.value ? 'text-[#DB8B89]' : 'text-gray-400'} />
-                                                </label>
-                                            ))}
+                                            {deliveryTypes.map(type => {
+                                                const isSupported = selected_tariff && selected_tariff[type.value] !== undefined;
+                                                const isSelected = data.delivery_type === type.value;
+                                                return (
+                                                    <label
+                                                        key={type.value}
+                                                        className={`border rounded-xl p-4 cursor-pointer flex items-center justify-between transition-all ${isSelected ? 'border-[#DB8B89] bg-[#F8E4E0] ring-1 ring-[#DB8B89]' :
+                                                            isSupported ? 'hover:border-gray-400' : 'opacity-50 cursor-not-allowed'
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <input
+                                                                type="radio"
+                                                                name="delivery_type"
+                                                                value={type.value}
+                                                                checked={isSelected}
+                                                                onChange={e => setData('delivery_type', e.target.value)}
+                                                                className="text-[#DB8B89] focus:ring-[#DB8B89]"
+                                                                disabled={!isSupported}
+                                                            />
+                                                            <span className="font-medium">{type.label}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            {selected_tariff && selected_tariff[type.value] !== undefined && (
+                                                                <span className="text-sm font-bold text-[#DB8B89]">{selected_tariff[type.value].toLocaleString()} DA</span>
+                                                            )}
+                                                            <Truck size={18} className={isSelected ? 'text-[#DB8B89]' : 'text-gray-400'} />
+                                                        </div>
+                                                    </label>
+                                                );
+                                            })}
                                         </div>
+                                        {deliveryTypeError && (
+                                            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                                <p className="text-sm text-red-600 flex items-center gap-2">
+                                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                    </svg>
+                                                    {deliveryTypeError}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -375,7 +437,9 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                     <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
                                         <div>
                                             <p className="font-medium text-green-800">{data.promo_code}</p>
-                                            <p className="text-xs text-green-600">-{promoDiscount.toLocaleString()} DA</p>
+                                            <p className="text-xs text-green-600">
+                                                {isFreeShipping ? t('cart.free_shipping', 'Livraison Gratuite') : `-${promoDiscount.toLocaleString()} DA`}
+                                            </p>
                                         </div>
                                         <button
                                             type="button"
@@ -412,27 +476,35 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                             {/* Loyalty Points Section */}
                             {auth.user && loyaltyBalance > 0 && (
                                 <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        {t('loyalty.available_points', 'Points Fidélité')} ({t('loyalty.available', 'Disponible')}: {loyaltyBalance.toLocaleString()})
-                                    </label>
-                                    <div className="flex gap-2">
+                                    <label className="flex items-center gap-2 cursor-pointer mb-2">
                                         <input
-                                            type="number"
-                                            value={data.use_loyalty_points || ''}
-                                            onChange={e => handleLoyaltyPointsChange(e.target.value)}
-                                            placeholder="0"
-                                            min="0"
-                                            max={Math.min(loyaltyBalance, productsTotal)}
-                                            className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89]"
+                                            type="checkbox"
+                                            checked={useLoyaltyEnabled}
+                                            onChange={e => {
+                                                const checked = e.target.checked;
+                                                setUseLoyaltyEnabled(checked);
+                                                setData('use_loyalty_points', checked ? loyaltyBalance : 0);
+                                            }}
+                                            className="w-4 h-4 text-[#DB8B89] rounded focus:ring-[#DB8B89]"
                                         />
-                                        <button
-                                            type="button"
-                                            onClick={() => handleLoyaltyPointsChange(Math.min(loyaltyBalance, productsTotal))}
-                                            className="px-4 py-2 bg-[#DB8B89] text-white rounded-lg text-sm font-medium hover:bg-[#C07573]"
-                                        >
-                                            {t('loyalty.use_all', 'Utiliser tout')}
-                                        </button>
-                                    </div>
+                                        <span className="text-sm font-medium text-gray-700">
+                                            {t('loyalty.use_points', 'Utiliser mes points')} ({loyaltyBalance.toLocaleString()} pts)
+                                        </span>
+                                    </label>
+
+                                    {useLoyaltyEnabled && (
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="number"
+                                                value={data.use_loyalty_points || ''}
+                                                onChange={e => handleLoyaltyPointsChange(e.target.value)}
+                                                placeholder="0"
+                                                min="0"
+                                                max={loyaltyBalance}
+                                                className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89]"
+                                            />
+                                        </div>
+                                    )}
                                     {loyaltyDiscount > 0 && (
                                         <p className="text-xs text-green-600 mt-1">
                                             {t('cart.discount', 'Réduction')} : -{loyaltyDiscount.toLocaleString()} DA
@@ -465,7 +537,12 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                     {isLoadingShipping ? (
                                         <Loader2 className="animate-spin w-4 h-4" />
                                     ) : (
-                                        <span>{shippingPrice > 0 ? `${shippingPrice.toLocaleString()} DA` : t('cart.free_shipping', 'Gratuit / Non calculé')}</span>
+                                        <span className={isFreeShipping ? "text-green-600 font-bold" : ""}>
+                                            {isFreeShipping
+                                                ? t('cart.free_shipping', 'Gratuit (Promo)')
+                                                : (shippingPrice > 0 ? `${shippingPrice.toLocaleString()} DA` : t('cart.free_shipping', 'Gratuit / Non calculé'))
+                                            }
+                                        </span>
                                     )}
                                 </div>
                                 <div className="border-t pt-3 flex justify-between font-bold text-xl text-gray-900">
@@ -476,7 +553,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
 
                             <button
                                 onClick={handleSubmit}
-                                disabled={processing || isLoadingShipping || !data.wilaya_id}
+                                disabled={processing || isLoadingShipping || !data.wilaya_id || deliveryTypeError}
                                 className="w-full bg-[#DB8B89] text-white py-3 rounded-xl font-bold text-center block hover:bg-[#C07573] transition-all shadow-lg shadow-[rgba(219,139,137,0.25)] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {processing ? t('common.processing', 'Traitement...') : t('checkout.place_order', 'Confirmer la commande')}

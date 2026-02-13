@@ -118,6 +118,10 @@ class ProductController extends Controller
             $specIds = $specifications->pluck('id')->filter()->unique()->values();
             $specMap = Specification::whereIn('id', $specIds)->get()->keyBy('id');
             $allowedSpecIds = Specification::where('sub_category_id', $request->sub_category_id)->pluck('id')->all();
+            $totalStock = (int) $request->input('stock', 0);
+
+            // Group by spec ID to check total quantities per specification
+            $quantitiesPerSpec = [];
 
             foreach ($specifications as $index => $spec) {
                 $specId = $spec['id'] ?? null;
@@ -137,6 +141,14 @@ class ProductController extends Controller
                     $mapKey = is_numeric($specId) ? (int) $specId : $specId;
                     if (($specMap[$mapKey]->required ?? false) && !$hasQuantities && ($value === null || $value === '')) {
                         $validator->errors()->add("specifications.$index.value", 'Cette spécification est obligatoire.');
+                    }
+
+                    // Check quantities sum
+                    if ($hasQuantities) {
+                        $sum = collect($selectedQuantities)->sum(fn($qty) => (int) $qty);
+                        if ($sum > $totalStock) {
+                            $validator->errors()->add("specifications.$index.selectedQuantities", "La somme des quantités pour cette spécification ({$sum}) ne peut pas dépasser le stock total du produit ({$totalStock}).");
+                        }
                     }
                 }
             }
@@ -258,6 +270,7 @@ class ProductController extends Controller
             $specIds = $specifications->pluck('id')->filter()->unique()->values();
             $specMap = Specification::whereIn('id', $specIds)->get()->keyBy('id');
             $allowedSpecIds = Specification::where('sub_category_id', $request->sub_category_id)->pluck('id')->all();
+            $totalStock = (int) $request->input('stock', 0);
 
             foreach ($specifications as $index => $spec) {
                 $specId = $spec['id'] ?? null;
@@ -277,6 +290,14 @@ class ProductController extends Controller
                     $mapKey = is_numeric($specId) ? (int) $specId : $specId;
                     if (($specMap[$mapKey]->required ?? false) && !$hasQuantities && ($value === null || $value === '')) {
                         $validator->errors()->add("specifications.$index.value", 'Cette spécification est obligatoire.');
+                    }
+
+                    // Check quantities sum
+                    if ($hasQuantities) {
+                        $sum = collect($selectedQuantities)->sum(fn($qty) => (int) $qty);
+                        if ($sum > $totalStock) {
+                            $validator->errors()->add("specifications.$index.selectedQuantities", "La somme des quantités pour cette spécification ({$sum}) ne peut pas dépasser le stock total du produit ({$totalStock}).");
+                        }
                     }
                 }
             }

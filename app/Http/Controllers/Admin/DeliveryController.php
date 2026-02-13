@@ -33,21 +33,23 @@ class DeliveryController extends Controller
             ->map(function ($wilaya) {
                 $domicile = $wilaya->deliveryTariffs->firstWhere('type', \App\Enums\DeliveryType::DOMICILE);
                 $bureau = $wilaya->deliveryTariffs->firstWhere('type', \App\Enums\DeliveryType::BUREAU);
+                $homeActive = $domicile ? $domicile->is_active : false;
+                $deskActive = $bureau ? $bureau->is_active : false;
                 
                 return [
                     'id' => $wilaya->id,
                     'code' => $wilaya->code,
                     'name' => $wilaya->name,
-                    'active' => $wilaya->is_active,
+                    'active' => $homeActive || $deskActive,
                     'homePrice' => $domicile ? $domicile->price : 0,
-                    'homeActive' => $domicile ? $domicile->is_active : false,
+                    'homeActive' => $homeActive,
                     'deskPrice' => $bureau ? $bureau->price : 0,
-                    'deskActive' => $bureau ? $bureau->is_active : false,
+                    'deskActive' => $deskActive,
                     // IDs needed for updates
                     'homeTariffId' => $domicile ? $domicile->id : null,
                     'deskTariffId' => $bureau ? $bureau->id : null,
                 ];
-            });
+        });
         
         return Inertia::render('Admin/Delivery', [
             'wilayas' => $wilayas,
@@ -126,7 +128,10 @@ class DeliveryController extends Controller
     }
 
     /**
-     * Mise à jour en masse des tarifs (optimisé avec upsert)
+     * Mise à jour en masse des tarifs avec logique de dépendance
+     * - Désactiver UN type ne désactive PAS la wilaya
+     * - Il faut désactiver TOUS les types pour désactiver la wilaya
+     * - Activer UN type suffit à activer la wilaya
      */
     public function bulkUpdate(Request $request): RedirectResponse
     {
@@ -140,62 +145,39 @@ class DeliveryController extends Controller
             'wilayas.*.deskActive' => 'sometimes|boolean',
         ]);
 
-        // Prepare data for bulk operations
-        $wilayaUpdates = [];
-        $deliveryTariffs = [];
-
         foreach ($data['wilayas'] as $wilayaData) {
-            // Wilaya updates (if active field changed)
-            if (isset($wilayaData['active'])) {
-                $wilayaUpdates[] = [
-                    'id' => $wilayaData['id'],
-                    'is_active' => $wilayaData['active'],
-                ];
+            $wilayaId = $wilayaData['id'];
+
+            // Checkbox "Active (Tout)" : uniquement indicateur visuel, ignoré dans la logique
+            // La wilaya est active/désactive automatiquement selon les types individuels
+
+            // Mise à jour individuelle du type Domicile
+            if (isset($wilayaData['homeActive'])) {
+                if ($wilayaData['homeActive']) {
+                    $this->locationService->activateDeliveryType($wilayaId, \App\Enums\DeliveryType::DOMICILE);
+                } else {
+                    $this->locationService->deactivateDeliveryType($wilayaId, \App\Enums\DeliveryType::DOMICILE);
+                }
             }
 
-            // Home delivery tariff
-            if (isset($wilayaData['homePrice']) || isset($wilayaData['homeActive'])) {
-                $deliveryTariffs[] = [
-                    'wilaya_id' => $wilayaData['id'],
-                    'type' => \App\Enums\DeliveryType::DOMICILE->value,
-                    'price' => $wilayaData['homePrice'] ?? 0,
-                    'is_active' => $wilayaData['homeActive'] ?? false,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+            // Mise à jour individuelle du type Bureau
+            if (isset($wilayaData['deskActive'])) {
+                if ($wilayaData['deskActive']) {
+                    $this->locationService->activateDeliveryType($wilayaId, \App\Enums\DeliveryType::BUREAU);
+                } else {
+                    $this->locationService->deactivateDeliveryType($wilayaId, \App\Enums\DeliveryType::BUREAU);
+                }
             }
 
-            // Desk delivery tariff
-            if (isset($wilayaData['deskPrice']) || isset($wilayaData['deskActive'])) {
-                $deliveryTariffs[] = [
-                    'wilaya_id' => $wilayaData['id'],
-                    'type' => \App\Enums\DeliveryType::BUREAU->value,
-                    'price' => $wilayaData['deskPrice'] ?? 0,
-                    'is_active' => $wilayaData['deskActive'] ?? false,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+            // Mise à jour des prix
+            if (isset($wilayaData['homePrice'])) {
+                $this->locationService->updateDeliveryPrice($wilayaId, \App\Enums\DeliveryType::DOMICILE, (float) $wilayaData['homePrice']);
             }
-        }
 
-        // Bulk update wilayas (1 query instead of N)
-        if (!empty($wilayaUpdates)) {
-            foreach ($wilayaUpdates as $update) {
-                Wilaya::where('id', $update['id'])->update(['is_active' => $update['is_active']]);
+            if (isset($wilayaData['deskPrice'])) {
+                $this->locationService->updateDeliveryPrice($wilayaId, \App\Enums\DeliveryType::BUREAU, (float) $wilayaData['deskPrice']);
             }
         }
-
-        // Bulk upsert delivery tariffs (1 query instead of 2N)
-        if (!empty($deliveryTariffs)) {
-            DeliveryTariff::upsert(
-                $deliveryTariffs,
-                ['wilaya_id', 'type'], // Unique keys
-                ['price', 'is_active', 'updated_at'] // Columns to update
-            );
-        }
-
-        // Clear delivery tariffs cache
-        \Illuminate\Support\Facades\Cache::forget('delivery_tariffs');
 
         return back()->with('success', count($data['wilayas']) . ' wilaya(s) mise(s) à jour instantanément !');
     }

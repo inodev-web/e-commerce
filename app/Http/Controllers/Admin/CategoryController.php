@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\SubCategory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -96,21 +97,33 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category): RedirectResponse
     {
-        $hasSubCategories = $category->subCategories()->count() > 0;
-        $hasProducts = \App\Models\Product::withTrashed()
-            ->whereHas('subCategory', fn ($q) => $q->where('category_id', $category->id))
-            ->exists();
+        DB::transaction(function () use ($category) {
+            // Delete all products related to this category through subcategories
+            $subCategoryIds = $category->subCategories()->pluck('id');
+            
+            // Get impacted product IDs to clear related items
+            $productIds = \App\Models\Product::withTrashed()->whereIn('sub_category_id', $subCategoryIds)->pluck('id');
+            
+            // Delete related items that block force deletion (restricted FKs)
+            \App\Models\CartItem::whereIn('product_id', $productIds)->delete();
+            \App\Models\OrderItem::whereIn('product_id', $productIds)->delete();
 
-        if ($hasSubCategories || $hasProducts) {
-            return back()->with('error', 'Impossible de supprimer une catégorie contenant des sous-catégories.');
-        }
+            // Force delete products to satisfy foreign key constraints
+            // (since SubCategory is hard-deleted and products still reference it post-soft-delete)
+            \App\Models\Product::withTrashed()->whereIn('sub_category_id', $subCategoryIds)->forceDelete();
+            
+            // Delete subcategories
+            $category->subCategories()->delete();
 
-        $category->delete();
-        if ($category->image_path) {
-            Storage::disk('public')->delete($category->image_path);
-        }
+            // Delete category image
+            if ($category->image_path) {
+                Storage::disk('public')->delete($category->image_path);
+            }
 
-        return back()->with('success', 'Catégorie supprimée avec succès.');
+            $category->delete();
+        });
+
+        return back()->with('success', 'Catégorie et tout son contenu supprimés avec succès.');
     }
 
     /**
@@ -152,12 +165,20 @@ class CategoryController extends Controller
      */
     public function destroySubCategory(SubCategory $subCategory): RedirectResponse
     {
-        if ($subCategory->products()->withTrashed()->count() > 0) {
-            return back()->with('error', 'Impossible de supprimer une sous-catégorie contenant des produits.');
-        }
+        DB::transaction(function () use ($subCategory) {
+            $productIds = $subCategory->products()->withTrashed()->pluck('id');
 
-        $subCategory->delete();
+            // Delete related items that block deletion (restricted FKs)
+            \App\Models\CartItem::whereIn('product_id', $productIds)->delete();
+            \App\Models\OrderItem::whereIn('product_id', $productIds)->delete();
 
-        return back()->with('success', 'Sous-catégorie supprimée avec succès.');
+            // Force delete products to satisfy foreign key constraints
+            $subCategory->products()->withTrashed()->forceDelete();
+            
+            // Delete subcategory
+            $subCategory->delete();
+        });
+
+        return back()->with('success', 'Sous-catégorie et ses produits supprimés avec succès.');
     }
 }

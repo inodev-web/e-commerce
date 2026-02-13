@@ -40,45 +40,64 @@ return new class extends Migration
                     ->update(['slug' => $slug]);
             }
             
-            // Add Index
-            Schema::table('products', function (Blueprint $table) {
-                // Utilisation de Raw SQL pour vérifier l'index sur Postgres
-                $indexExists = \Illuminate\Support\Facades\DB::select("
-                    SELECT 1 
-                    FROM pg_indexes 
-                    WHERE schemaname = 'public' 
-                    AND tablename = 'products' 
-                    AND indexname = 'products_slug_index'
-                ");
 
-                if (empty($indexExists)) {
-                    $table->index('slug', 'products_slug_index');
-                }
 
-                $catIndexExists = \Illuminate\Support\Facades\DB::select("
-                    SELECT 1 
-                    FROM pg_indexes 
-                    WHERE schemaname = 'public' 
-                    AND tablename = 'products' 
-                    AND indexname = 'products_category_id_index'
-                ");
+            // Add Indexes Safely
+            try {
+                Schema::table('products', function (Blueprint $table) {
+                     // Utilisation de Raw SQL pour vérifier l'index sur Postgres
+                    $indexExists = [];
+                    if (DB::getDriverName() === 'pgsql') {
+                        $indexExists = \Illuminate\Support\Facades\DB::select("
+                            SELECT 1 
+                            FROM pg_indexes 
+                            WHERE schemaname = 'public' 
+                            AND tablename = 'products' 
+                            AND indexname = 'products_slug_index'
+                        ");
+                    }
+                    if (empty($indexExists)) {
+                         $table->index('slug', 'products_slug_index');
+                    }
+                });
+            } catch (\Exception $e) {}
 
-                if (empty($catIndexExists)) {
-                    $table->index('category_id', 'products_category_id_index');
-                }
+            try {
+                Schema::table('products', function (Blueprint $table) {
+                    $catIndexExists = [];
+                    if (DB::getDriverName() === 'pgsql') {
+                        $catIndexExists = \Illuminate\Support\Facades\DB::select("
+                            SELECT 1 
+                            FROM pg_indexes 
+                            WHERE schemaname = 'public' 
+                            AND tablename = 'products' 
+                            AND indexname = 'products_category_id_index'
+                        ");
+                    }
+                    if (empty($catIndexExists)) {
+                        $table->index('category_id', 'products_category_id_index');
+                    }
+                });
+            } catch (\Exception $e) {}
 
-                $subCatIndexExists = \Illuminate\Support\Facades\DB::select("
-                    SELECT 1 
-                    FROM pg_indexes 
-                    WHERE schemaname = 'public' 
-                    AND tablename = 'products' 
-                    AND indexname = 'products_sub_category_id_index'
-                ");
+            try {
+                Schema::table('products', function (Blueprint $table) {
+                    $subCatIndexExists = [];
+                    if (DB::getDriverName() === 'pgsql') {
+                        $subCatIndexExists = \Illuminate\Support\Facades\DB::select("
+                            SELECT 1 
+                            FROM pg_indexes 
+                            WHERE schemaname = 'public' 
+                            AND tablename = 'products' 
+                            AND indexname = 'products_sub_category_id_index'
+                        ");
+                    }
+                    if (empty($subCatIndexExists)) {
+                        $table->index('sub_category_id', 'products_sub_category_id_index');
+                    }
+                });
+            } catch (\Exception $e) {}
 
-                if (empty($subCatIndexExists)) {
-                    $table->index('sub_category_id', 'products_sub_category_id_index');
-                }
-            });
         }
 
         // 2. Users Referral
@@ -98,19 +117,24 @@ return new class extends Migration
 
         // 3. Orders Indexes
         if (Schema::hasTable('orders')) {
-            Schema::table('orders', function (Blueprint $table) {
-                $indexExists = \Illuminate\Support\Facades\DB::select("
-                    SELECT 1 
-                    FROM pg_indexes 
-                    WHERE schemaname = 'public' 
-                    AND tablename = 'orders' 
-                    AND indexname = 'orders_client_id_index'
-                ");
-                
-                if (empty($indexExists)) {
-                   $table->index('client_id', 'orders_client_id_index');
-                }
-            });
+            try {
+                Schema::table('orders', function (Blueprint $table) {
+                    $indexExists = [];
+                    if (DB::getDriverName() === 'pgsql') {
+                        $indexExists = \Illuminate\Support\Facades\DB::select("
+                            SELECT 1 
+                            FROM pg_indexes 
+                            WHERE schemaname = 'public' 
+                            AND tablename = 'orders' 
+                            AND indexname = 'orders_client_id_index'
+                        ");
+                    }
+                    
+                    if (empty($indexExists)) {
+                       $table->index('client_id', 'orders_client_id_index');
+                    }
+                });
+            } catch (\Exception $e) {}
         }
     }
 

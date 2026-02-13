@@ -27,6 +27,108 @@ class OrderService
     ) {}
 
     /**
+     * 🛡️ VALIDATION: Anti-Cumul + Anti-Fraud
+     * Validates promo/referral code with strict security rules
+     * 
+     * @return array{type: string|null, promo: PromoCode|null, referrer: User|null, discount: float, free_shipping: bool, referrer_client_id: int|null, referral_code: string|null}
+     */
+    private function validatePromoAndReferral(
+        ?string $promoCode,
+        ?int $clientId,
+        ?string $clientIp,
+        string $clientPhone
+    ): array {
+        if (!$promoCode) {
+            return [
+                'type' => null,
+                'promo' => null,
+                'referrer' => null,
+                'discount' => 0,
+                'free_shipping' => false,
+                'referrer_client_id' => null,
+                'referral_code' => null,
+            ];
+        }
+
+        $code = strtoupper(trim($promoCode));
+
+        // ATTEMPT 1: Check if it's an admin promo code
+        $promo = PromoCode::where('code', $code)
+            ->where('is_active', true)
+            ->first();
+
+        if ($promo && $promo->isValid($clientId)) {
+            return [
+                'type' => 'promo',
+                'promo' => $promo,
+                'referrer' => null,
+                'discount' => 0, // calculated later
+                'free_shipping' => false,
+                'referrer_client_id' => null,
+                'referral_code' => null,
+            ];
+        }
+
+        // ATTEMPT 2: Check if it's a referral code
+        $referrer = User::where('referral_code', $code)->first();
+
+        if (!$referrer || !$referrer->client) {
+            throw new \Exception("Code invalide: {$code}");
+        }
+
+        // 🛡️ ANTI-FRAUD CHECK 1: Self-referral
+        if ($clientId && $referrer->client->id === $clientId) {
+            throw new \Exception("Vous ne pouvez pas utiliser votre propre code de parrainage");
+        }
+
+        // 🛡️ ANTI-FRAUD CHECK 2: First order only
+        if ($clientId) {
+            $previousOrders = Order::where('client_id', $clientId)->count();
+            if ($previousOrders > 0) {
+                throw new \Exception("Le code de parrainage n'est valide que pour votre première commande");
+            }
+        }
+
+        // 🛡️ ANTI-FRAUD CHECK 3: IP address duplication (if IP provided)
+        if ($clientIp) {
+            $referrerLastOrder = Order::where('client_id', $referrer->client->id)
+                ->whereNotNull('client_ip')
+                ->latest()
+                ->first();
+            
+            if ($referrerLastOrder && $referrerLastOrder->client_ip === $clientIp) {
+                \Log::warning('Referral fraud attempt: IP duplication', [
+                    'referrer_client_id' => $referrer->client->id,
+                    'client_ip' => $clientIp,
+                ]);
+                throw new \Exception("Code de parrainage non valide");
+            }
+        }
+
+        // 🛡️ ANTI-FRAUD CHECK 4: Phone duplication
+        if ($referrer->phone === $clientPhone) {
+            \Log::warning('Referral fraud attempt: Phone duplication', [
+                'referrer_phone' => $referrer->phone,
+                'client_phone' => $clientPhone,
+            ]);
+            throw new \Exception("Code de parrainage non valide");
+        }
+
+        $settings = LoyaltySetting::first();
+        
+        return [
+            'type' => 'referral',
+            'promo' => null,
+            'referrer' => $referrer,
+            'discount' => 0, // calculated from settings later
+            'free_shipping' => false,
+            'referrer_client_id' => $referrer->client->id,
+            'referral_code' => $code,
+        ];
+    }
+
+
+    /**
      * Créer une commande avec transaction DB et snapshots critiques
      */
     public function create(CreateOrderDTO $dto): Order
@@ -98,39 +200,48 @@ class OrderService
             
             \Log::info('OrderService - Validated items count', ['count' => count($validatedItems)]);
             
-            // 4. Appliquer code promo (admin) ou parrainage si présent
+            
+            // 4. 🛡️ VALIDATE & APPLY promo code (admin) OR referral code
+            $validation = $this->validatePromoAndReferral(
+                $dto->promoCode,
+                $dto->clientId,
+                $dto->clientIp,
+                $dto->phone
+            );
+
             $discountTotal = 0;
+            $freeShipping = false;
             $referrerId = null;
-            $referrerClientId = null;
-            $referralCode = null;
+            $referrerClientId = $validation['referrer_client_id'];
+            $referralCode = $validation['referral_code'];
             $settings = null;
 
-            if ($dto->promoCode) {
-                $code = strtoupper(trim($dto->promoCode));
-
-                $promo = PromoCode::where('code', $code)
-                    ->where('is_active', true)
-                    ->first();
-
-                if ($promo && $promo->isValid($dto->clientId)) {
-                    $discountTotal = min($promo->calculateDiscount($productsTotal), $productsTotal);
-                } else {
-                    $referrer = User::where('referral_code', $code)->first();
-
-                    if ($referrer && $referrer->client) {
-                        $referrerClientId = $referrer->client->id;
-                        if (!$dto->clientId || $referrerClientId !== $dto->clientId) {
-                            $settings = LoyaltySetting::first();
-                            $discountAmount = $settings?->referral_discount_amount ?? 0;
-                            if ($discountAmount > 0) {
-                                $discountTotal = min((float) $discountAmount, $productsTotal);
-                                $referrerId = $referrer->id;
-                                $referralCode = $code;
-                            }
-                        }
-                    }
+            if ($validation['type'] === 'promo') {
+                $promoResult = $validation['promo']->calculateDiscount((float) $productsTotal, (float) $deliveryTariff->price);
+                $discountTotal = min($promoResult['discount'], $productsTotal);
+                $freeShipping = $promoResult['free_shipping'];
+                
+                \Log::info('OrderService - Promo code applied', [
+                    'code' => $dto->promoCode,
+                    'discount' => $discountTotal,
+                    'free_shipping' => $freeShipping,
+                ]);
+            } elseif ($validation['type'] === 'referral') {
+                $settings = LoyaltySetting::first();
+                $discountAmount = $settings?->referral_discount_amount ?? 0;
+                
+                if ($discountAmount > 0) {
+                    $discountTotal = min((float) $discountAmount, $productsTotal);
+                    $referrerId = $validation['referrer']->id;
+                    
+                    \Log::info('OrderService - Referral code applied', [
+                        'code' => $dto->promoCode,
+                        'discount' => $discountTotal,
+                        'referrer_id' => $referrerId,
+                    ]);
                 }
             }
+
             // 4.5. Appliquer points de fidélité si demandé
             $loyaltyDiscount = 0;
             \Log::info('OrderService - Loyalty check', [
@@ -173,8 +284,21 @@ class OrderService
                 }
             }
             
-            // 5. Calculer le total final
-            $totalPrice = $productsTotal - $discountTotal - $loyaltyDiscount + $deliveryTariff->price;
+            // 5. Calculer le total final avec support FREE_SHIPPING
+            $finalDeliveryPrice = $freeShipping ? 0 : $deliveryTariff->price;
+            $totalPrice = $productsTotal - $discountTotal - $loyaltyDiscount + $finalDeliveryPrice;
+            
+            // 🛡️ SAFE CALCULATION: Ensure total is never negative
+            if ($totalPrice < 0) {
+                \Log::warning('OrderService - Total price capped at 0', [
+                    'calculated_total' => $totalPrice,
+                    'products_total' => $productsTotal,
+                    'discount_total' => $discountTotal,
+                    'loyalty_discount' => $loyaltyDiscount,
+                    'delivery_price' => $finalDeliveryPrice,
+                ]);
+                $totalPrice = 0;
+            }
             
             // 6. Créer la commande avec SNAPSHOTS
             $order = Order::create([
@@ -184,14 +308,17 @@ class OrderService
                 'first_name' => $dto->firstName,
                 'last_name' => $dto->lastName,
                 'phone' => $dto->phone,
+                'client_ip' => $dto->clientIp,
                 'address' => $dto->address,
                 'wilaya_name' => $wilaya->name,              // SNAPSHOT STRING
                 'commune_name' => $commune->name,             // SNAPSHOT STRING
                 'delivery_type' => $dto->deliveryType,
-                'delivery_price' => $deliveryTariff->price,   // SNAPSHOT PRICE
+                'delivery_price' => $finalDeliveryPrice,      // SNAPSHOT PRICE (0 if FREE_SHIPPING)
                 'products_total' => $productsTotal,
                 'discount_total' => $discountTotal + $loyaltyDiscount,
                 'total_price' => $totalPrice,
+                'promo_code' => $validation['type'] === 'promo' ? $dto->promoCode : null,
+                'is_free_shipping' => $freeShipping,
                 'status' => OrderStatus::PENDING,
             ]);
             
@@ -308,10 +435,20 @@ class OrderService
         if (!$order->status->canTransitionTo($newStatus)) {
             throw new \Exception("Transition invalide de {$order->status->value} vers {$newStatus->value}");
         }
-        
-        $order->update(['status' => $newStatus]);
-        
-        return $order;
+
+        return DB::transaction(function () use ($order, $newStatus) {
+            $oldStatus = $order->status;
+            
+            // Si on sort de CANCELLED vers PENDING (ou autre), on doit redécrémenter le stock
+            if ($oldStatus === OrderStatus::CANCELLED && $newStatus !== OrderStatus::CANCELLED) {
+                foreach ($order->items as $item) {
+                    $item->product->decrementStock($item->quantity);
+                }
+            }
+
+            $order->update(['status' => $newStatus]);
+            return $order;
+        });
     }
 
     /**
