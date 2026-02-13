@@ -37,7 +37,7 @@ class PlaceOrderRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'regex:/^(05|06|07)[0-9]{8}$/'],
-            'address' => ['required', 'string'],
+            'address' => ['nullable', 'string'],
             'wilaya_id' => ['required', 'integer', 'exists:wilayas,id'],
             'commune_id' => ['required', 'integer', 'exists:communes,id'],
             'delivery_type' => ['required', Rule::enum(DeliveryType::class)],

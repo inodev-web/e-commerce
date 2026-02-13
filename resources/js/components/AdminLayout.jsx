@@ -68,8 +68,7 @@ const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleThem
         { name: t('admin.orders', 'Commandes'), path: route('admin.orders.index'), icon: ShoppingCart },
         { name: t('admin.delivery', 'Livraison'), path: route('admin.delivery.index'), icon: Truck },
         { name: t('admin.customers', 'Clients'), path: route('admin.customers.index'), icon: Users },
-        { name: t('admin.loyalty', 'Fidélité'), path: route('admin.loyalty.index'), icon: Gift },
-        { name: t('admin.promotions', 'Promotions'), path: route('admin.promo-codes.index'), icon: Tags },
+        { name: t('admin.loyalty_promos', 'Fidélité & Promos'), path: route('admin.loyalty.index'), icon: Gift },
         { name: t('admin.settings', 'Paramètres'), path: route('admin.settings.pixel'), icon: Settings },
     ];
 

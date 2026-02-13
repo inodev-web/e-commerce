@@ -31,6 +31,8 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
         $points = 0;
+        $loyaltySetting = app(\App\Models\LoyaltySetting::class)->first();
+        $conversionRate = $loyaltySetting ? (float)$loyaltySetting->points_conversion_rate : 1.0;
         
         if ($user && $user->client) {
             $points = app(\App\Services\LoyaltyService::class)->getBalance($user->client->id);
@@ -60,9 +62,22 @@ class HandleInertiaRequests extends Middleware
                     'roles' => $user->getRoleNames(),
                     'status' => $user->status,
                     'points' => $points,
+                    'loyalty_conversion_rate' => $conversionRate,
+                    'client' => $user->client ? [
+                        'id' => $user->client->id,
+                        'first_name' => $user->client->first_name,
+                        'last_name' => $user->client->last_name,
+                        'phone' => $user->client->phone,
+                        'address' => $user->client->address,
+                        'wilaya_id' => $user->client->wilaya_id,
+                        'commune_id' => $user->client->commune_id,
+                    ] : null,
                 ] : null,
             ],
             'cartCount' => fn () => $user?->client?->cart?->items->sum('quantity') ?? 0,
+            'pixels' => function () {
+                return \App\Models\PixelSetting::getActiveGrouped();
+            },
             'flash' => [
                 'success' => session('success'),
                 'error' => session('error'),

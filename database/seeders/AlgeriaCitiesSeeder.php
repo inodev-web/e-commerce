@@ -100,7 +100,7 @@ class AlgeriaCitiesSeeder extends Seeder
                     'code' => $code,
                     'name' => $city['wilaya_name_ascii'],
                     'name_ar' => $city['wilaya_name'],
-                    'is_active' => true,
+                    'is_active' => false,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];

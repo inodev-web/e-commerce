@@ -22,6 +22,7 @@ class Order extends Model
         'first_name',
         'last_name',
         'phone',
+        'client_ip',
         'address',
         'wilaya_name',
         'commune_name',
@@ -30,6 +31,8 @@ class Order extends Model
         'products_total',
         'discount_total',
         'total_price',
+        'promo_code',
+        'is_free_shipping',
         'status',
     ];
 
@@ -41,6 +44,7 @@ class Order extends Model
             'products_total' => 'decimal:2',
             'discount_total' => 'decimal:2',
             'total_price' => 'decimal:2',
+            'is_free_shipping' => 'boolean',
             'status' => OrderStatus::class,
         ];
     }

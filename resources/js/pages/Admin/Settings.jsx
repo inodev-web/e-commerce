@@ -1,92 +1,172 @@
 import React, { useState } from 'react';
-import { Save, Globe } from 'lucide-react';
+import { Save, Globe, Plus, Trash2, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import AdminLayout from '../../components/AdminLayout';
 import { Head, useForm } from '@inertiajs/react';
-
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 const AdminSettings = ({ auth, pixelSettings }) => {
     const { t } = useTranslation();
+
+    // Transform incoming array into a workable state if it's not already
+    const getInitialPixels = () => {
+        if (Array.isArray(pixelSettings) && pixelSettings.length > 0) {
+            return pixelSettings.map(p => ({
+                id: p.id,
+                platform: p.platform || 'facebook',
+                pixel_id: p.pixel_id || '',
+                name: p.name || '',
+                is_active: !!p.is_active
+            }));
+        }
+        return [{ platform: 'facebook', pixel_id: '', name: '', is_active: true }];
+    };
+
     const { data, setData, put, processing, errors } = useForm({
-        meta_pixel_id: pixelSettings?.meta_pixel_id || '',
-        google_pixel_id: pixelSettings?.google_pixel_id || '',
-        is_active: pixelSettings?.is_active || false,
+        pixels: getInitialPixels()
     });
+
+    const platforms = [
+        { id: 'facebook', name: 'Meta (Facebook)', color: 'bg-blue-500' },
+        { id: 'google', name: 'Google Analytics', color: 'bg-orange-500' },
+        { id: 'tiktok', name: 'TikTok', color: 'bg-black' },
+        { id: 'snapchat', name: 'Snapchat', color: 'bg-yellow-400' },
+    ];
+
+    const addPixel = () => {
+        setData('pixels', [
+            ...(data.pixels || []),
+            { platform: 'facebook', pixel_id: '', name: '', is_active: true }
+        ]);
+    };
+
+    const removePixel = (index) => {
+        const newPixels = [...(data.pixels || [])];
+        newPixels.splice(index, 1);
+        setData('pixels', newPixels);
+    };
+
+    const updatePixel = (index, field, value) => {
+        const newPixels = [...(data.pixels || [])];
+        if (newPixels[index]) {
+            newPixels[index][field] = value;
+            setData('pixels', newPixels);
+        }
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        put(route('admin.settings.pixel.update'));
+        put(route('admin.settings.pixel.update'), {
+            onSuccess: () => toast.success('Paramètres des pixels mis à jour.'),
+        });
     };
 
     return (
         <AdminLayout user={auth.user}>
-            <Head title="Paramètres" />
+            <Head title="Paramètres des Pixels" />
             <div className="space-y-6">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">{t('admin.settings_title', 'Paramètres')}</h1>
-                <div className="grid gap-6 max-w-2xl">
-                    <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 p-6 shadow-sm">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-pink-100 dark:bg-[#DB8B89]/20 rounded-lg">
-                                <Globe className="w-5 h-5 text-[#DB8B89]" />
-                            </div>
-                            <div>
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Pixels de Tracking</h2>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Configurez vos pixels Meta et Google.</p>
-                            </div>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('admin.enable_pixel', 'Activer le Pixel')}</span>
-                                <label className="inline-flex items-center cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        className="sr-only peer"
-                                        checked={data.is_active}
-                                        onChange={e => setData('is_active', e.target.checked)}
-                                    />
-                                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#DB8B89]/20 dark:peer-focus:ring-[#DB8B89]/40 rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#DB8B89]"></div>
-                                </label>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Meta Pixel ID</label>
-                                <input
-                                    type="text"
-                                    placeholder="ex: 123456789012345"
-                                    className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 font-mono focus:border-[#DB8B89] focus:ring-1 focus:ring-[#DB8B89]"
-                                    value={data.meta_pixel_id}
-                                    onChange={e => setData('meta_pixel_id', e.target.value)}
-                                />
-                                {errors.meta_pixel_id && <p className="text-red-500 text-xs">{errors.meta_pixel_id}</p>}
-                                <p className="text-xs text-gray-500">
-                                    {t('admin.meta_pixel_desc', 'L\'ID de votre pixel se trouve dans le Gestionnaire d\'événements Facebook.')}
-                                </p>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Google Pixel ID</label>
-                                <input
-                                    type="text"
-                                    placeholder="ex: G-XXXXXXXXXX"
-                                    className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 font-mono focus:border-[#DB8B89] focus:ring-1 focus:ring-[#DB8B89]"
-                                    value={data.google_pixel_id}
-                                    onChange={e => setData('google_pixel_id', e.target.value)}
-                                />
-                                {errors.google_pixel_id && <p className="text-red-500 text-xs">{errors.google_pixel_id}</p>}
-                                <p className="text-xs text-gray-500">
-                                    {t('admin.google_pixel_desc', 'L\'ID de votre pixel Google Analytics/Tag Manager.')}
-                                </p>
-                            </div>
-
-                            <Button type="submit" disabled={processing} className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
-                                <Save className="w-4 h-4 mr-2" />
-                                {processing ? t('common.saving', 'Sauvegarde...') : t('common.save', 'Sauvegarder')}
-                            </Button>
-                        </form>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Pixels de Tracking</h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Gérez plusieurs IDs pour Meta, Google, TikTok et Snapchat.</p>
                     </div>
                 </div>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid gap-4">
+                        {(data.pixels || []).map((pixel, index) => (
+                            <div
+                                key={index}
+                                className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 p-4 shadow-sm flex flex-col md:flex-row gap-4 items-end animate-in fade-in slide-in-from-top-2"
+                            >
+                                <div className="w-full md:w-1/4 space-y-2">
+                                    <label htmlFor={`platform-${index}`} className="text-xs font-bold uppercase text-gray-400">Plateforme</label>
+                                    <select
+                                        id={`platform-${index}`}
+                                        name={`pixels[${index}][platform]`}
+                                        value={pixel.platform}
+                                        onChange={e => updatePixel(index, 'platform', e.target.value)}
+                                        className="w-full px-3 py-2 text-sm border rounded-md dark:bg-zinc-800 dark:border-zinc-700 focus:border-[#DB8B89] focus:ring-1 focus:ring-[#DB8B89]"
+                                    >
+                                        {platforms.map(p => (
+                                            <option key={p.id} value={p.id}>{p.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="w-full md:flex-1 space-y-2">
+                                    <label htmlFor={`pixel-id-${index}`} className="text-xs font-bold uppercase text-gray-400">ID du Pixel</label>
+                                    <input
+                                        id={`pixel-id-${index}`}
+                                        name={`pixels[${index}][pixel_id]`}
+                                        type="text"
+                                        placeholder="ID du Pixel"
+                                        value={pixel.pixel_id}
+                                        onChange={e => updatePixel(index, 'pixel_id', e.target.value)}
+                                        className="w-full px-3 py-2 text-sm border rounded-md dark:bg-zinc-800 dark:border-zinc-700 font-mono focus:border-[#DB8B89] focus:ring-1 focus:ring-[#DB8B89]"
+                                        required
+                                    />
+                                    {errors[`pixels.${index}.pixel_id`] && <p className="text-red-500 text-xs mt-1">{errors[`pixels.${index}.pixel_id`]}</p>}
+                                </div>
+
+                                <div className="w-full md:w-1/5 space-y-2">
+                                    <label htmlFor={`name-${index}`} className="text-xs font-bold uppercase text-gray-400">Nom (Optionnel)</label>
+                                    <input
+                                        id={`name-${index}`}
+                                        name={`pixels[${index}][name]`}
+                                        type="text"
+                                        placeholder="Label"
+                                        value={pixel.name}
+                                        onChange={e => updatePixel(index, 'name', e.target.value)}
+                                        className="w-full px-3 py-2 text-sm border rounded-md dark:bg-zinc-800 dark:border-zinc-700 focus:border-[#DB8B89] focus:ring-1 focus:ring-[#DB8B89]"
+                                    />
+                                </div>
+
+                                <div className="flex gap-2 items-center h-10">
+                                    <button
+                                        type="button"
+                                        onClick={() => updatePixel(index, 'is_active', !pixel.is_active)}
+                                        className={`p-2 rounded-lg transition-colors ${pixel.is_active ? 'text-green-500 bg-green-50 dark:bg-green-500/10' : 'text-gray-400 bg-gray-50 dark:bg-zinc-800'}`}
+                                        title={pixel.is_active ? 'Actif' : 'Inactif'}
+                                    >
+                                        {pixel.is_active ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => removePixel(index)}
+                                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                                        title="Supprimer"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={addPixel}
+                            className="border-dashed border-2 hover:border-[#DB8B89] hover:text-[#DB8B89]"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Ajouter un Pixel
+                        </Button>
+
+                        <Button
+                            type="submit"
+                            disabled={processing}
+                            className="bg-[#DB8B89] text-white hover:bg-[#C07573]"
+                        >
+                            <Save className="w-4 h-4 mr-2" />
+                            {processing ? t('common.saving', 'Sauvegarde...') : t('common.save', 'Enregistrer les modifications')}
+                        </Button>
+                    </div>
+                </form>
             </div>
         </AdminLayout>
     );
