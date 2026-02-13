@@ -39,7 +39,7 @@ const CategorySection = ({ categories: propCategories }) => {
         >
             <div className="section-container max-w-7xl mx-auto px-4">
                 <h2 className="section-title text-3xl font-bold mb-8 text-center">{t('home.shop_by_category', 'Acheter par catégorie')}</h2>
-                <div className="w-full flex justify-center">
+                <div className="w-full flex justify-center" dir="ltr">
                     <Carousel
                         opts={{
                             align: "start",
