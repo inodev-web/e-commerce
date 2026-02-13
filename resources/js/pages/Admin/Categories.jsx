@@ -268,7 +268,7 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                 <Dialog open={isAddSubCategoryOpen} onOpenChange={setIsAddSubCategoryOpen}>
                     <DialogContent className="sm:max-w-[500px]">
                         <DialogHeader>
-                            <DialogTitle>Ajouter une sous-catégorie à "{selectedCategory?.name}"</DialogTitle>
+                            <DialogTitle>Ajouter une sous-catégorie à "{selectedCategory ? getTranslated(selectedCategory, 'name') : ''}"</DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleAddSubCategory}>
                             <div className="grid gap-4 py-4">
