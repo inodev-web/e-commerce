@@ -207,7 +207,7 @@ body {
 .hero {
     min-height: 100vh;
     display: flex;
-    align-items: start;
+    align-items: center;
     justify-content: center;
     background-image: url('/heroBg.jpg');
     background-size: cover;
@@ -247,6 +247,7 @@ body {
     text-align: center;
     z-index: 1;
     animation: fadeInUp 1s ease-out;
+    margin-bottom: 10rem;
 }
 
 .hero-badge {
@@ -445,12 +446,34 @@ body {
 /* Responsive Design */
 @media (max-width: 768px) {
     .hero {
-        padding: 1.5rem;
+        min-height: 65vh;
+        padding: 1.5rem 1rem;
+        align-items: center;
+    }
+
+    .hero-content {
+        margin-top: 0 !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .hero-badge {
+        margin-top: 0;
+        font-size: 0.75rem;
+        padding: 0.4rem 1rem;
+    }
+
+    .hero-title {
+        font-size: clamp(2rem, 7vw, 2.5rem);
     }
 
     .hero-buttons {
         flex-direction: column;
         align-items: center;
+        margin-bottom: 2rem;
     }
 
     .btn {
@@ -460,6 +483,7 @@ body {
 
     .hero-features {
         gap: 1.5rem;
+        padding-top: 1.5rem;
     }
 }
 
@@ -753,6 +777,11 @@ body {
     .mobile-menu-toggle {
         display: block;
         margin-left: auto;
+    }
+
+    html[dir="rtl"] .mobile-menu-toggle {
+        margin-left: 0;
+        margin-right: auto;
     }
 }
 
@@ -1231,13 +1260,18 @@ body {
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(219, 139, 137, 0.3);
+}
+
+html[dir="rtl"] .top-seller-card .add-to-cart-btn {
+    right: auto;
+    left: 1rem;
 }
 
 .top-seller-card .add-to-cart-btn:hover {
     background: var(--primary-blue-dark);
     transform: scale(1.1);
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 6px 16px rgba(219, 139, 137, 0.4);
 }
 
 .old-price {

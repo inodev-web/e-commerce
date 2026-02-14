@@ -178,35 +178,29 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
     // ⚡️ VUE SUCCÈS SPA (Si la commande vient d'être passée)
     if (order) {
         return (
-            <div className={`checkout-page min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
+            <div className={`checkout-page min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-black text-white' : 'bg-gray-50'}`} dir={isAr ? 'rtl' : 'ltr'}>
                 <Header theme={theme} toggleTheme={toggleTheme} />
                 <main className="flex-grow flex items-center justify-center p-4">
-                    <div className="bg-white p-8 md:p-12 rounded-3xl shadow-lg max-w-2xl w-full text-center slide-in">
-                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
+                    <div className="bg-white dark:bg-[#171717] p-8 md:p-12 rounded-3xl shadow-lg max-w-2xl w-full text-center slide-in border border-gray-100 dark:border-gray-800">
+                        <div className="w-20 h-20 bg-[#DB8B89]/10 rounded-full flex items-center justify-center mx-auto mb-6 text-[#DB8B89]">
                             <CheckCircle size={40} />
                         </div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Commande Réussie !</h1>
-                        <p className="text-gray-500 mb-8">
-                            Merci <span className="font-semibold">{order.first_name}</span>. Votre commande <span className="font-mono text-[#DB8B89]">#{order.id}</span> est confirmée.
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('common.success', 'Commande Réussie !')}</h1>
+                        <p className="text-gray-500 dark:text-gray-400 mb-8">
+                            {t('checkout.thank_you', 'Merci')} <span className="font-semibold text-gray-900 dark:text-gray-200">{order.first_name}</span>. {t('checkout.order_confirmed', 'Votre commande')} <span className="font-mono text-[#DB8B89]">#{order.id}</span> {t('status.confirmed', 'est confirmée')}.
                         </p>
-                        <div className="bg-gray-50 p-6 rounded-2xl mb-8 text-left border border-gray-100">
+                        <div className="bg-gray-50 dark:bg-[#1a1a1a] p-6 rounded-2xl mb-8 text-left border border-gray-100 dark:border-gray-800">
                             <div className="flex justify-between mb-2">
-                                <span className="text-gray-500">Montant total:</span>
-                                <span className="font-bold">{order.total_price.toLocaleString()} DA</span>
+                                <span className="text-gray-500 dark:text-gray-400">{t('orders.total', 'Montant total')}:</span>
+                                <span className="font-bold text-gray-900 dark:text-gray-100">{order.total_price.toLocaleString()} DA</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-500">Livraison à:</span>
-                                <span className="font-medium">{order.commune_name}, {order.wilaya_name}</span>
+                                <span className="text-gray-500 dark:text-gray-400">{t('checkout.shipping_to', 'Livraison à')}:</span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">{order.commune_name}, {order.wilaya_name}</span>
                             </div>
-                            {newLoyaltyBalance != null && (
-                                <div className="flex justify-between mt-2 pt-2 border-t">
-                                    <span className="text-gray-500">Nouveaux points de fidélité:</span>
-                                    <span className="font-bold text-[#DB8B89]">{newLoyaltyBalance} pts</span>
-                                </div>
-                            )}
                         </div>
                         <div className="flex gap-4 justify-center">
-                            <Link href={route('products.index')} className="bg-[#DB8B89] text-white px-8 py-3 rounded-xl font-bold">Continuer les achats</Link>
+                            <Link href={route('products.index')} className="bg-[#DB8B89] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#C07573] transition-colors">{t('cart.continue_shopping', 'Continuer les achats')}</Link>
                         </div>
                     </div>
                 </main>
@@ -225,55 +219,55 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
     const total = productsTotal + activeShippingPrice - promoDiscount - loyaltyDiscount;
 
     return (
-        <div className={`checkout-page min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-gray-900 text-white' : 'bg-gray-50'}`}>
+        <div className={`checkout-page min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-black text-white' : 'bg-gray-50'}`} dir={isAr ? 'rtl' : 'ltr'}>
             <Header theme={theme} toggleTheme={toggleTheme} />
 
             <main className="flex-grow container mx-auto px-4 py-8 max-w-6xl">
-                <h1 className="text-3xl font-bold mb-8 flex items-center gap-3">
+                <h1 className="text-3xl font-bold mb-8 flex items-center gap-3 text-gray-900 dark:text-gray-100">
                     <CreditCard className="text-[#DB8B89]" />
-                    Finaliser la commande
+                    {t('checkout.title', 'Finaliser la commande')}
                 </h1>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Checkout Form */}
                     <div className="lg:col-span-2">
-                        <form onSubmit={handleSubmit} className="checkout-card bg-white p-6 rounded-2xl shadow-sm space-y-6">
+                        <form onSubmit={handleSubmit} className="checkout-card bg-white dark:bg-[#171717] p-6 rounded-2xl shadow-sm space-y-6 border border-gray-100 dark:border-gray-800">
 
                             {/* Contact Info */}
                             <div className="space-y-4">
-                                <h2 className="text-xl font-semibold flex items-center gap-2">
-                                    <Phone size={20} className="text-gray-400" /> Informations de contact
+                                <h2 className="text-xl font-semibold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                                    <Phone size={20} className="text-gray-400 dark:text-gray-500" /> {t('checkout.contact_info', 'Informations de contact')}
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.last_name', 'Nom')}</label>
                                         <input
                                             type="text"
                                             value={data.last_name}
                                             onChange={e => setData('last_name', e.target.value)}
-                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.last_name ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] bg-white dark:bg-[#1a1a1a] dark:text-white ${errors.last_name ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'}`}
                                             required
                                         />
                                         {errors.last_name && <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.first_name', 'Prénom')}</label>
                                         <input
                                             type="text"
                                             value={data.first_name}
                                             onChange={e => setData('first_name', e.target.value)}
-                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.first_name ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] bg-white dark:bg-[#1a1a1a] dark:text-white ${errors.first_name ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'}`}
                                             required
                                         />
                                         {errors.first_name && <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>}
                                     </div>
                                     <div className="md:col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.phone', 'Téléphone')}</label>
                                         <input
                                             type="tel"
                                             value={data.phone}
                                             onChange={e => setData('phone', e.target.value)}
-                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] bg-white dark:bg-[#1a1a1a] dark:text-white ${errors.phone ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'}`}
                                             required
                                         />
                                         {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
@@ -281,22 +275,22 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                 </div>
                             </div>
 
-                            <hr />
+                            <hr className="border-gray-200 dark:border-gray-800" />
 
                             {/* Delivery Info */}
                             <div className="space-y-4">
-                                <h2 className="text-xl font-semibold flex items-center gap-2">
-                                    <MapPin size={20} className="text-gray-400" /> Livraison
+                                <h2 className="text-xl font-semibold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                                    <MapPin size={20} className="text-gray-400 dark:text-gray-500" /> {t('checkout.shipping_info', 'Livraison')}
                                 </h2>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* Wilaya Selector */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Wilaya</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.wilaya', 'Wilaya')}</label>
                                         <select
                                             value={data.wilaya_id}
                                             onChange={e => setData('wilaya_id', e.target.value)}
-                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.wilaya_id ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] bg-white dark:bg-[#1a1a1a] dark:text-white ${errors.wilaya_id ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'}`}
                                             required
                                         >
                                             <option value="">{t('checkout.select_wilaya', 'Sélectionner une wilaya')}</option>
@@ -312,11 +306,11 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
 
                                     {/* Commune Selector */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Commune</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.commune', 'Commune')}</label>
                                         <select
                                             value={data.commune_id}
                                             onChange={e => setData('commune_id', e.target.value)}
-                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.commune_id ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] bg-white dark:bg-[#1a1a1a] dark:text-white ${errors.commune_id ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'}`}
                                             required
                                             disabled={!data.wilaya_id}
                                         >
@@ -330,20 +324,20 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
 
                                     {/* Address */}
                                     <div className="md:col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Adresse complète (optionnelle)</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.address', 'Adresse complète (optionnelle)')}</label>
                                         <textarea
                                             value={data.address}
                                             onChange={e => setData('address', e.target.value)}
                                             rows="2"
-                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
-                                            placeholder="Quartier, N° rue, Bâtiment..."
+                                            className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] bg-white dark:bg-[#1a1a1a] dark:text-white ${errors.address ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'}`}
+                                            placeholder={t('checkout.address_placeholder', 'Quartier, N° rue, Bâtiment...')}
                                         ></textarea>
                                         {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
                                     </div>
 
                                     {/* Delivery Type */}
                                     <div className="md:col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Mode de livraison</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('checkout.delivery_type', 'Mode de livraison')}</label>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {deliveryTypes.map(type => {
                                                 const isSupported = selected_tariff && selected_tariff[type.value] !== undefined;
@@ -351,8 +345,8 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                                 return (
                                                     <label
                                                         key={type.value}
-                                                        className={`border rounded-xl p-4 cursor-pointer flex items-center justify-between transition-all ${isSelected ? 'border-[#DB8B89] bg-[#F8E4E0] ring-1 ring-[#DB8B89]' :
-                                                            isSupported ? 'hover:border-gray-400' : 'opacity-50 cursor-not-allowed'
+                                                        className={`border rounded-xl p-4 cursor-pointer flex items-center justify-between transition-all ${isSelected ? 'border-[#DB8B89] bg-[#F8E4E0] dark:bg-[#DB8B89]/20 ring-1 ring-[#DB8B89]' :
+                                                            isSupported ? 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500' : 'opacity-50 cursor-not-allowed border-gray-200 dark:border-gray-700'
                                                             }`}
                                                     >
                                                         <div className="flex items-center gap-3">
@@ -365,13 +359,13 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                                                 className="text-[#DB8B89] focus:ring-[#DB8B89]"
                                                                 disabled={!isSupported}
                                                             />
-                                                            <span className="font-medium">{type.label}</span>
+                                                            <span className="font-medium text-gray-900 dark:text-gray-100">{type.label}</span>
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             {selected_tariff && selected_tariff[type.value] !== undefined && (
                                                                 <span className="text-sm font-bold text-[#DB8B89]">{selected_tariff[type.value].toLocaleString()} DA</span>
                                                             )}
-                                                            <Truck size={18} className={isSelected ? 'text-[#DB8B89]' : 'text-gray-400'} />
+                                                            <Truck size={18} className={isSelected ? 'text-[#DB8B89]' : 'text-gray-400 dark:text-gray-500'} />
                                                         </div>
                                                     </label>
                                                 );
@@ -395,13 +389,13 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
 
                     {/* Order Summary */}
                     <div className="lg:col-span-1">
-                        <div className="checkout-card checkout-summary bg-white p-6 rounded-2xl shadow-sm sticky top-24">
-                            <h3 className="text-xl font-bold mb-6">Récapitulatif</h3>
+                        <div className="checkout-card checkout-summary bg-white dark:bg-[#171717] p-6 rounded-2xl shadow-sm sticky top-24 border border-gray-100 dark:border-gray-800">
+                            <h3 className="text-xl font-bold mb-6 text-gray-900 dark:text-gray-100">{t('checkout.summary', 'Récapitulatif')}</h3>
 
                             <div className="max-h-60 overflow-y-auto space-y-3 mb-6 pr-2">
                                 {items.map(item => (
                                     <div key={item.id} className="flex gap-3 text-sm">
-                                        <div className="w-12 h-12 bg-gray-100 rounded md-1 flex-shrink-0 relative">
+                                        <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded md-1 flex-shrink-0 relative">
                                             <img
                                                 src={item.product && item.product.images[0] ? `/storage/${item.product.images[0].image_path}` : '/placeholder.svg'}
                                                 className="w-full h-full object-cover rounded"
@@ -411,9 +405,9 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                             </span>
                                         </div>
                                         <div className="flex-grow">
-                                            <p className="font-medium line-clamp-1">{getTranslated(item.product, 'name')}</p>
+                                            <p className="font-medium line-clamp-1 text-gray-900 dark:text-gray-200">{getTranslated(item.product, 'name')}</p>
                                             {item.product_variant && item.product_variant.variant_specifications && (
-                                                <div className="text-xs text-gray-500 mt-0.5">
+                                                <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                                     {item.product_variant.variant_specifications.map((spec, idx) => (
                                                         <span key={spec.id}>
                                                             {idx > 0 && ' / '}
@@ -422,22 +416,22 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                                     ))}
                                                 </div>
                                             )}
-                                            <p className="text-gray-500">{item.price_snapshot.toLocaleString()} DA</p>
+                                            <p className="text-gray-500 dark:text-gray-400">{item.price_snapshot.toLocaleString()} DA</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
-                            <hr className="my-4" />
+                            <hr className="my-4 border-gray-200 dark:border-gray-800" />
 
                             {/* Promo Code Section */}
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Code Promo</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('admin.promo_codes', 'Code Promo')}</label>
                                 {data.promo_code ? (
-                                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                                         <div>
-                                            <p className="font-medium text-green-800">{data.promo_code}</p>
-                                            <p className="text-xs text-green-600">
+                                            <p className="font-medium text-green-800 dark:text-green-400">{data.promo_code}</p>
+                                            <p className="text-xs text-green-600 dark:text-green-500">
                                                 {isFreeShipping ? t('cart.free_shipping', 'Livraison Gratuite') : `-${promoDiscount.toLocaleString()} DA`}
                                             </p>
                                         </div>
@@ -458,7 +452,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                             value={promoInput}
                                             onChange={e => setPromoInput(e.target.value.toUpperCase())}
                                             placeholder={t('checkout.promo_placeholder', 'Entrer le code')}
-                                            className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89]"
+                                            className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89] bg-white dark:bg-[#1a1a1a] dark:text-white border-gray-300 dark:border-gray-700"
                                         />
                                         <button
                                             type="button"
@@ -487,7 +481,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                             }}
                                             className="w-4 h-4 text-[#DB8B89] rounded focus:ring-[#DB8B89]"
                                         />
-                                        <span className="text-sm font-medium text-gray-700">
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                             {t('loyalty.use_points', 'Utiliser mes points')} ({loyaltyBalance.toLocaleString()} pts)
                                         </span>
                                     </label>
@@ -501,7 +495,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                                 placeholder="0"
                                                 min="0"
                                                 max={loyaltyBalance}
-                                                className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89]"
+                                                className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89] bg-white dark:bg-[#1a1a1a] dark:text-white border-gray-300 dark:border-gray-700"
                                             />
                                         </div>
                                     )}
@@ -513,10 +507,10 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                 </div>
                             )}
 
-                            <hr className="my-4" />
+                            <hr className="my-4 border-gray-200 dark:border-gray-800" />
 
                             <div className="space-y-3 mb-6">
-                                <div className="flex justify-between text-gray-600">
+                                <div className="flex justify-between text-gray-600 dark:text-gray-400">
                                     <span>{t('cart.subtotal', 'Sous-total')}</span>
                                     <span>{productsTotal.toLocaleString()} DA</span>
                                 </div>
@@ -527,12 +521,12 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                     </div>
                                 )}
                                 {loyaltyDiscount > 0 && (
-                                    <div className="flex justify-between text-green-600">
+                                    <div className="flex justify-between text-green-600 dark:text-green-500">
                                         <span>{t('admin.loyalty', 'Points Fidélité')}</span>
                                         <span>-{loyaltyDiscount.toLocaleString()} DA</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between text-gray-600">
+                                <div className="flex justify-between text-gray-600 dark:text-gray-400">
                                     <span>{t('cart.shipping', 'Livraison')}</span>
                                     {isLoadingShipping ? (
                                         <Loader2 className="animate-spin w-4 h-4" />
@@ -545,9 +539,9 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                         </span>
                                     )}
                                 </div>
-                                <div className="border-t pt-3 flex justify-between font-bold text-xl text-gray-900">
+                                <div className="border-t dark:border-gray-800 pt-3 flex justify-between font-bold text-xl text-gray-900 dark:text-white">
                                     <span>{t('cart.total_to_pay', 'Total à payer')}</span>
-                                    <span>{total.toLocaleString()} DA</span>
+                                    <span className="text-[#DB8B89]">{total.toLocaleString()} DA</span>
                                 </div>
                             </div>
 
@@ -560,7 +554,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                             </button>
 
                             <p className="text-xs text-gray-500 text-center mt-4">
-                                En confirmant, vous acceptez nos conditions générales de vente.
+                                {t('checkout.terms', 'En confirmant, vous acceptez nos conditions générales de vente.')}
                             </p>
                         </div>
                     </div>

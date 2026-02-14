@@ -16,6 +16,32 @@ const resources = {
             'nav.login': 'Connexion',
             'nav.register': 'Inscription',
 
+            // Profile
+            'profile.updated': 'Profil mis à jour avec succès',
+            'profile.personal_info': 'Infos Personnelles',
+            'profile.manage_contact': 'Gérez vos coordonnées.',
+            'profile.loyalty_points': 'Fidélité & Points',
+            'profile.referral': 'Parrainage',
+
+            // Loyalty
+            'loyalty.score': 'Score de Fidélité',
+            'loyalty.current_tier': 'Palier actuel',
+            'loyalty.points_to_next': 'pts pour le prochain palier',
+            'loyalty.earn_rule': 'Gagnez 1 point pour chaque 100 DA dépensé.',
+            'loyalty.next_reward': 'Prochaine Récompense',
+            'loyalty.reward_500da': "Bon d'achat de 500 DA",
+            'loyalty.reach_1000': 'Dès 1000 points atteints.',
+            'loyalty.history': 'Historique des points',
+            'loyalty.no_history': 'Aucun historique de points disponible.',
+            'loyalty.gold_member': 'GOLD MEMBER',
+            'loyalty.member': 'MEMBER',
+
+            // Referral
+            'referral.title': 'Invitez vos amis & Gagnez !',
+            'referral.subtitle': 'Partagez votre code unique et recevez des points.',
+            'referral.friends': 'Vos amis parrainés',
+            'referral.empty': "Vous n'avez parrainé personne pour le moment.",
+
             // Cart
             'cart.title': 'Mon Panier',
             'cart.empty': 'Votre panier est vide',
@@ -31,6 +57,8 @@ const resources = {
             'cart.quantity': 'Quantité',
             'cart.clear': 'Vider le panier',
             'cart.items': 'articles',
+            'cart.free_shipping': 'Livraison Gratuite',
+            'cart.total_to_pay': 'Total à payer',
 
             // Products
             'product.add_to_cart': 'Ajouter au panier',
@@ -58,6 +86,16 @@ const resources = {
             'checkout.delivery_type': 'Type de livraison',
             'checkout.home_delivery': 'Domicile',
             'checkout.office_delivery': 'Bureau / Point relais',
+            'checkout.contact_info': 'Informations de contact',
+            'checkout.select_wilaya': 'Sélectionner une wilaya',
+            'checkout.select_commune': 'Sélectionner une commune',
+            'checkout.address_placeholder': 'Quartier, N° rue, Bâtiment...',
+            'checkout.summary': 'Récapitulatif',
+            'checkout.promo_placeholder': 'Entrer le code',
+            'checkout.terms': 'En confirmant, vous acceptez nos conditions générales de vente.',
+            'checkout.thank_you': 'Merci',
+            'checkout.order_confirmed': 'Votre commande',
+            'checkout.shipping_to': 'Livraison à',
 
             // Orders
             'orders.title': 'Mes Commandes',
@@ -67,6 +105,18 @@ const resources = {
             'orders.total': 'Total',
             'orders.view': 'Voir',
             'orders.track': 'Suivre',
+            'orders.back': 'Retour à mes commandes',
+            'orders.order': 'Commande',
+            'orders.placed_on': 'Passée le',
+            'orders.shipping_address': 'Adresse de livraison',
+            'orders.payment_shipping': 'Paiement & Livraison',
+            'orders.shipping_type': 'Type de livraison',
+            'orders.shipping_fees': 'Frais de livraison',
+            'orders.ordered_products': 'Produits commandés',
+            'orders.cancel_order': 'Annuler la commande',
+            'orders.empty': 'Aucune commande',
+            'orders.empty_text': "Vous n'avez pas encore passé de commande.",
+            'orders.items': 'articles',
 
             // Auth
             'auth.login_title': 'Connexion',
@@ -88,6 +138,7 @@ const resources = {
             'common.loading': 'Chargement...',
             'common.success': 'Succès',
             'common.error': 'Erreur',
+            'common.processing': 'Traitement...',
             'common.select': 'Sélectionner',
             'common.confirm': 'Confirmer',
             'common.confirm_clear_cart': 'Êtes-vous sûr de vouloir vider votre panier ?',
@@ -97,6 +148,10 @@ const resources = {
             'common.search_placeholder': 'Rechercher des produits... (Entrée)',
             'common.cash_on_delivery': 'Paiement à la livraison',
             'common.quality_guaranteed': 'Qualité Garantie',
+            'common.copied': 'Copié dans le presse-papier',
+            'common.copy': 'Copier',
+            'common.generating': 'GÉNÉRATION...',
+            'common.error_fetching_communes': 'Erreur lors de la récupération des communes',
             'currency.symbol': 'DA',
 
             // Home
@@ -152,6 +207,7 @@ const resources = {
             'admin.customers_title': 'Gestion des Clients',
             'admin.customer': 'Client',
             'admin.loyalty': 'Fidélité',
+            'loyalty.use_points': 'Utiliser mes points',
             'admin.loyalty_program': 'Programme de Fidélité',
             'admin.promotions': 'Promotions',
             'admin.promo_codes': 'Codes Promo',
@@ -272,6 +328,32 @@ const resources = {
             'nav.login': 'تسجيل الدخول',
             'nav.register': 'التسجيل',
 
+            // Profile
+            'profile.updated': 'تم تحديث الملف الشخصي بنجاح',
+            'profile.personal_info': 'المعلومات الشخصية',
+            'profile.manage_contact': 'إدارة معلومات الاتصال الخاصة بك.',
+            'profile.loyalty_points': 'نقاط الولاء',
+            'profile.referral': 'نظام الإحالة',
+
+            // Loyalty
+            'loyalty.score': 'نقاط الولاء',
+            'loyalty.current_tier': 'المستوى الحالي',
+            'loyalty.points_to_next': 'نقاط للمستوى التالي',
+            'loyalty.earn_rule': 'اربح نقطة واحدة لكل 100 د.ج تنفقها.',
+            'loyalty.next_reward': 'المكافأة القادمة',
+            'loyalty.reward_500da': "قسيمة شراء بقيمة 500 د.ج",
+            'loyalty.reach_1000': 'عند الوصول إلى 1000 نقطة.',
+            'loyalty.history': 'سجل النقاط',
+            'loyalty.no_history': 'لا يوجد سجل نقاط متاح.',
+            'loyalty.gold_member': 'عضو ذهبي',
+            'loyalty.member': 'عضو',
+
+            // Referral
+            'referral.title': 'ادعُ أصدقاءك واربح!',
+            'referral.subtitle': 'شارك كودك الفريد واحصل على نقاط.',
+            'referral.friends': 'أصدقاؤك المدعوون',
+            'referral.empty': "لم تقم بدعوة أي شخص بعد.",
+
             // Cart
             'cart.title': 'سلتي',
             'cart.empty': 'سلتك فارغة',
@@ -287,6 +369,8 @@ const resources = {
             'cart.quantity': 'الكمية',
             'cart.clear': 'إفراغ السلة',
             'cart.items': 'عناصر',
+            'cart.free_shipping': 'توصيل مجاني',
+            'cart.total_to_pay': 'الإجمالي للدفع',
 
             // Products
             'product.add_to_cart': 'أضف إلى السلة',
@@ -314,6 +398,16 @@ const resources = {
             'checkout.delivery_type': 'نوع التوصيل',
             'checkout.home_delivery': 'للمنزل',
             'checkout.office_delivery': 'للمكتب / نقطة استلام',
+            'checkout.contact_info': 'معلومات الاتصال',
+            'checkout.select_wilaya': 'اختر ولاية',
+            'checkout.select_commune': 'اختر بلدية',
+            'checkout.address_placeholder': 'الحي، رقم الشارع، المبنى...',
+            'checkout.summary': 'ملخص الطلب',
+            'checkout.promo_placeholder': 'أدخل الكود',
+            'checkout.terms': 'بتأكيد الطلب، توافق على شروط البيع العامة.',
+            'checkout.thank_you': 'شكرًا',
+            'checkout.order_confirmed': 'طلبك',
+            'checkout.shipping_to': 'التوصيل إلى',
 
             // Orders
             'orders.title': 'طلباتي',
@@ -323,6 +417,18 @@ const resources = {
             'orders.total': 'المجموع',
             'orders.view': 'عرض',
             'orders.track': 'تتبع',
+            'orders.back': 'العودة إلى طلباتي',
+            'orders.order': 'طلب',
+            'orders.placed_on': 'تم الطلب في',
+            'orders.shipping_address': 'عنوان التوصيل',
+            'orders.payment_shipping': 'الدفع والتوصيل',
+            'orders.shipping_type': 'نوع التوصيل',
+            'orders.shipping_fees': 'تكاليف التوصيل',
+            'orders.ordered_products': 'المنتجات المطلوبة',
+            'orders.cancel_order': 'إلغاء الطلب',
+            'orders.empty': 'لا توجد طلبات',
+            'orders.empty_text': "لم تقم بأي طلب بعد.",
+            'orders.items': 'منتجات',
 
             // Auth
             'auth.login_title': 'تسجيل الدخول',
@@ -344,6 +450,7 @@ const resources = {
             'common.loading': 'جارٍ التحميل...',
             'common.success': 'نجح',
             'common.error': 'خطأ',
+            'common.processing': 'جارٍ المعالجة...',
             'common.select': 'إختر',
             'common.confirm': 'تأكيد',
             'common.confirm_clear_cart': 'هل أنت متأكد أنك تريد إفراغ سلتك؟',
@@ -353,6 +460,10 @@ const resources = {
             'common.search_placeholder': 'ابحث عن المنتجات... (أدخل)',
             'common.cash_on_delivery': 'الدفع عند الاستلام',
             'common.quality_guaranteed': 'جودة مضمونة',
+            'common.copied': 'تم النسخ إلى الحافظة',
+            'common.copy': 'نسخ',
+            'common.generating': 'جاري التوليد...',
+            'common.error_fetching_communes': 'خطأ في جلب البلديات',
             'currency.symbol': 'د.ج',
 
             // Home
@@ -408,6 +519,7 @@ const resources = {
             'admin.customers_title': 'إدارة الزبائن',
             'admin.customer': 'زبون',
             'admin.loyalty': 'الولاء',
+            'loyalty.use_points': 'استخدام نقاطي',
             'admin.loyalty_program': 'برنامج الولاء',
             'admin.promotions': 'العروض',
             'admin.promo_codes': 'أكواد الخصم',

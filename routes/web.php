@@ -25,6 +25,7 @@ Route::get('/auth', function () {
 
 Route::get('/shop', [\App\Http\Controllers\ProductController::class, 'index'])->name('products.index');
 Route::get('/product/{product}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
+Route::get('/api/products/search', [\App\Http\Controllers\ProductController::class, 'searchApi'])->name('api.products.search');
 
 // Profile route is defined under auth middleware (see below).
 
@@ -169,8 +170,27 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/orders/{order}', [\App\Http\Controllers\Admin\OrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}/status', function (\App\Models\Order $order, Request $request, \App\Services\OrderService $orderService) {
         $request->validate(['status' => 'required|string']);
-        $orderService->updateStatus($order, \App\Enums\OrderStatus::from($request->status));
-        return back()->with('success', 'Statut de la commande mis à jour.');
+        try {
+            // Fix: Convert to uppercase to match Enum values
+            $statusString = strtoupper($request->status);
+            
+            // Fix: Use tryFrom to avoid ValueError if status is invalid
+            $status = \App\Enums\OrderStatus::tryFrom($statusString);
+            
+            if (!$status) {
+                return back()->with('error', "Statut invalide: {$request->status}");
+            }
+
+            $orderService->updateStatus($order, $status);
+            return back()->with('success', 'Statut de la commande mis à jour.');
+        } catch (\Throwable $e) { // Fix: Catch Throwable to handle ValueErrors and other non-Exception errors
+            \Log::error('Order status update failed', [
+                'order_id' => $order->id,
+                'status' => $request->status,
+                'error' => $e->getMessage()
+            ]);
+            return back()->with('error', "Erreur lors de la mise à jour: " . $e->getMessage());
+        }
     })->name('orders.status.update');
 
     // Delivery Tariffs CRUD

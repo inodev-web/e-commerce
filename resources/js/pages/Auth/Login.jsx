@@ -113,7 +113,7 @@ const AuthPage = ({ wilayas }) => {
             <div className="relative z-10 w-full lg:w-1/2 flex flex-col min-h-screen lg:min-h-0 lg:h-screen items-center justify-center lg:justify-start p-4 lg:p-0 lg:bg-white lg:rounded-l-[30px] lg:order-2">
 
                 {/* Top Right Button */}
-                <div className="absolute top-7 end-6 lg:top-10 lg:end-10 flex items-center gap-3 z-30">
+                <div className="absolute top-7 end-6 lg:top-10 lg:end-auto lg:right-10 flex items-center gap-3 z-30">
                     <LanguageSwitcher className="text-white lg:text-gray-900 hover:bg-white/20 lg:hover:bg-gray-100" />
 
                     <button

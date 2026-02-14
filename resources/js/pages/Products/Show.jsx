@@ -7,7 +7,7 @@ import axios from 'axios';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import CartConfirmationModal from '../../components/CartConfirmationModal';
-// import '../../../css/productPage.css'; // Removing custom CSS to rely on Tailwind
+import '../../../css/productPage.css';
 import { useTranslation } from 'react-i18next';
 import { getTranslated, isRTL } from '@/utils/translation';
 import { trackEvent } from '@/utils/analytics';
@@ -325,168 +325,198 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
 
     return (
-        <div className="product-page">
+        <div className={`product-page min-h-screen ${theme === 'dark' ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
             <Header theme={theme} toggleTheme={toggleTheme} />
 
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
-                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen"
+                className="product-container"
             >
-                <div className="mb-6">
-                    <button onClick={() => router.visit(route('products.index'))} className="flex items-center text-gray-600 hover:text-gray-900 transition-colors">
-                        <ChevronLeft size={20} className="mr-1" />
-                        {t('nav.shop', 'Retour à la boutique')}
-                    </button>
-                </div>
+                <button onClick={() => router.visit(route('products.index'))} className="back-button">
+                    <ChevronLeft size={20} />
+                    {t('nav.shop', 'Retour à la boutique')}
+                </button>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                    {/* Product Info (Left Side) - Order 2 on mobile, Order 1 on desktop */}
+                <div className="product-content">
+                    {/* Image Gallery */}
+                    <div className="product-gallery">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="main-image-container"
+                        >
+                            <img
+                                src={currentProduct?.images && currentProduct.images.length > 0 ? `/storage/${currentProduct.images[selectedImage].image_path}` : '/placeholder.svg'}
+                                alt={currentProduct ? getTranslated(currentProduct, 'name') : ''}
+                                className="main-product-image object-contain"
+                            />
+                        </motion.div>
+
+                        <div className="thumbnail-container">
+                            {currentProduct?.images && currentProduct.images.map((img, index) => (
+                                <div
+                                    key={index}
+                                    className={`thumbnail ${selectedImage === index ? 'active' : ''}`}
+                                    onClick={() => setSelectedImage(index)}
+                                >
+                                    <img src={`/storage/${img.image_path}`} alt={currentProduct ? `${getTranslated(currentProduct, 'name')} ${index + 1}` : ''} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Product Info */}
                     <motion.div
-                        initial={{ opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="lg:col-span-7 order-2 lg:order-1 flex flex-col gap-6"
+                        className="product-info-section"
                     >
-                        <div>
-                            <div className="text-sm font-medium text-gray-500 mb-1 uppercase tracking-wider">{currentProduct?.sub_category ? getTranslated(currentProduct.sub_category, 'name') : 'Puréva'}</div>
-                            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{currentProduct ? getTranslated(currentProduct, 'name') : ''}</h1>
+                        <div className="product-brand">{currentProduct?.sub_category ? getTranslated(currentProduct.sub_category, 'name') : 'Puréva'}</div>
+                        <h1 className="product-title text-gray-900 dark:text-white">{currentProduct ? getTranslated(currentProduct, 'name') : ''}</h1>
 
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="flex">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star key={i} size={18} className={`${i < 4 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
-                                    ))}
-                                </div>
-                                <span className="text-sm text-gray-500">4.5 (80+ {t('product.reviews', 'avis')})</span>
+                        <div className="product-rating-section">
+                            <div className="rating-stars">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star key={i} size={18} fill={i < 4 ? '#FFC107' : 'none'} stroke="#FFC107" />
+                                ))}
                             </div>
-
-                            <div className="flex items-center gap-4">
-                                <span className="text-3xl font-bold text-gray-900">{(selectedVariant?.price || currentProduct?.price || 0).toLocaleString()} {t('currency.symbol', 'DA')}</span>
-                                {currentProduct?.old_price && <span className="text-xl text-gray-500 line-through">{currentProduct.old_price.toLocaleString()} DA</span>}
-                            </div>
+                            <span className="rating-text">4.5 (80+ {t('product.reviews', 'avis')})</span>
                         </div>
 
-                        {/* Description Tab - Moved up for better flow */}
-                        <div className="prose prose-sm text-gray-600 max-w-none">
-                            <p>{currentProduct ? getTranslated(currentProduct, 'description') : ''}</p>
+                        <div className="product-price-section">
+                            <span className="current-price">{(selectedVariant?.price || currentProduct?.price || 0).toLocaleString()} {t('currency.symbol', 'DA')}</span>
                         </div>
 
-                        {/* Order Form Section */}
-                        <div className="bg-white rounded-2xl md:p-6 border border-gray-100 shadow-sm">
+                        <div className="stock-status">
+                            {(selectedVariant?.stock || currentProduct?.stock || 0) > 0 ? (
+                                <span className="in-stock">✓ {t('product.in_stock', 'En stock')} ({selectedVariant?.stock || currentProduct?.stock || 0} {t('product.available', 'disponibles')})</span>
+                            ) : (
+                                <span className="out-of-stock">{t('product.out_of_stock', 'En rupture de stock')}</span>
+                            )
+                            }</div>
 
-
-
-
-                            {/* Product Variants */}
-                            {currentProduct?.variants && currentProduct.variants.length > 0 && (
-                                <div className="mt-4">
-                                    <h3 className="text-sm font-medium text-gray-900">{t('product.variants', 'Variantes')}</h3>
-                                    <div className="mt-3 space-y-3">
-                                        {currentProduct.variants.map((variant) => (
-                                            <div
-                                                key={variant.id}
-                                                onClick={() => setSelectedVariant(variant)}
-                                                className={`flex flex-col p-4 border rounded-lg cursor-pointer transition-colors ${selectedVariant?.id === variant.id
-                                                    ? 'border-[#DB8B89] bg-[#DB8B89]/5 ring-2 ring-[#DB8B89]/20'
-                                                    : 'border-gray-200 hover:border-[#DB8B89]'
-                                                    } ${variant.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <div>
-                                                        <p className="text-sm font-medium text-gray-900">
-                                                            {variant.sku}
-                                                        </p>
-                                                        {variant.specifications && variant.specifications.length > 0 && (
-                                                            <div className="mt-1">
-                                                                <p className="text-xs text-gray-500">
-                                                                    {variant.specifications.map(spec => getTranslated(spec, 'name')).join(' / ')}
-                                                                </p>
-                                                                <p className="text-xs text-gray-500">
-                                                                    {variant.specifications.map(spec => spec.pivot.value).join(' / ')}
-                                                                </p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <span className="font-semibold">{variant.price.toLocaleString()} {t('currency.symbol', 'DA')}</span>
-                                                </div>
-                                                <div className="mt-2 flex items-center gap-2">
-                                                    {variant.stock > 0 ? (
-                                                        <span className="in-stock text-xs">✓ {t('product.in_stock', 'En stock')} ({variant.stock})</span>
-                                                    ) : (
-                                                        <span className="out-of-stock text-xs">{t('product.out_of_stock', 'En rupture de stock')}</span>
+                        {/* Product Variants */}
+                        {currentProduct?.variants && currentProduct.variants.length > 0 && (
+                            <div className="mt-4">
+                                <h3 className="text-sm font-medium text-gray-900">{t('product.variants', 'Variantes')}</h3>
+                                <div className="mt-3 space-y-3">
+                                    {currentProduct.variants.map((variant) => (
+                                        <div
+                                            key={variant.id}
+                                            onClick={() => setSelectedVariant(variant)}
+                                            className={`flex flex-col p-4 border rounded-lg cursor-pointer transition-colors ${selectedVariant?.id === variant.id
+                                                ? 'border-[#DB8B89] bg-[#DB8B89]/5 ring-2 ring-[#DB8B89]/20 dark:bg-[#DB8B89]/10'
+                                                : 'border-gray-200 hover:border-[#DB8B89] dark:border-gray-700 dark:bg-gray-800 dark:hover:border-[#DB8B89]'
+                                                } ${variant.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                        {variant.sku}
+                                                    </p>
+                                                    {variant.specifications && variant.specifications.length > 0 && (
+                                                        <div className="mt-1">
+                                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                                {variant.specifications.map(spec => getTranslated(spec, 'name')).join(' / ')}
+                                                            </p>
+                                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                                {variant.specifications.map(spec => spec.pivot.value).join(' / ')}
+                                                            </p>
+                                                        </div>
                                                     )}
                                                 </div>
+                                                <span className="font-semibold">{variant.price.toLocaleString()} {t('currency.symbol', 'DA')}</span>
                                             </div>
-                                        ))}
-                                    </div>
-                                    {!selectedVariant && (
-                                        <p className="mt-2 text-xs text-amber-600">* {t('product.select_variant', 'Veuillez sélectionner une variante')}</p>
-                                    )}
+                                            <div className="mt-2 flex items-center gap-2">
+                                                {variant.stock > 0 ? (
+                                                    <span className="in-stock text-xs">✓ {t('product.in_stock', 'En stock')} ({variant.stock})</span>
+                                                ) : (
+                                                    <span className="out-of-stock text-xs">{t('product.out_of_stock', 'En rupture de stock')}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            )}
-
-                            {/* Stock Status Inside Form Area */}
-                            <div className="mb-6">
-                                {(selectedVariant?.stock || currentProduct?.stock || 0) > 0 ? (
-                                    <p className="text-sm font-medium text-green-600 flex items-center gap-1.5">
-                                        <CheckCircle size={16} />
-                                        {t('product.in_stock', 'En stock')}
-                                        <span className="text-gray-500 font-normal ml-1">({selectedVariant?.stock || currentProduct?.stock || 0} {t('product.available', 'disponibles')})</span>
-                                    </p>
-                                ) : (
-                                    <p className="text-sm font-medium text-red-500">
-                                        {t('product.out_of_stock', 'En rupture de stock')}
-                                    </p>
+                                {!selectedVariant && (
+                                    <p className="mt-2 text-xs text-amber-600">* {t('product.select_variant', 'Veuillez sélectionner une variante')}</p>
                                 )}
                             </div>
+                        )}
 
-                            {/* Order Form (Publicly accessible) */}
-                            <form onSubmit={handlePlaceOrder} className="space-y-6">
-                                {/* <h3 className="text-lg font-bold text-gray-900 mb-4">{t('checkout.title', 'Complétez votre commande')}</h3> */}
+                        <div className="quantity-section">
+                            <label>{t('cart.quantity', 'Quantité')}:</label>
+                            <div className="quantity-selector">
+                                <button onClick={() => setData('quantity', Math.max(1, data.quantity - 1))} className="qty-btn">
+                                    <Minus size={16} />
+                                </button>
+                                <span className="qty-value">{data.quantity}</span>
+                                <button onClick={() => setData('quantity', Math.min(currentProduct?.stock || 0, data.quantity + 1))} className="qty-btn">
+                                    <Plus size={16} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Specification Values Selector */}
+                        {currentProduct?.specification_values && currentProduct.specification_values.length > 0 && (
+                            <div className="mt-6">
+                                <h3 className="text-sm font-medium text-gray-900 mb-3">{t('product.specifications', 'Spécifications')}</h3>
                                 <div className="space-y-4">
+                                    {(() => {
+                                        const specsBySpecId = {};
+                                        currentProduct.specification_values.forEach(psv => {
+                                            if (!specsBySpecId[psv.specification_id]) {
+                                                specsBySpecId[psv.specification_id] = [];
+                                            }
+                                            specsBySpecId[psv.specification_id].push(psv);
+                                        });
 
-                                    {/* Quantity Selector */}
-                                    <div className="flex items-center justify-end mb-4">
-                                        <div className="flex items-center border border-gray-300 rounded-lg">
-                                            <button
-                                                type="button"
-                                                onClick={() => setData('quantity', Math.max(1, data.quantity - 1))}
-                                                className="px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-l-lg"
-                                            >
-                                                <Minus size={16} />
-                                            </button>
-                                            <span className="px-3 py-2 font-medium min-w-[3rem] text-center border-x border-gray-300">
-                                                {data.quantity}
-                                            </span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setData('quantity', Math.min(currentProduct?.stock || 0, data.quantity + 1))}
-                                                className="px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-r-lg"
-                                            >
-                                                <Plus size={16} />
-                                            </button>
-                                        </div>
-                                    </div>
+                                        return Object.entries(specsBySpecId).map(([specId, values]) => {
+                                            const spec = values[0]?.specification;
+                                            if (!spec) return null;
 
-                                    <button
-                                        type="button"
-                                        className="w-full flex items-center justify-center gap-2 py-3 px-4 border border-dashed border-gray-400 rounded-xl text-gray-600 font-medium hover:border-gray-900 hover:text-gray-900 transition-all bg-white"
-                                    >
-                                        <Plus size={18} />
-                                        <span>Ajouter un autre article</span>
-                                    </button>
+                                            return (
+                                                <div key={specId} className="space-y-2">
+                                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                        {getTranslated(spec, 'name')}
+                                                    </label>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {values.map((psv, idx) => {
+                                                            const isSelected = selectedSpecValues[specId] === psv.value;
+                                                            const isOutOfStock = (psv.quantity || 0) === 0;
 
-                                    <div className="bg-gray-50 rounded-xl p-1">
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div className="relative">
-                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                    <span className="text-gray-400">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                                        </svg>
-                                                    </span>
+                                                            return (
+                                                                <button
+                                                                    key={idx}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        if (!isOutOfStock) {
+                                                                            setSelectedSpecValues(prev => ({
+                                                                                ...prev,
+                                                                                [specId]: isSelected ? null : psv.value
+                                                                            }));
+                                                                        }
+                                                                    }}
+                                                                    className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all ${isSelected
+                                                                        ? 'border-[#DB8B89] bg-[#DB8B89]/10 text-[#DB8B89]'
+                                                                        : isOutOfStock
+                                                                            ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60 dark:bg-gray-800 dark:border-gray-700'
+                                                                            : 'border-gray-200 hover:border-[#DB8B89] text-gray-700 dark:border-gray-700 dark:text-gray-300 dark:hover:border-[#DB8B89]'
+                                                                        }`}
+                                                                    disabled={isOutOfStock}
+                                                                >
+                                                                    {psv.value}
+                                                                    {psv.quantity !== undefined && psv.quantity !== null && (
+                                                                        <span className={`ml-2 text-xs ${isOutOfStock ? 'text-red-500' : 'text-green-600'}`}>
+                                                                            ({psv.quantity})
+                                                                        </span>
+                                                                    )}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
                                                 </div>
                                             );
                                         });
@@ -497,49 +527,49 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
                         {/* Order Form (Publicly accessible) */}
                         <div className="mt-8">
-                            <form onSubmit={handlePlaceOrder} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
-                                <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900">
+                            <form onSubmit={handlePlaceOrder} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-6">
+                                <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
                                     <ShoppingBag size={22} className="text-[#DB8B89]" />
                                     {t('checkout.title', 'Complétez votre commande')}
                                 </h2>
 
                                 {/* Contact Person Section */}
                                 <div className="space-y-4">
-                                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2 mb-2">
                                         <User size={16} /> {t('checkout.contact_info', 'Informations personnelles')}
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('checkout.first_name', 'Prénom')}</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.first_name', 'Prénom')}</label>
                                             <input
                                                 type="text"
                                                 value={data.first_name}
                                                 onChange={e => setData('first_name', e.target.value)}
-                                                className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.first_name ? 'border-red-500' : 'border-gray-300'}`}
+                                                className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.first_name ? 'border-red-500' : 'border-gray-300'}`}
                                                 required
                                             />
                                             {errors.first_name && <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>}
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('checkout.last_name', 'Nom')}</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.last_name', 'Nom')}</label>
                                             <input
                                                 type="text"
                                                 value={data.last_name}
                                                 onChange={e => setData('last_name', e.target.value)}
-                                                className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.last_name ? 'border-red-500' : 'border-gray-300'}`}
+                                                className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.last_name ? 'border-red-500' : 'border-gray-300'}`}
                                                 required
                                             />
                                             {errors.last_name && <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>}
                                         </div>
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('checkout.phone', 'Téléphone')}</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.phone', 'Téléphone')}</label>
                                             <div className="relative">
                                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                                 <input
                                                     type="tel"
                                                     value={data.phone}
                                                     onChange={e => setData('phone', e.target.value)}
-                                                    className={`w-full pl-10 border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                                                    className={`w-full pl-10 border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
                                                     required
                                                 />
                                             </div>
@@ -548,7 +578,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                     </div>
                                 </div>
 
-                                <hr className="border-gray-100" />
+                                <hr className="border-gray-100 dark:border-gray-700" />
 
                                 {/* Delivery Section */}
                                 <div className="space-y-4">
@@ -557,55 +587,55 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('checkout.wilaya', 'Wilaya')}</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.wilaya', 'Wilaya')}</label>
                                             <div className="relative">
                                                 <Building className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                                 <select
                                                     value={data.wilaya_id}
                                                     onChange={(e) => handleWilayaChange(e.target.value)}
-                                                    className={`w-full pl-10 border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] appearance-none ${errors.wilaya_id ? 'border-red-500' : 'border-gray-300'}`}
+                                                    className={`w-full pl-10 border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:[color-scheme:dark] ${errors.wilaya_id ? 'border-red-500' : 'border-gray-300'}`}
                                                     required
                                                 >
-                                                    <option value="">{t('common.select', 'Sélectionner')}</option>
+                                                    <option value="" className="dark:bg-gray-700 dark:text-white">{t('common.select', 'Sélectionner')}</option>
                                                     {wilayas.map(w => (
-                                                        <option key={w.id} value={w.id}>{w.code} - {isRTL() || i18n.language === 'ar' ? (w.name_ar || w.name) : w.name}</option>
+                                                        <option key={w.id} value={w.id} className="dark:bg-gray-700 dark:text-white">{w.code} - {isRTL() || i18n.language === 'ar' ? (w.name_ar || w.name) : w.name}</option>
                                                     ))}
                                                 </select>
                                             </div>
                                             {errors.wilaya_id && <p className="text-red-500 text-xs mt-1">{errors.wilaya_id}</p>}
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('checkout.commune', 'Commune')}</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.commune', 'Commune')}</label>
                                             <select
                                                 value={data.commune_id}
                                                 onChange={e => setData('commune_id', e.target.value)}
-                                                className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.commune_id ? 'border-red-500' : 'border-gray-300'}`}
+                                                className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:[color-scheme:dark] ${errors.commune_id ? 'border-red-500' : 'border-gray-300'}`}
                                                 required
                                                 disabled={!data.wilaya_id}
                                             >
-                                                <option value="">{t('common.select', 'Sélectionner')}</option>
+                                                <option value="" className="dark:bg-gray-700 dark:text-white">{t('common.select', 'Sélectionner')}</option>
                                                 {communes.map(c => (
-                                                    <option key={c.id} value={c.id}>{isRTL() || i18n.language === 'ar' ? (c.name_ar || c.name) : c.name}</option>
+                                                    <option key={c.id} value={c.id} className="dark:bg-gray-700 dark:text-white">{isRTL() || i18n.language === 'ar' ? (c.name_ar || c.name) : c.name}</option>
                                                 ))}
                                             </select>
                                             {errors.commune_id && <p className="text-red-500 text-xs mt-1">{errors.commune_id}</p>}
                                         </div>
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                 {t('checkout.address_placeholder', 'Adresse complète (optionnelle)')}
                                             </label>
                                             <textarea
                                                 value={data.address}
                                                 onChange={e => setData('address', e.target.value)}
                                                 rows="2"
-                                                className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
+                                                className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
                                                 placeholder="Quartier, N° rue, Bâtiment..."
                                             ></textarea>
                                             {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
                                         </div>
 
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-3">{t('checkout.delivery_type', 'Type de livraison')}</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{t('checkout.delivery_type', 'Type de livraison')}</label>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {[
                                                     { value: 'DOMICILE', label: t('checkout.home_delivery', 'À Domicile'), icon: <MapPin size={18} /> },
@@ -616,8 +646,8 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                     return (
                                                         <label
                                                             key={type.value}
-                                                            className={`border rounded-xl p-4 cursor-pointer flex items-center justify-between transition-all ${isSelected ? 'border-[#DB8B89] bg-[#F8E4E0] ring-1 ring-[#DB8B89]' :
-                                                                isSupported ? 'hover:border-gray-400 bg-white' : 'opacity-50 cursor-not-allowed bg-gray-50'
+                                                            className={`border rounded-xl p-4 cursor-pointer flex items-center justify-between transition-all ${isSelected ? 'border-[#DB8B89] bg-[#F8E4E0] ring-1 ring-[#DB8B89] dark:bg-[#DB8B89]/20 dark:text-white' :
+                                                                isSupported ? 'hover:border-gray-400 bg-white dark:bg-gray-700 dark:border-gray-600 dark:hover:border-gray-500' : 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800 dark:border-gray-700'
                                                                 }`}
                                                         >
                                                             <div className="flex items-center gap-3">
@@ -630,7 +660,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                                     className="text-[#DB8B89] focus:ring-[#DB8B89]"
                                                                     disabled={!isSupported}
                                                                 />
-                                                                <span className="font-medium text-sm">{type.label}</span>
+                                                                <span className="font-medium text-sm dark:text-gray-200">{type.label}</span>
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 {selected_tariff && selected_tariff[type.value] !== undefined && (
@@ -645,7 +675,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                 })}
                                             </div>
                                             {deliveryTypeError && (
-                                                <p className="text-red-500 text-xs mt-2 bg-red-50 p-2 rounded border border-red-100">{deliveryTypeError}</p>
+                                                <p className="text-red-500 text-xs mt-2 bg-red-50 dark:bg-red-900/20 p-2 rounded border border-red-100 dark:border-red-800/30">{deliveryTypeError}</p>
                                             )}
                                         </div>
                                     </div>
@@ -678,14 +708,14 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                     }
                                                 </span>
                                             </div>
-                                            <div className="summary-row total flex justify-between font-bold border-t mt-2 pt-2 text-lg">
+                                            <div className="summary-row total flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 mt-2 pt-2 text-lg dark:text-white">
                                                 <span>{t('cart.total', 'Total à payer')}</span>
                                                 <span>{finalTotal.toLocaleString()} {t('currency.symbol', 'DA')}</span>
                                             </div>
 
                                             {/* Loyalty Points Section */}
-                                            <div className="mt-4 border-t pt-4">
-                                                <label className="flex items-center justify-between cursor-pointer p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors">
+                                            <div className="mt-4 border-t border-gray-100 dark:border-gray-700 pt-4">
+                                                <label className="flex items-center justify-between cursor-pointer p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors">
                                                     <div className="flex items-center gap-3">
                                                         <input
                                                             type="checkbox"
@@ -700,8 +730,8 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                             className="w-5 h-5 text-[#DB8B89] rounded focus:ring-[#DB8B89] border-gray-300"
                                                         />
                                                         <div>
-                                                            <span className="font-medium block">{t('loyalty.use_points', 'Utiliser mes points')}</span>
-                                                            <span className="text-sm text-gray-500">
+                                                            <span className="font-medium block dark:text-gray-200">{t('loyalty.use_points', 'Utiliser mes points')}</span>
+                                                            <span className="text-sm text-gray-500 dark:text-gray-400">
                                                                 {t('loyalty.available', 'Disponible')}: {loyaltyBalance} pts
                                                             </span>
                                                         </div>
@@ -790,7 +820,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                         type="button"
                                         onClick={handleAddToCart}
                                         disabled={addingToCart || (currentProduct?.stock || 0) <= 0 || (currentProduct?.variants?.length > 0 && !selectedVariant)}
-                                        className="flex-1 bg-white border-2 border-[#DB8B89] py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#F8E4E0] disabled:opacity-50 text-[#DB8B89]"
+                                        className="flex-1 bg-white dark:bg-transparent border-2 border-[#DB8B89] py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#F8E4E0] dark:hover:bg-[#DB8B89]/10 disabled:opacity-50 text-[#DB8B89]"
                                     >
                                         {addingToCart ? <Loader2 className="animate-spin" /> : <><ShoppingCart size={20} /> {t('product.add_to_cart', 'Ajouter au panier')}</>}
                                     </button>
@@ -800,27 +830,27 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
                         {/* Tabs */}
                         <div className="product-tabs mt-8">
-                            <div className="tab-headers border-b flex gap-6">
+                            <div className="tab-headers border-b dark:border-gray-700 flex gap-6">
                                 <button className={`pb-2 ${activeTab === 'description' ? 'border-b-2 border-[#DB8B89] font-bold text-[#DB8B89]' : ''}`} onClick={() => setActiveTab('description')}>{t('product.description', 'Description')}</button>
                                 <button className={`pb-2 ${activeTab === 'features' ? 'border-b-2 border-[#DB8B89] font-bold text-[#DB8B89]' : ''}`} onClick={() => setActiveTab('features')}>{t('product.specifications', 'Spécifications')}</button>
                             </div>
-                            <div className="py-4 text-gray-600">
+                            <div className="tab-content py-4">
                                 {activeTab === 'description' && <p>{currentProduct ? getTranslated(currentProduct, 'description') : ''}</p>}
                                 {activeTab === 'features' && (
                                     <div className="grid grid-cols-2 gap-4">
                                         {currentProduct?.specification_values && currentProduct.specification_values.map((spec, i) => (
-                                            <div key={i} className="flex flex-col border-b border-gray-100 pb-2">
-                                                <span className="text-gray-400 text-xs uppercase">{getTranslated(spec.specification, 'name')}</span>
-                                                <span className="font-medium text-gray-900">{spec.value}</span>
+                                            <div key={i} className="flex flex-col border-b dark:border-gray-700 pb-2">
+                                                <span className="text-gray-500 dark:text-gray-400 text-xs">{getTranslated(spec.specification, 'name')}</span>
+                                                <span className="font-medium dark:text-gray-200">{spec.value}</span>
                                             </div>
                                         ))}
                                     </div>
                                 )}
                             </div>
-                        </div> */}
-            </motion.div>
-
-
+                        </div>
+                    </motion.div>
+                </div>
+            </motion.div >
 
             <Footer />
             <CartConfirmationModal

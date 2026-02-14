@@ -35,8 +35,37 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
         }
     }, [theme]);
 
+    const [searchResults, setSearchResults] = useState([]);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery.trim().length >= 2) {
+                setIsLoading(true);
+                fetch(route('api.products.search', { query: searchQuery }))
+                    .then(res => res.json())
+                    .then(data => {
+                        setSearchResults(data);
+                        setShowDropdown(true);
+                        setIsLoading(false);
+                    })
+                    .catch(() => {
+                        setSearchResults([]);
+                        setIsLoading(false);
+                    });
+            } else {
+                setSearchResults([]);
+                setShowDropdown(false);
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     const handleSearch = (e) => {
         if (e.key === 'Enter' && searchQuery.trim()) {
+            setShowDropdown(false);
             router.get(route('products.index'), { search: searchQuery });
         }
     };
@@ -69,7 +98,7 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                 </Link>
 
                 {/* Search Bar (Desktop) */}
-                <div className="header-search">
+                <div className="header-search relative">
                     <Search className="search-icon" size={20} />
                     <input
                         type="text"
@@ -78,7 +107,41 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={handleSearch}
+                        onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                        onFocus={() => searchQuery.length >= 2 && setShowDropdown(true)}
                     />
+
+                    {/* Search Results Dropdown */}
+                    {showDropdown && (
+                        <div className="search-dropdown absolute top-full left-0 w-full bg-white dark:bg-gray-800 shadow-lg rounded-b-lg border border-gray-200 dark:border-gray-700 mt-1 max-h-96 overflow-y-auto z-50">
+                            {isLoading ? (
+                                <div className="p-4 text-center text-gray-500">{t('common.loading', 'Chargement...')}</div>
+                            ) : searchResults.length > 0 ? (
+                                <ul>
+                                    {searchResults.map((product) => (
+                                        <li key={product.id}>
+                                            <Link
+                                                href={product.url}
+                                                className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-0"
+                                            >
+                                                <img
+                                                    src={product.image}
+                                                    alt={product.name}
+                                                    className="w-10 h-10 object-cover rounded"
+                                                />
+                                                <div className="flex-1">
+                                                    <div className="font-medium text-gray-800 dark:text-gray-200">{product.name}</div>
+                                                    <div className="text-sm font-bold text-teal-600">{product.formatted_price}</div>
+                                                </div>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <div className="p-4 text-center text-gray-500">{t('admin.no_results', 'Aucun résultat trouvé.')}</div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Navigation */}

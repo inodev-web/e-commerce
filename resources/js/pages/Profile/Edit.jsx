@@ -76,7 +76,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                     <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">{user.name}</h1>
                     <div className="flex items-center justify-center gap-2">
                         <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-500 px-3 py-1 rounded text-xs font-semibold border border-amber-200 dark:border-amber-800 uppercase">
-                            {points > 1000 ? 'GOLD MEMBER' : 'MEMBER'}
+                            {points > 1000 ? t('loyalty.gold_member', 'GOLD MEMBER') : t('loyalty.member', 'MEMBER')}
                         </span>
                         <span className="text-gray-500 dark:text-gray-400 text-sm">• {user.phone}</span>
                     </div>
@@ -251,41 +251,41 @@ export default function UserProfile({ theme, toggleTheme }) {
                                 <div className="flex-1 w-full">
                                     <h2 className="text-xl font-semibold flex items-center gap-2 mb-2 text-gray-900 dark:text-white">
                                         <Award className="text-teal-600 dark:text-teal-400" size={24} />
-                                        Score de Fidélité
+                                        {t('loyalty.score', 'Score de Fidélité')}
                                     </h2>
                                     <div className="flex items-baseline gap-2 mb-4">
                                         <span className="text-5xl font-bold text-gray-900 dark:text-white">{points}</span>
-                                        <span className="text-gray-500 dark:text-gray-400">points</span>
+                                        <span className="text-gray-500 dark:text-gray-400">{t('admin.points', 'points')}</span>
                                     </div>
                                     <div className="mb-2">
                                         <div className="flex items-center justify-between text-sm mb-1">
-                                            <span className="text-gray-600 dark:text-gray-400">Palier actuel</span>
-                                            <span className="text-[#DB8B89] font-medium">{1000 - points} pts pour le prochain palier</span>
+                                            <span className="text-gray-600 dark:text-gray-400">{t('loyalty.current_tier', 'Palier actuel')}</span>
+                                            <span className="text-[#DB8B89] font-medium">{1000 - points} {t('loyalty.points_to_next', 'pts pour le prochain palier')}</span>
                                         </div>
                                         <div className="w-full bg-gray-200 dark:bg-neutral-700 rounded-full h-2">
                                             <div className="bg-[#DB8B89] h-2 rounded-full transition-all duration-500" style={{ width: `${Math.min(100, points / 10)}%` }}></div>
                                         </div>
                                     </div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">Gagnez 1 point pour chaque 100 DA dépensé.</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">{t('loyalty.earn_rule', 'Gagnez 1 point pour chaque 100 DA dépensé.')}</p>
                                 </div>
 
                                 {/* Next Reward Card */}
                                 <div className="bg-pink-50 dark:bg-[#DB8B89]/10 rounded-lg p-4 w-full md:w-64 border border-pink-100 dark:border-[#DB8B89]/20">
                                     <div className="flex items-center gap-2 mb-2">
                                         <Gift className="text-[#DB8B89]" size={20} />
-                                        <h3 className="font-semibold text-gray-900 dark:text-white">Prochaine Récompense</h3>
+                                        <h3 className="font-semibold text-gray-900 dark:text-white">{t('loyalty.next_reward', 'Prochaine Récompense')}</h3>
                                     </div>
-                                    <p className="text-sm text-gray-900 dark:text-gray-200 font-medium mb-1">Bon d'achat de 500 DA</p>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Dès 1000 points atteints.</p>
+                                    <p className="text-sm text-gray-900 dark:text-gray-200 font-medium mb-1">{t('loyalty.reward_500da', "Bon d'achat de 500 DA")}</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{t('loyalty.reach_1000', 'Dès 1000 points atteints.')}</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Loyalty History */}
                         <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-sm p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Historique des points</h3>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('loyalty.history', 'Historique des points')}</h3>
                             {loyaltyHistory.length === 0 ? (
-                                <p className="text-sm text-gray-400 italic text-center py-6">Aucun historique de points disponible.</p>
+                                <p className="text-sm text-gray-400 italic text-center py-6">{t('loyalty.no_history', 'Aucun historique de points disponible.')}</p>
                             ) : (
                                 <div className="space-y-2">
                                     {loyaltyHistory.map((entry) => (
@@ -403,7 +403,7 @@ export default function UserProfile({ theme, toggleTheme }) {
 
                             <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                                 <div className="bg-gray-50 dark:bg-white/5 px-8 py-4 rounded-xl text-2xl font-mono tracking-widest font-bold text-gray-800 dark:text-white border-2 border-dashed border-pink-200 dark:border-white/20">
-                                    {(referral_code || user.referral_code) || 'GÉNÉRATION...'}
+                                    {(referral_code || user.referral_code) || t('common.generating', 'GÉNÉRATION...')}
                                 </div>
                                 <button
                                     type="button"

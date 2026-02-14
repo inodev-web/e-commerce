@@ -107,8 +107,8 @@ class OrderProcessTest extends TestCase
         $this->assertEquals('Smartphone X', $orderItem->metadata_snapshot['name']);
         $this->assertIsArray($orderItem->metadata_snapshot['specifications']);
 
-        // Check Stock Decrement
-        $this->assertEquals(8, $product->fresh()->stock);
+        // Stock should NOT be decremented at order placement — only on DELIVERED
+        $this->assertEquals(10, $product->fresh()->stock);
 
         // Check Cart Cleared
         $this->assertDatabaseMissing('carts', ['id' => $cart->id]);

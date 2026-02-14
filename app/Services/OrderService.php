@@ -81,10 +81,12 @@ class OrderService
             throw new \Exception("Vous ne pouvez pas utiliser votre propre code de parrainage");
         }
 
-        // 🛡️ ANTI-FRAUD CHECK 2: First order only
+        // 🛡️ ANTI-FRAUD CHECK 2: First order only (ne compte que les commandes livrées)
         if ($clientId) {
-            $previousOrders = Order::where('client_id', $clientId)->count();
-            if ($previousOrders > 0) {
+            $previousDeliveredOrders = Order::where('client_id', $clientId)
+                ->where('status', OrderStatus::DELIVERED)
+                ->count();
+            if ($previousDeliveredOrders > 0) {
                 throw new \Exception("Le code de parrainage n'est valide que pour votre première commande");
             }
         }
@@ -115,6 +117,14 @@ class OrderService
         }
 
         $settings = LoyaltySetting::first();
+
+        \Log::info('OrderService - Referral code validated', [
+            'code' => $code,
+            'referrer_user_id' => $referrer->id,
+            'referrer_client_id' => $referrer->client->id,
+            'clientId' => $clientId,
+            'is_guest' => $clientId === null,
+        ]);
         
         return [
             'type' => 'referral',
@@ -309,7 +319,7 @@ class OrderService
                 'last_name' => $dto->lastName,
                 'phone' => $dto->phone,
                 'client_ip' => $dto->clientIp,
-                'address' => $dto->address,
+                'address' => $dto->address ?? '',
                 'wilaya_name' => $wilaya->name,              // SNAPSHOT STRING
                 'commune_name' => $commune->name,             // SNAPSHOT STRING
                 'delivery_type' => $dto->deliveryType,
@@ -352,30 +362,6 @@ class OrderService
                                 'v' => $value,
                             ];
 
-                            // Decrement specification value quantity
-                            try {
-                                $specValue = \App\Models\ProductSpecificationValue::where('product_id', $productId)
-                                    ->where('specification_id', $specId)
-                                    ->where('value', $value)
-                                    ->first();
-
-                                if ($specValue) {
-                                    $specValue->decrement('quantity', $item['quantity']);
-                                } else {
-                                     \Log::warning("OrderService - ProductSpecificationValue not found for decrement", [
-                                        'product_id' => $productId,
-                                        'spec_id' => $specId,
-                                        'value' => $value
-                                    ]);
-                                }
-                            } catch (\Exception $e) {
-                                \Log::error("OrderService - Failed to decrement specification value", [
-                                    'error' => $e->getMessage(),
-                                    'product_id' => $productId,
-                                    'spec_id' => $specId,
-                                    'value' => $value
-                                ]);
-                            }
                         }
                     }
                 }
@@ -396,23 +382,12 @@ class OrderService
                 
                 \Log::info('OrderService - Item created', ['order_item_id' => $orderItem->id]);
                 
-                // 8. Décrémenter le stock
-                $product->decrement('stock', $item['quantity']);
-                $product->decrementStock($item['quantity']);
+                // 8. Stock is NOT decremented here — it will be decremented when order is DELIVERED
+                // (see updateStatus() -> DELIVERED)
             }
             
-            // 9. Ajouter des points de parrainage si code utilisé
-            if ($referrerClientId && $settings && $settings->referral_reward_points > 0) {
-                LoyaltyPoint::create([
-                    'client_id' => $referrerClientId,
-                    'points' => (int) $settings->referral_reward_points,
-                    'description' => 'Parrainage: code ' . $referralCode,
-                ]);
-            }
-            // 9. Ajouter des points de fidélité si client connecté
-            if ($dto->clientId) {
-                $this->loyaltyService->awardPoints($dto->clientId, $totalPrice);
-            }
+            // 9. Points de fidélité et parrainage sont attribués uniquement à la livraison
+            // (voir updateStatus() -> DELIVERED)
 
             // 10. Pixel Tracking
             $this->pixelService->trackPurchase($order);
@@ -439,14 +414,130 @@ class OrderService
         return DB::transaction(function () use ($order, $newStatus) {
             $oldStatus = $order->status;
             
-            // Si on sort de CANCELLED vers PENDING (ou autre), on doit redécrémenter le stock
-            if ($oldStatus === OrderStatus::CANCELLED && $newStatus !== OrderStatus::CANCELLED) {
-                foreach ($order->items as $item) {
-                    $item->product->decrementStock($item->quantity);
+            // Stock is only decremented on DELIVERED, so no re-decrement needed when
+            // transitioning from CANCELLED back to another status.
+
+            $order->update(['status' => $newStatus]);
+
+            // Décrémenter le stock et attribuer les points uniquement quand la commande est livrée
+            if ($newStatus === OrderStatus::DELIVERED) {
+                // 🔻 Decrement stock & specification quantities on delivery
+                try {
+                    $order->load('items.product');
+                    foreach ($order->items as $item) {
+                        if ($item->product) {
+                            // Decrement main product stock
+                            $item->product->decrement('stock', $item->quantity);
+                            $item->product->decrementStock($item->quantity);
+
+                            // Decrement specification value quantities from snapshot
+                            $specs = $item->metadata_snapshot['specifications'] ?? [];
+                            foreach ($specs as $spec) {
+                                try {
+                                    $specValue = \App\Models\ProductSpecificationValue::where('product_id', $item->product_id)
+                                        ->whereHas('specification', fn($q) => $q->where('name->en', $spec['n']))
+                                        ->where('value', $spec['v'])
+                                        ->first();
+
+                                    if ($specValue) {
+                                        $specValue->decrement('quantity', $item->quantity);
+                                    } else {
+                                        \Log::warning('OrderService - DELIVERED: SpecValue not found for decrement', [
+                                            'product_id' => $item->product_id,
+                                            'spec_name' => $spec['n'],
+                                            'value' => $spec['v'],
+                                        ]);
+                                    }
+                                } catch (\Exception $e) {
+                                    \Log::error('OrderService - DELIVERED: Failed to decrement spec value', [
+                                        'error' => $e->getMessage(),
+                                        'product_id' => $item->product_id,
+                                        'spec_name' => $spec['n'],
+                                        'value' => $spec['v'],
+                                    ]);
+                                }
+                            }
+
+                            \Log::info('OrderService - DELIVERED: Stock decremented', [
+                                'order_id' => $order->id,
+                                'product_id' => $item->product_id,
+                                'quantity' => $item->quantity,
+                            ]);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('OrderService - DELIVERED: Stock decrement error (non-fatal)', [
+                        'order_id' => $order->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                    // Don't throw — the status update itself should still succeed
+                }
+                try {
+                    // Points de parrainage pour le parrain
+                    if ($order->referrer_id && $order->referral_code) {
+                        \Log::info('OrderService - DELIVERED: Processing referral points', [
+                            'order_id' => $order->id,
+                            'referrer_id' => $order->referrer_id,
+                            'referral_code' => $order->referral_code,
+                        ]);
+
+                        $settings = LoyaltySetting::first();
+                        if ($settings && $settings->referral_reward_points > 0) {
+                            // Charger la relation referrer avec client
+                            $order->load('referrer.client');
+                            $referrerClientId = $order->referrer?->client?->id;
+
+                            if ($referrerClientId) {
+                                // Vérifier qu'on n'a pas déjà attribué les points pour cette commande
+                                $pointDescription = "Parrainage: commande #{$order->id} (code {$order->referral_code})";
+                                $alreadyAwarded = LoyaltyPoint::where('client_id', $referrerClientId)
+                                    ->where('description', $pointDescription)
+                                    ->exists();
+
+                                if (!$alreadyAwarded) {
+                                    LoyaltyPoint::create([
+                                        'client_id' => $referrerClientId,
+                                        'points' => (int) $settings->referral_reward_points,
+                                        'description' => $pointDescription,
+                                    ]);
+                                    \Log::info('OrderService - Referral points awarded', [
+                                        'order_id' => $order->id,
+                                        'referrer_client_id' => $referrerClientId,
+                                        'points' => $settings->referral_reward_points,
+                                    ]);
+                                } else {
+                                    \Log::info('OrderService - Referral points already awarded, skipping', [
+                                        'order_id' => $order->id,
+                                    ]);
+                                }
+                            } else {
+                                \Log::warning('OrderService - Referrer has no client record', [
+                                    'order_id' => $order->id,
+                                    'referrer_id' => $order->referrer_id,
+                                ]);
+                            }
+                        }
+                    }
+
+                    // Points de fidélité pour le client
+                    if ($order->client_id) {
+                        $this->loyaltyService->awardPoints($order->client_id, (float) $order->total_price);
+                        \Log::info('OrderService - Loyalty points awarded on delivery', [
+                            'order_id' => $order->id,
+                            'client_id' => $order->client_id,
+                            'total_price' => $order->total_price,
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('OrderService - Error awarding points on delivery', [
+                        'order_id' => $order->id,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+                    // Don't throw — the status update itself should still succeed
                 }
             }
 
-            $order->update(['status' => $newStatus]);
             return $order;
         });
     }
@@ -462,10 +553,8 @@ class OrderService
                 throw new \Exception("Cette commande ne peut pas être annulée");
             }
             
-            // Restaurer le stock
-            foreach ($order->items as $item) {
-                $item->product->incrementStock($item->quantity);
-            }
+            // Stock is only decremented on DELIVERED, and DELIVERED -> CANCELLED is not allowed,
+            // so there is no stock to restore here.
             
             // Marquer comme annulée
             $order->update(['status' => OrderStatus::CANCELLED]);

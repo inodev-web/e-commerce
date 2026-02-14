@@ -57,6 +57,43 @@ class ProductController extends Controller
     }
 
     /**
+     * API de recherche pour l'autocomplétion
+     */
+    public function searchApi(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $query = $request->input('query');
+        
+        if (!$query || strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $products = Product::query()
+            ->where(function($q) use ($query) {
+                // Cast JSON to text for searching
+                $q->whereRaw('LOWER(CAST(name AS TEXT)) LIKE ?', ['%' . strtolower($query) . '%'])
+                  ->orWhereRaw('LOWER(CAST(description AS TEXT)) LIKE ?', ['%' . strtolower($query) . '%']);
+            })
+            ->select('id', 'name', 'price', 'sub_category_id') // Optimize selection
+            ->with(['images' => function($q) {
+                $q->where('is_main', true)->select('product_id', 'image_path');
+            }])
+            ->limit(10)
+            ->get()
+            ->map(function($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'price' => $product->price,
+                    'formatted_price' => number_format($product->price, 0, ',', ' ') . ' DA',
+                    'image' => $product->images->first() ? '/storage/' . $product->images->first()->image_path : '/placeholder.svg',
+                    'url' => route('products.show', $product->id)
+                ];
+            });
+
+        return response()->json($products);
+    }
+
+    /**
      * Afficher un produit
      */
     public function show(Request $request, int $id): Response

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ShoppingCart, Star, Filter, Search as SearchIcon } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingCart, Star, Search as SearchIcon, Sparkles, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { router, Link, usePage } from '@inertiajs/react';
 import { getTranslated } from '@/utils/translation';
@@ -12,11 +12,8 @@ import { trackEvent } from '@/utils/analytics';
 import '../../../css/shopPage.css';
 
 const Index = ({ products, categories, filters, theme, toggleTheme }) => {
-    const [search, setSearch] = useState(filters.search || '');
-
     const handleFilterChange = (key, value) => {
         const newFilters = { ...filters, [key]: value };
-        // Remove empty values
         Object.keys(newFilters).forEach(k => {
             if (newFilters[k] === null || newFilters[k] === '') {
                 delete newFilters[k];
@@ -26,7 +23,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
         router.get(route('products.index'), newFilters, {
             preserveState: true,
             replace: true,
-            preserveScroll: true // Added preserveScroll for better UX
+            preserveScroll: true
         });
     };
 
@@ -36,7 +33,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
         max_price: filters.max_price || ''
     });
 
-    React.useEffect(() => {
+    useEffect(() => {
         const timer = setTimeout(() => {
             if (priceFilters.min_price !== (filters.min_price || '') || priceFilters.max_price !== (filters.max_price || '')) {
                 const newFilters = { ...filters };
@@ -61,18 +58,52 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
         setPriceFilters(prev => ({ ...prev, [key]: value }));
     };
 
+    // Debounce implementation for Search
+    const [searchTerm, setSearchTerm] = useState(filters.search || '');
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchTerm !== (filters.search || '')) {
+                const newFilters = { ...filters };
+                if (searchTerm) newFilters.search = searchTerm;
+                else delete newFilters.search;
+
+                router.get(route('products.index'), newFilters, {
+                    preserveState: true,
+                    replace: true,
+                    preserveScroll: true
+                });
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
     const handleSearch = (e) => {
         e.preventDefault();
-        handleFilterChange('search', search);
     };
 
     const clearFilters = () => {
         router.get(route('products.index'), {});
     };
 
-
     const [modalOpen, setModalOpen] = useState(false);
     const [addedProduct, setAddedProduct] = useState(null);
+
+    // Back to top
+    const [showBackToTop, setShowBackToTop] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setShowBackToTop(window.scrollY > 400);
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     const addToCart = (e, product) => {
         e.preventDefault();
@@ -89,7 +120,6 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                 setModalOpen(true);
                 toast.success(getLabel('product_added_to_cart') || 'Produit ajouté au panier');
 
-                // Track AddToCart event
                 trackEvent('AddToCart', {
                     content_name: getTranslated(product, 'name'),
                     content_ids: [product.id],
@@ -106,8 +136,16 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
             <Header theme={theme} toggleTheme={toggleTheme} />
 
             <main className="shop-container">
-                <div className="shop-header">
+                {/* Hero Header */}
+                <div className="shop-hero">
+                    <Sparkles className="shop-hero-sparkle" size={20} />
+                    <Sparkles className="shop-hero-sparkle" size={16} />
+                    <Sparkles className="shop-hero-sparkle" size={14} />
                     <h1 className="shop-title">{getLabel('all_products')}</h1>
+                    <p className="shop-subtitle">
+                        utilisez les filtres et la barre de recherche
+                    </p>
+                    <div className="shop-hero-divider" />
                 </div>
 
                 {/* Filter Bar */}
@@ -129,12 +167,12 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                                 <div className="grid gap-4 mt-2 max-h-60 overflow-y-auto">
                                     {categories.map((cat) => (
                                         <div key={cat.id} className="space-y-2">
-                                            <div className="flex items-center gap-2 font-bold text-gray-800">
+                                            <div className="flex items-center gap-2 font-bold text-gray-800 dark:text-gray-200">
                                                 <input
                                                     type="checkbox"
                                                     checked={filters.category_id == cat.id}
                                                     onChange={() => handleFilterChange('category_id', filters.category_id == cat.id ? null : cat.id)}
-                                                    className="rounded border-gray-300"
+                                                    className="rounded border-gray-300 accent-[#DB8B89]"
                                                 />
                                                 <span>{getTranslated(cat, 'name')}</span>
                                             </div>
@@ -144,9 +182,9 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                                                         type="checkbox"
                                                         checked={filters.sub_category_id == sub.id}
                                                         onChange={() => handleFilterChange('sub_category_id', filters.sub_category_id == sub.id ? null : sub.id)}
-                                                        className="rounded border-gray-300"
+                                                        className="rounded border-gray-300 accent-[#DB8B89]"
                                                     />
-                                                    <label className="text-sm">{getTranslated(sub, 'name')}</label>
+                                                    <label className="text-sm dark:text-gray-300">{getTranslated(sub, 'name')}</label>
                                                 </div>
                                             ))}
                                         </div>
@@ -174,21 +212,21 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                                 <div className="grid gap-4 mt-2">
                                     <div className="flex gap-4">
                                         <div className="flex-1">
-                                            <label className="text-xs text-gray-500">{getLabel('min')} (DA)</label>
+                                            <label className="text-xs text-gray-500 dark:text-gray-400">{getLabel('min')} (DA)</label>
                                             <input
                                                 type="number"
                                                 value={priceFilters.min_price}
                                                 onChange={(e) => handlePriceChange('min_price', e.target.value)}
-                                                className="w-full border rounded-lg p-2"
+                                                className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                                             />
                                         </div>
                                         <div className="flex-1">
-                                            <label className="text-xs text-gray-500">{getLabel('max')} (DA)</label>
+                                            <label className="text-xs text-gray-500 dark:text-gray-400">{getLabel('max')} (DA)</label>
                                             <input
                                                 type="number"
                                                 value={priceFilters.max_price}
                                                 onChange={(e) => handlePriceChange('max_price', e.target.value)}
-                                                className="w-full border rounded-lg p-2"
+                                                className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                                             />
                                         </div>
                                     </div>
@@ -208,8 +246,8 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                             <input
                                 type="text"
                                 placeholder={getLabel('search') + "..."}
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-all text-sm"
                             />
                             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-[#DB8B89]" size={16} />
@@ -218,15 +256,44 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                 </div>
 
                 {/* Active Filters */}
-                {
-                    Object.keys(filters).length > 0 && (
-                        <div className="active-filters">
-                            {filters.search && <span className="filter-tag">Search: {filters.search} <button onClick={() => handleFilterChange('search', null)}>✕</button></span>}
-                            {filters.category_id && <span className="filter-tag">Category ID: {filters.category_id} <button onClick={() => handleFilterChange('category_id', null)}>✕</button></span>}
-                            <button className="clear-all" onClick={clearFilters}>Tout effacer</button>
-                        </div>
-                    )
-                }
+                {Object.keys(filters).length > 0 && (
+                    <div className="active-filters">
+                        {filters.search && (
+                            <span className="filter-tag">
+                                {getLabel('search')}: {filters.search}
+                                <button onClick={() => setSearchTerm('')}>✕</button>
+                            </span>
+                        )}
+                        {filters.category_id && (
+                            <span className="filter-tag">
+                                {getLabel('categories')}: {categories.find(c => c.id == filters.category_id)?.name || filters.category_id}
+                                <button onClick={() => handleFilterChange('category_id', null)}>✕</button>
+                            </span>
+                        )}
+                        {filters.min_price && (
+                            <span className="filter-tag">
+                                Min: {filters.min_price} DA
+                                <button onClick={() => handlePriceChange('min_price', '')}>✕</button>
+                            </span>
+                        )}
+                        {filters.max_price && (
+                            <span className="filter-tag">
+                                Max: {filters.max_price} DA
+                                <button onClick={() => handlePriceChange('max_price', '')}>✕</button>
+                            </span>
+                        )}
+                        <button className="clear-all" onClick={clearFilters}>
+                            {getLabel('clear_all') || 'Tout effacer'}
+                        </button>
+                    </div>
+                )}
+
+                {/* Results Bar */}
+                <div className="results-bar">
+                    <p className="results-count">
+                        <strong>{products.total || products.data.length}</strong> {getLabel('products_found') || 'produits trouvés'}
+                    </p>
+                </div>
 
                 {/* Product Grid */}
                 <div className="product-grid">
@@ -239,7 +306,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                                 <Star size={14} fill="#FFC107" stroke="#FFC107" />
                                 <span>{(Math.random() * (5 - 4) + 4).toFixed(1)}</span>
                             </div>
-                            <div className="seller-image bg-gray-50">
+                            <div className="seller-image bg-gray-50 dark:bg-gray-800">
                                 <img
                                     src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.svg'}
                                     alt={getTranslated(product, 'name')}
@@ -247,17 +314,17 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                                 />
                             </div>
                             <div className="seller-info">
-                                <div className="seller-brand text-xs uppercase tracking-wider text-teal-600 font-bold mb-1">
+                                <div className="seller-brand text-xs uppercase tracking-wider font-bold mb-1">
                                     {product.sub_category ? getTranslated(product.sub_category, 'name') : 'Puréva'}
                                 </div>
-                                <h3 className="seller-name text-gray-800 font-semibold line-clamp-2 min-h-[3rem]">{getTranslated(product, 'name')}</h3>
-                                <div className="seller-price mt-auto flex items-center justify-between font-bold text-lg text-gray-900">
+                                <h3 className="seller-name text-gray-800 dark:text-gray-100 font-semibold line-clamp-2 min-h-[3rem]">
+                                    {getTranslated(product, 'name')}
+                                </h3>
+                                <div className="seller-price mt-auto flex items-center justify-between font-bold text-lg text-gray-900 dark:text-gray-100">
                                     {product.price.toLocaleString()} DA
                                     <button
                                         className="add-to-cart-btn"
-                                        aria-label="Add to cart"
-                                        onClick={(e) => addToCart(e, product)}
-                                        disabled={product.stock <= 0}
+                                        aria-label="View product"
                                     >
                                         <ShoppingCart size={18} />
                                     </button>
@@ -265,36 +332,45 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                             </div>
                         </Link>
                     )) : (
-                        <div className="col-span-full py-20 text-center text-gray-500 italic">
-                            Aucun produit ne correspond à vos critères.
+                        <div className="shop-empty-state">
+                            <div className="empty-icon">🔍</div>
+                            <p>{getLabel('no_products_match') || 'Aucun produit ne correspond à vos critères.'}</p>
                         </div>
                     )}
                 </div>
 
                 {/* Pagination */}
-                {
-                    products.links && products.links.length > 3 && (
-                        <div className="pagination flex justify-center items-center gap-2 mt-12">
-                            {products.links.map((link, i) => (
-                                <Link
-                                    key={i}
-                                    href={link.url}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                    className={`px-4 py-2 rounded-lg border transition-all ${link.active ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-600 hover:border-teal-600'} ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                />
-                            ))}
-                        </div>
-                    )
-                }
-            </main >
+                {products.links && products.links.length > 3 && (
+                    <div className="pagination flex justify-center items-center gap-2 mt-12">
+                        {products.links.map((link, i) => (
+                            <Link
+                                key={i}
+                                href={link.url}
+                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                className={`px-4 py-2 rounded-xl border transition-all ${link.active ? 'bg-teal-600 text-white border-teal-600' : 'bg-white/70 text-gray-600 hover:border-[#DB8B89] hover:text-[#DB8B89] dark:bg-white/5 dark:text-gray-400'} ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            />
+                        ))}
+                    </div>
+                )}
+            </main>
 
             <Footer />
+
+            {/* Back to Top */}
+            <button
+                className={`back-to-top ${showBackToTop ? 'visible' : ''}`}
+                onClick={scrollToTop}
+                aria-label="Back to top"
+            >
+                <ChevronUp size={22} />
+            </button>
+
             <CartConfirmationModal
                 isOpen={modalOpen}
                 onClose={() => setModalOpen(false)}
                 product={addedProduct}
             />
-        </div >
+        </div>
     );
 };
 
