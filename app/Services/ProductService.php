@@ -23,9 +23,11 @@ class ProductService
                 }
             ]);
         
-        // Filtrer par catégorie
+        // Filtrer par catégorie (via la sous-catégorie)
         if ($filter->categoryId) {
-            $query->where('category_id', $filter->categoryId);
+            $query->whereHas('subCategory', function ($q) use ($filter) {
+                $q->where('category_id', $filter->categoryId);
+            });
         }
         
         // Filtrer par sous-catégorie

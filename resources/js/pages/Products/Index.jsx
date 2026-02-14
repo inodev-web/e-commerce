@@ -266,7 +266,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                         )}
                         {filters.category_id && (
                             <span className="filter-tag">
-                                {getLabel('common.categories')}: {categories.find(c => c.id == filters.category_id)?.name || filters.category_id}
+                                {getLabel('common.categories')}: {getTranslated(categories.find(c => c.id == filters.category_id), 'name') || filters.category_id}
                                 <button onClick={() => handleFilterChange('category_id', null)}><X size={14} /></button>
                             </span>
                         )}
