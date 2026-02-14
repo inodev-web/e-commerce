@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
 import { useForm, usePage, Link, router } from '@inertiajs/react';
-import { Truck, MapPin, Phone, CreditCard, ShoppingBag, Loader2, X, CheckCircle } from 'lucide-react';
+import { Truck, MapPin, Phone, CreditCard, ShoppingBag, Loader2, X, CheckCircle, Star } from 'lucide-react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { useTranslation } from 'react-i18next';
@@ -473,41 +473,52 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                             </div>
 
                             {/* Loyalty Points Section */}
-                            {auth.user && loyaltyBalance > 0 && (
+                            {auth.user && (
                                 <div className="mb-4">
-                                    <label className="flex items-center gap-2 cursor-pointer mb-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={useLoyaltyEnabled}
-                                            onChange={e => {
-                                                const checked = e.target.checked;
-                                                setUseLoyaltyEnabled(checked);
-                                                setData('use_loyalty_points', checked ? loyaltyBalance : 0);
-                                            }}
-                                            className="w-4 h-4 text-[#DB8B89] rounded focus:ring-[#DB8B89]"
-                                        />
-                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            {t('loyalty.use_points', 'Utiliser mes points')} ({loyaltyBalance.toLocaleString()} pts)
-                                        </span>
-                                    </label>
+                                    {loyaltyBalance > 0 ? (
+                                        <>
+                                            <label className="flex items-center gap-2 cursor-pointer mb-2 p-3 border border-gray-100 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={useLoyaltyEnabled}
+                                                    onChange={e => {
+                                                        const checked = e.target.checked;
+                                                        setUseLoyaltyEnabled(checked);
+                                                        setData('use_loyalty_points', checked ? loyaltyBalance : 0);
+                                                    }}
+                                                    className="w-4 h-4 text-[#DB8B89] rounded focus:ring-[#DB8B89]"
+                                                />
+                                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    {t('loyalty.use_points', 'Utiliser mes points')} ({loyaltyBalance.toLocaleString()} pts)
+                                                </span>
+                                            </label>
 
-                                    {useLoyaltyEnabled && (
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="number"
-                                                value={data.use_loyalty_points || ''}
-                                                onChange={e => handleLoyaltyPointsChange(e.target.value)}
-                                                placeholder="0"
-                                                min="0"
-                                                max={loyaltyBalance}
-                                                className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89] bg-white dark:bg-[#1a1a1a] dark:text-white border-gray-300 dark:border-gray-700"
-                                            />
+                                            {useLoyaltyEnabled && (
+                                                <div className="flex gap-2 p-1">
+                                                    <input
+                                                        type="number"
+                                                        value={data.use_loyalty_points || ''}
+                                                        onChange={e => handleLoyaltyPointsChange(e.target.value)}
+                                                        placeholder="0"
+                                                        max={loyaltyBalance}
+                                                        className="w-32 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89] bg-white dark:bg-[#1a1a1a] dark:text-white border-gray-300 dark:border-gray-700"
+                                                    />
+                                                    <div className="flex-1 flex items-center text-xs text-gray-500 dark:text-gray-400">
+                                                        <span>= {(data.use_loyalty_points * loyaltyRate).toLocaleString()} DA</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <div className="p-3 border border-dashed border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-zinc-800/30">
+                                            <div className="flex items-center gap-3 text-gray-400 dark:text-gray-500">
+                                                <Star size={18} />
+                                                <div>
+                                                    <span className="text-sm font-medium block">{t('loyalty.no_points', 'Programme de fidélité')}</span>
+                                                    <span className="text-xs">{t('loyalty.no_points_desc', 'Gagnez des points sur chaque commande !')}</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    )}
-                                    {loyaltyDiscount > 0 && (
-                                        <p className="text-xs text-green-600 mt-1">
-                                            {t('cart.discount', 'Réduction')} : -{loyaltyDiscount.toLocaleString()} DA
-                                        </p>
                                     )}
                                 </div>
                             )}

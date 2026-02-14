@@ -63,6 +63,11 @@
         'referral_generation': 'GéNéRATION...',
         'login_hero_title': 'Trouvez Vos Essentiels Santé',
         'login_hero_text': "Accédez à une large gamme de produits parapharmaceutiques de qualité. Livraison rapide et conseils d'experts.",
+        'auth.failed': 'Identifiants incorrects. Veuillez vérifier votre numéro de téléphone et votre mot de passe.',
+        'auth.password': 'Le mot de passe fourni est incorrect.',
+        'auth.throttle': 'Trop de tentatives de connexion. Veuillez réessayer dans quelques secondes.',
+        'loyalty.no_points': 'Programme de fidélité',
+        'loyalty.no_points_desc': 'Gagnez des points sur chaque commande !',
 
         // Common keys used in Products/Index.jsx
         'common.all_products': 'Tous les produits',
@@ -139,6 +144,11 @@
         'referral_generation': 'جاري التوليد...',
         'login_hero_title': 'اعثر على أساسيات صحتك',
         'login_hero_text': 'يمكنك الوصول إلى مجموعة واسعة من المنتجات شبه الصيدلانية عالية الجودة. توصيل سريع ومشورة الخبراء.',
+        'auth.failed': 'بيانات الاعتماد هذه لا تتوافق مع سجلاتنا. يرجى التحقق من رقم الهاتف وكلمة المرور.',
+        'auth.password': 'كلمة المرور المقدمة غير صحيحة.',
+        'auth.throttle': 'عدد محاولات تسجيل الدخول أكثر من المسموح به. يرجى المحاولة مرة أخرى بعد ثوانٍ.',
+        'loyalty.no_points': 'برنامج الولاء',
+        'loyalty.no_points_desc': 'اكسب نقاطاً مع كل طلبية !',
 
         // Common keys used in Products/Index.jsx
         'common.all_products': 'جميع المنتجات',

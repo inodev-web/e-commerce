@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { Mail, Lock, Eye, EyeOff, Loader2, Play, Phone, MapPin, Building, User } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2, Play, Phone, MapPin, Building, User, AlertCircle } from 'lucide-react';
 import { Link, useForm } from '@inertiajs/react';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import { getTranslated } from '@/utils/translation';
@@ -139,6 +139,15 @@ const AuthPage = ({ wilayas }) => {
                         </div>
 
                         <form onSubmit={handleSubmit} id="auth-form" className="space-y-4 lg:space-y-5 pb-8">
+                            {/* Unified Error Alert */}
+                            {errors.phone && (errors.phone.includes('records') || errors.phone.includes('Identifiants')) && (
+                                <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <AlertCircle className="text-red-400 mt-0.5 shrink-0" size={20} />
+                                    <p className="text-sm text-red-200 lg:text-red-600 font-medium">
+                                        {getLabel('auth.failed')}
+                                    </p>
+                                </div>
+                            )}
 
                             {/* CHAMPS D'INSCRIPTION */}
                             {!isLogin && (
