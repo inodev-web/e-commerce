@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { Search, Save, MapPin } from 'lucide-react';
 import { Button } from "@/Components/ui/button";
 import AdminLayout from '../../components/AdminLayout';
@@ -68,7 +68,7 @@ const AdminDelivery = ({ wilayas, theme, toggleTheme }) => {
         });
 
         if (modifiedWilayas.length === 0) {
-            alert('Aucune modification dÃ©tectÃ©e');
+            alert('Aucune modification dé©tecté©e');
             return;
         }
 

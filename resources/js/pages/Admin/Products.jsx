@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+﻿import React, { useMemo, useState } from 'react';
 import { Plus, Search, Edit, Trash2, Filter, Info, X, RefreshCw } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/Components/ui/dialog";
 import { Button } from "@/Components/ui/button";
@@ -462,7 +462,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     };
 
     const deleteProduct = (productId) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+        if (confirm('êtes-vous sûr de vouloir supprimer ce produit ?')) {
             router.delete(route('admin.products.destroy', productId));
         }
     };
@@ -541,7 +541,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     };
 
     const deleteCategory = (categoryId) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ? Cela supprimera également toutes ses sous-catégories et les produits associés.')) {
+        if (confirm('êtes-vous sûr de vouloir supprimer cette catégorie ? Cela supprimera également toutes ses sous-catégories et les produits associés.')) {
             categoryForm.delete(route('admin.categories.destroy', categoryId));
         }
     };
@@ -593,7 +593,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     };
 
     const deleteSubCategory = (subCategoryId) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cette sous-catégorie ? Cela supprimera également tous les produits associés.')) {
+        if (confirm('êtes-vous sûr de vouloir supprimer cette sous-catégorie ? Cela supprimera également tous les produits associés.')) {
             router.delete(route('admin.sub-categories.destroy', subCategoryId));
         }
     };
@@ -649,7 +649,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     };
 
     const deleteSpecification = (specificationId) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cette spécification ?')) {
+        if (confirm('êtes-vous sûr de vouloir supprimer cette spécification ?')) {
             router.delete(route('admin.specifications.destroy', specificationId));
         }
     };

@@ -1,4 +1,4 @@
-import i18n from 'i18next';
+﻿import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
@@ -89,7 +89,7 @@ const resources = {
             'checkout.contact_info': 'Informations de contact',
             'checkout.select_wilaya': 'Sélectionner une wilaya',
             'checkout.select_commune': 'Sélectionner une commune',
-            'checkout.address_placeholder': 'Quartier, N° rue, Bâtiment...',
+            'checkout.address_placeholder': 'Quartier, N° rue, Btiment...',
             'checkout.summary': 'Récapitulatif',
             'checkout.promo_placeholder': 'Entrer le code',
             'checkout.terms': 'En confirmant, vous acceptez nos conditions générales de vente.',
@@ -141,7 +141,7 @@ const resources = {
             'common.processing': 'Traitement...',
             'common.select': 'Sélectionner',
             'common.confirm': 'Confirmer',
-            'common.confirm_clear_cart': 'Êtes-vous sûr de vouloir vider votre panier ?',
+            'common.confirm_clear_cart': 'êtes-vous sûr de vouloir vider votre panier ?',
             'common.close': 'Fermer',
             'common.yes': 'Oui',
             'common.no': 'Non',
@@ -150,7 +150,7 @@ const resources = {
             'common.quality_guaranteed': 'Qualité Garantie',
             'common.copied': 'Copié dans le presse-papier',
             'common.copy': 'Copier',
-            'common.generating': 'GÉNÉRATION...',
+            'common.generating': 'GéNéRATION...',
             'common.error_fetching_communes': 'Erreur lors de la récupération des communes',
             'currency.symbol': 'DA',
 
@@ -177,7 +177,7 @@ const resources = {
             'footer.categories': 'Catégories',
             'footer.contact_us': 'Contactez-nous',
             'footer.copyright': '© 2024 Puréva. Tous droits réservés.',
-            'footer.about': 'À Propos',
+            'footer.about': 'à Propos',
             'footer.contact': 'Contact',
             'footer.faq': 'FAQ',
             'footer.shipping_policy': 'Politique de Livraison',
@@ -196,7 +196,7 @@ const resources = {
             // Admin General
             'admin.dashboard': 'Tableau de Bord',
             'admin.dashboard_title': 'Tableau de Bord',
-            'admin.system_status': 'État actuel du système',
+            'admin.system_status': 'état actuel du système',
             'admin.products': 'Produits',
             'admin.products_title': 'Gestion des Produits',
             'admin.orders': 'Commandes',
@@ -252,7 +252,7 @@ const resources = {
 
             // Admin Loyalty
             'admin.points_distributed': 'Points Distribués',
-            'admin.points_used': 'Points Échangés',
+            'admin.points_used': 'Points échangés',
             'admin.active_clients': 'Clients Actifs',
             'admin.conversion_rules': 'Règles de Conversion',
             'admin.points_earned': 'Points Gagnés',

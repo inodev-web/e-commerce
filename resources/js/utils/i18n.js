@@ -1,4 +1,4 @@
-export const dictionary = {
+﻿export const dictionary = {
     fr: {
         'login': 'Connexion',
         'register': 'S\'inscrire',
@@ -60,7 +60,7 @@ export const dictionary = {
         'referral_status': 'Statut',
         'referral_active': 'Actif',
         'referral_none': 'Vous n\'avez parrainé personne pour le moment.',
-        'referral_generation': 'GÉNÉRATION...',
+        'referral_generation': 'GéNéRATION...',
         'login_hero_title': 'Trouvez Vos Essentiels Santé',
         'login_hero_text': "Accédez à une large gamme de produits parapharmaceutiques de qualité. Livraison rapide et conseils d'experts.",
     },

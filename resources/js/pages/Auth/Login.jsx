@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, Loader2, Play, Phone, MapPin, Building, User } from 'lucide-react';
 import { Link, useForm } from '@inertiajs/react';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
@@ -263,14 +263,14 @@ const AuthPage = ({ wilayas }) => {
                                         type={showPassword ? "text" : "password"}
                                         value={data.password}
                                         onChange={(e) => setData('password', e.target.value)}
-                                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                                        placeholder="••••••••"
                                         className="w-full pl-10 px-4 py-3 border border-white/20 lg:border-gray-300 rounded-xl focus:ring-2 focus:ring-white lg:focus:ring-gray-900 focus:border-transparent outline-none transition-all bg-white/10 lg:bg-white text-white lg:text-gray-900 placeholder-gray-400 pr-10"
                                         required
                                     />
                                     <button
                                         type="button"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white lg:hover:text-gray-600 transition-colors"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white lg:hover:text-gray-600"
                                     >
                                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
@@ -278,7 +278,8 @@ const AuthPage = ({ wilayas }) => {
                                 {errors.password && <div className="text-red-400 lg:text-red-500 text-xs mt-1">{errors.password}</div>}
                             </div>
 
-                            {!isLogin && (
+                            {/* Password Confirmation (Only for register mode if we had one here, but keeping for structure) */}
+                            {false && (
                                 <div className="space-y-1.5">
                                     <label className="block text-sm font-medium text-gray-200 lg:text-gray-700">{getLabel('confirm_password')}</label>
                                     <div className="relative">
@@ -287,7 +288,7 @@ const AuthPage = ({ wilayas }) => {
                                             type="password"
                                             value={data.password_confirmation}
                                             onChange={(e) => setData('password_confirmation', e.target.value)}
-                                            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                                            placeholder="••••••••"
                                             className="w-full pl-10 px-4 py-3 border border-white/20 lg:border-gray-300 rounded-xl focus:ring-2 focus:ring-white lg:focus:ring-gray-900 focus:border-transparent outline-none transition-all bg-white/10 lg:bg-white text-white lg:text-gray-900 placeholder-gray-400"
                                             required
                                         />

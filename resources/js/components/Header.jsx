@@ -77,11 +77,11 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                 <div className="header-container" style={{ padding: '0.5rem 2rem', minHeight: 'auto', display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '2rem', fontSize: '0.85rem', fontWeight: 500 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <ShieldCheck size={16} />
-                        <span>{t('common.cash_on_delivery', 'Paiement Ã  la livraison')}</span>
+                        <span>{t('common.cash_on_delivery', 'Paiement é  la livraison')}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <CheckCircle size={16} />
-                        <span>{t('common.quality_guaranteed', 'QualitÃ© Garantie')}</span>
+                        <span>{t('common.quality_guaranteed', 'Qualité Garantie')}</span>
                     </div>
                 </div>
             </div>
@@ -90,11 +90,11 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                 <Link href="/" className="header-logo">
                     <img
                         src="/logo.png"
-                        alt="PurÃ©va Logo"
+                        alt="Puréva Logo"
                         className="logo-icon"
                         style={{ width: '40px', height: '40px', objectFit: 'contain' }}
                     />
-                    <span className="logo-text hidden sm:inline">PurÃ©va</span>
+                    <span className="logo-text hidden sm:inline">Puréva</span>
                 </Link>
 
                 {/* Search Bar (Desktop) */}
@@ -102,7 +102,7 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                     <Search className="search-icon" size={20} />
                     <input
                         type="text"
-                        placeholder={t('common.search_placeholder', 'Rechercher des produits... (EntrÃ©e)')}
+                        placeholder={t('common.search_placeholder', 'Rechercher des produits... (Entrée)')}
                         className="search-input"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -138,7 +138,7 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                                     ))}
                                 </ul>
                             ) : (
-                                <div className="p-4 text-center text-gray-500">{t('admin.no_results', 'Aucun rÃ©sultat trouvÃ©.')}</div>
+                                <div className="p-4 text-center text-gray-500">{t('admin.no_results', 'Aucun résultat trouvé.')}</div>
                             )}
                         </div>
                     )}
@@ -183,7 +183,7 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                     {auth.user && (
                         <Link href={route('logout')} method="post" as="button" className="nav-link logout-link text-red-500 hover:text-red-700">
                             <LogOut className="nav-icon" size={22} />
-                            <span>{t('nav.logout', 'DÃ©connexion')}</span>
+                            <span>{t('nav.logout', 'Déconnexion')}</span>
                         </Link>
                     )}
                 </nav>

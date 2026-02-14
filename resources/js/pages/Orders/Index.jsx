@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from '@inertiajs/react'; // Correct import
 import { Package, Clock, ChevronRight, Calculator } from 'lucide-react';
 import Header from '../../components/Header';
@@ -19,7 +19,7 @@ const Index = ({ orders }) => {
                     <div className="bg-white p-12 rounded-2xl shadow-sm text-center">
                         <Package size={64} className="mx-auto text-gray-300 mb-4" />
                         <h2 className="text-xl font-semibold text-gray-700 mb-2">Aucune commande</h2>
-                        <p className="text-gray-500 mb-6">Vous n'avez pas encore passÃ© de commande.</p>
+                        <p className="text-gray-500 mb-6">Vous n'avez pas encore passé© de commande.</p>
                         <Link href={route('products.index')} className="text-teal-600 font-bold hover:underline">
                             Commencer vos achats
                         </Link>
@@ -40,11 +40,11 @@ const Index = ({ orders }) => {
                                         <div>
                                             <p className="font-semibold text-gray-900">
                                                 {new Date(order.created_at).toLocaleDateString()}
-                                                <span className="text-gray-400 font-normal mx-2">â€¢</span>
+                                                <span className="text-gray-400 font-normal mx-2">•</span>
                                                 {order.items.length} articles
                                             </p>
                                             <p className={`text-sm font-medium ${order.status === 'En attente' ? 'text-orange-500' :
-                                                    order.status === 'LivrÃ©e' ? 'text-green-600' : 'text-gray-500'
+                                                order.status === 'Livré©e' ? 'text-green-600' : 'text-gray-500'
                                                 }`}>
                                                 {order.status}
                                             </p>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Search, MoreVertical, Ban, Gift, Eye } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { Link, router } from '@inertiajs/react';
@@ -28,7 +28,7 @@ const AdminCustomers = ({ auth, theme, toggleTheme, clients, filters }) => {
                             type="text"
                             value={search}
                             onChange={handleSearch}
-                            placeholder={t('admin.search_client_placeholder', 'Rechercher un client (nom, email, tÃ©lÃ©phone)...')}
+                            placeholder={t('admin.search_client_placeholder', 'Rechercher un client (nom, email, téléphone)...')}
                             className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#DB8B89]/20 focus:border-[#DB8B89]"
                         />
                     </div>
@@ -41,7 +41,7 @@ const AdminCustomers = ({ auth, theme, toggleTheme, clients, filters }) => {
                                 <tr>
                                     <th className="px-6 py-4">{t('admin.client', 'Client')}</th>
                                     <th className="px-6 py-4">{t('admin.total_orders', 'Total Commandes')}</th>
-                                    <th className="px-6 py-4">{t('admin.loyalty_points', 'Points FidÃ©litÃ©')}</th>
+                                    <th className="px-6 py-4">{t('admin.loyalty_points', 'Points Fidé©lité©')}</th>
                                     <th className="px-6 py-4">{t('admin.status', 'Status')}</th>
                                     <th className="px-6 py-4 text-right">{t('admin.actions', 'Actions')}</th>
                                 </tr>
@@ -75,7 +75,7 @@ const AdminCustomers = ({ auth, theme, toggleTheme, clients, filters }) => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex justify-end gap-2">
-                                                <Link href={route('admin.customers.show', client.id)} className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400" title={t('common.details', 'DÃ©tails')}>
+                                                <Link href={route('admin.customers.show', client.id)} className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400" title={t('common.details', 'Dé©tails')}>
                                                     <Eye className="w-4 h-4" />
                                                 </Link>
                                                 <button
@@ -84,7 +84,7 @@ const AdminCustomers = ({ auth, theme, toggleTheme, clients, filters }) => {
                                                         onSuccess: () => router.reload({ only: ['clients'] })
                                                     })}
                                                     className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                                                    title={client.user?.status === 'banned' ? 'DÃ©bloquer' : 'Bloquer'}
+                                                    title={client.user?.status === 'banned' ? 'Dé©bloquer' : 'Bloquer'}
                                                 >
                                                     <Ban className="w-4 h-4" />
                                                 </button>
@@ -95,7 +95,7 @@ const AdminCustomers = ({ auth, theme, toggleTheme, clients, filters }) => {
                                 {clients.data.length === 0 && (
                                     <tr>
                                         <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
-                                            {t('admin.no_clients', 'Aucun client trouvÃ©.')}
+                                            {t('admin.no_clients', 'Aucun client trouvé©.')}
                                         </td>
                                     </tr>
                                 )}

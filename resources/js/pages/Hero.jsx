@@ -1,4 +1,4 @@
-import Lottie from 'lottie-react';
+﻿import Lottie from 'lottie-react';
 import arrowData from '../assets/arrow.json';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@inertiajs/react';
@@ -20,7 +20,7 @@ const Hero = () => {
 
                 {/* Catchphrase */}
                 <p className="text-dark dark:text-white text-xl md:text-2xl lg:text-3xl font-medium tracking-tight !mb-10 max-w-3xl mx-auto opacity-90">
-                    {t('hero.tagline_start', 'Au service de votre')} <span className="text-[#DB8B89]">{t('hero.tagline_highlight', 'beautÃ© & bien Ãªtre')}</span>
+                    {t('hero.tagline_start', 'Au service de votre')} <span className="text-[#DB8B89]">{t('hero.tagline_highlight', 'beauté© & bien éªtre')}</span>
                 </p>
 
                 {/* CTA Buttons */}

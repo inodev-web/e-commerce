@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -125,12 +125,12 @@ const AdminOrderDetails = ({ auth, order }) => {
                         )}
                         {order.status === 'confirmed' && (
                             <Button onClick={() => updateStatus('shipped')} className="bg-purple-600 hover:bg-purple-700 text-white flex-1 sm:flex-none">
-                                {t('admin.mark_as_shipped', 'Marquer comme expÃ©diÃ©e')}
+                                {t('admin.mark_as_shipped', 'Marquer comme expé©dié©e')}
                             </Button>
                         )}
                         {order.status === 'shipped' && (
                             <Button onClick={() => updateStatus('delivered')} className="bg-green-600 hover:bg-green-700 text-white flex-1 sm:flex-none">
-                                {t('admin.mark_as_delivered', 'Marquer comme livrÃ©e')}
+                                {t('admin.mark_as_delivered', 'Marquer comme livré©e')}
                             </Button>
                         )}
                         {['pending', 'confirmed'].includes(order.status) && (
@@ -192,7 +192,7 @@ const AdminOrderDetails = ({ auth, order }) => {
                                 </div>
                                 {order.discount_total > 0 && (
                                     <div className="flex justify-between text-sm text-green-600">
-                                        <span>{t('cart.discount', 'RÃ©duction')}</span>
+                                        <span>{t('cart.discount', 'Ré©duction')}</span>
                                         <span>-{order.discount_total.toLocaleString()} DA</span>
                                     </div>
                                 )}
@@ -215,7 +215,7 @@ const AdminOrderDetails = ({ auth, order }) => {
                                         <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
                                     </div>
                                     <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                                        {t('status.pending', 'Commande passÃ©e')}
+                                        {t('status.pending', 'Commande passé©e')}
                                     </h4>
                                     <p className="text-xs text-gray-500 mt-1">
                                         {new Date(order.created_at).toLocaleString()}
@@ -241,7 +241,7 @@ const AdminOrderDetails = ({ auth, order }) => {
                                     </div>
                                     <div>
                                         <div className="font-medium text-gray-900 dark:text-gray-100">{order.first_name} {order.last_name}</div>
-                                        <div className="text-sm text-gray-500">{order.client?.user?.email || t('common.guest', 'InvitÃ©')}</div>
+                                        <div className="text-sm text-gray-500">{order.client?.user?.email || t('common.guest', 'Invité©')}</div>
                                     </div>
                                 </div>
                                 <div className="pt-4 border-t border-gray-100 dark:border-zinc-800 space-y-3">
@@ -292,10 +292,10 @@ const AdminOrderDetails = ({ auth, order }) => {
                             </h2>
                             <div className="p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700">
                                 <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                    {t('common.cash_on_delivery', 'Paiement Ã  la livraison (COD)')}
+                                    {t('common.cash_on_delivery', 'Paiement é  la livraison (COD)')}
                                 </div>
                                 <div className="text-xs text-gray-500 mt-1">
-                                    {t('admin.cod_hint', 'Le client paiera Ã  la rÃ©ception.')}
+                                    {t('admin.cod_hint', 'Le client paiera é  la ré©ception.')}
                                 </div>
                             </div>
                         </div>

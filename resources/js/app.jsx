@@ -1,4 +1,4 @@
-import '../css/app.css';
+﻿import '../css/app.css';
 import { Toaster } from 'sonner';
 import './bootstrap';
 import './i18n';

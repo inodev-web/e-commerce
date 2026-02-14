@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { CheckCircle, ShoppingBag, ArrowRight } from 'lucide-react';
 import Header from '../../components/Header';
@@ -68,13 +68,13 @@ const Success = ({ order, newLoyaltyBalance }) => {
                         <CheckCircle size={48} />
                     </div>
 
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Commande ConfirmÃ©e !</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Commande Confirmé©e !</h1>
                     <p className="text-gray-500 dark:text-gray-400 text-lg mb-8">
-                        Merci <span className="font-semibold text-[#DB8B89]">{order.first_name}</span>, votre commande <span className="font-mono bg-[#F8E4E0] dark:bg-[#DB8B89]/20 px-2 py-1 rounded text-[#DB8B89]">#{order.id}</span> a Ã©tÃ© enregistrÃ©e avec succÃ¨s.
+                        Merci <span className="font-semibold text-[#DB8B89]">{order.first_name}</span>, votre commande <span className="font-mono bg-[#F8E4E0] dark:bg-[#DB8B89]/20 px-2 py-1 rounded text-[#DB8B89]">#{order.id}</span> a é©té© enregistré©e avec succé¨s.
                     </p>
 
                     <div className="bg-[#FDF6F5] dark:bg-zinc-800 p-6 rounded-2xl mb-8 text-left border border-[#F3CFCB] dark:border-zinc-700">
-                        <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 border-b pb-2 border-gray-200 dark:border-zinc-700">DÃ©tails de la livraison</h3>
+                        <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 border-b pb-2 border-gray-200 dark:border-zinc-700">Dé©tails de la livraison</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
                                 <p className="text-gray-500 dark:text-gray-400">Adresse</p>
@@ -85,7 +85,7 @@ const Success = ({ order, newLoyaltyBalance }) => {
                                 <p className="text-gray-500 dark:text-gray-400">Montant Total</p>
                                 <p className="font-bold text-lg text-[#DB8B89]">{order.total_price.toLocaleString()} DA</p>
                                 <p className="text-gray-500 dark:text-gray-400 mt-2">Mode de paiement</p>
-                                <p className="font-medium text-gray-900 dark:text-gray-100">Paiement Ã  la livraison</p>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">Paiement é  la livraison</p>
                             </div>
                         </div>
                     </div>
@@ -94,10 +94,10 @@ const Success = ({ order, newLoyaltyBalance }) => {
                         <div className="bg-gradient-to-r from-[#F8E4E0] to-[#FDF6F5] dark:from-[#DB8B89]/20 dark:to-zinc-800 p-6 rounded-2xl mb-8 border border-[#F3CFCB] dark:border-zinc-700">
                             <div className="flex items-center justify-center gap-4">
                                 <div className="w-12 h-12 bg-[#DB8B89] rounded-full flex items-center justify-center">
-                                    <span className="text-white text-xl">â˜…</span>
+                                    <span className="text-white text-xl">˜…</span>
                                 </div>
                                 <div>
-                                    <p className="text-gray-600 dark:text-gray-300 text-sm">Votre nouveau solde de points fidÃ©litÃ©</p>
+                                    <p className="text-gray-600 dark:text-gray-300 text-sm">Votre nouveau solde de points fidé©lité©</p>
                                     <p className="font-bold text-2xl text-[#DB8B89]">{newLoyaltyBalance} points</p>
                                 </div>
                             </div>

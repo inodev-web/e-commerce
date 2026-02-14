@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Get translated field from a model
  * @param {Object} model - The model with translatable fields
  * @param {string} field - The field name (e.g., 'name', 'description')

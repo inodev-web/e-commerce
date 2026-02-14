@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Save, Globe, Plus, Trash2, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from "@/Components/ui/button";
 import AdminLayout from '../../components/AdminLayout';
@@ -58,18 +58,18 @@ const AdminSettings = ({ auth, pixelSettings }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         put(route('admin.settings.pixel.update'), {
-            onSuccess: () => toast.success('ParamÃ¨tres des pixels mis Ã  jour.'),
+            onSuccess: () => toast.success('Paramé¨tres des pixels mis é  jour.'),
         });
     };
 
     return (
         <AdminLayout user={auth.user}>
-            <Head title="ParamÃ¨tres des Pixels" />
+            <Head title="Paramé¨tres des Pixels" />
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Pixels de Tracking</h1>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">GÃ©rez plusieurs IDs pour Meta, Google, TikTok et Snapchat.</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Gé©rez plusieurs IDs pour Meta, Google, TikTok et Snapchat.</p>
                     </div>
                 </div>
 

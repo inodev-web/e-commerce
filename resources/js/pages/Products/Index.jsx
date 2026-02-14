@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Star, Search as SearchIcon, Sparkles, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { router, Link, usePage } from '@inertiajs/react';
@@ -118,7 +118,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
             onSuccess: () => {
                 setAddedProduct(product);
                 setModalOpen(true);
-                toast.success(getLabel('product_added_to_cart') || 'Produit ajoutÃ© au panier');
+                toast.success(getLabel('product_added_to_cart') || 'Produit ajouté© au panier');
 
                 trackEvent('AddToCart', {
                     content_name: getTranslated(product, 'name'),
@@ -157,7 +157,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                         <Dialog>
                             <DialogTrigger asChild>
                                 <button className="filter-button">
-                                    {getLabel('categories')} <span className="arrow">â–¼</span>
+                                    {getLabel('categories')} <span className="arrow">–¼</span>
                                 </button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[425px] p-6 lg:p-10">
@@ -202,7 +202,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                         <Dialog>
                             <DialogTrigger asChild>
                                 <button className="filter-button">
-                                    {getLabel('price')} <span className="arrow">â–¼</span>
+                                    {getLabel('price')} <span className="arrow">–¼</span>
                                 </button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[425px] p-10">
@@ -261,25 +261,25 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                         {filters.search && (
                             <span className="filter-tag">
                                 {getLabel('search')}: {filters.search}
-                                <button onClick={() => setSearchTerm('')}>âœ•</button>
+                                <button onClick={() => setSearchTerm('')}>œ•</button>
                             </span>
                         )}
                         {filters.category_id && (
                             <span className="filter-tag">
                                 {getLabel('categories')}: {categories.find(c => c.id == filters.category_id)?.name || filters.category_id}
-                                <button onClick={() => handleFilterChange('category_id', null)}>âœ•</button>
+                                <button onClick={() => handleFilterChange('category_id', null)}>œ•</button>
                             </span>
                         )}
                         {filters.min_price && (
                             <span className="filter-tag">
                                 Min: {filters.min_price} DA
-                                <button onClick={() => handlePriceChange('min_price', '')}>âœ•</button>
+                                <button onClick={() => handlePriceChange('min_price', '')}>œ•</button>
                             </span>
                         )}
                         {filters.max_price && (
                             <span className="filter-tag">
                                 Max: {filters.max_price} DA
-                                <button onClick={() => handlePriceChange('max_price', '')}>âœ•</button>
+                                <button onClick={() => handlePriceChange('max_price', '')}>œ•</button>
                             </span>
                         )}
                         <button className="clear-all" onClick={clearFilters}>
@@ -291,7 +291,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                 {/* Results Bar */}
                 <div className="results-bar">
                     <p className="results-count">
-                        <strong>{products.total || products.data.length}</strong> {getLabel('products_found') || 'produits trouvÃ©s'}
+                        <strong>{products.total || products.data.length}</strong> {getLabel('products_found') || 'produits trouvé©s'}
                     </p>
                 </div>
 
@@ -334,7 +334,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                     )) : (
                         <div className="shop-empty-state">
                             <div className="empty-icon">ðŸ”</div>
-                            <p>{getLabel('no_products_match') || 'Aucun produit ne correspond Ã  vos critÃ¨res.'}</p>
+                            <p>{getLabel('no_products_match') || 'Aucun produit ne correspond é  vos crité¨res.'}</p>
                         </div>
                     )}
                 </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import AdminLayout from '../../components/AdminLayout';
@@ -38,10 +38,10 @@ const AdminOrders = ({ auth, orders, filters }) => {
     const statuses = [
         { key: 'ALL', label: t('admin.all', 'Toutes') },
         { key: 'PENDING', label: t('status.pending', 'En attente') },
-        { key: 'CONFIRMED', label: t('status.confirmed', 'ConfirmÃ©e') },
-        { key: 'SHIPPED', label: t('status.shipped', 'ExpÃ©diÃ©e') },
-        { key: 'DELIVERED', label: t('status.delivered', 'LivrÃ©e') },
-        { key: 'CANCELLED', label: t('status.cancelled', 'AnnulÃ©e') },
+        { key: 'CONFIRMED', label: t('status.confirmed', 'Confirmé©e') },
+        { key: 'SHIPPED', label: t('status.shipped', 'Expé©dié©e') },
+        { key: 'DELIVERED', label: t('status.delivered', 'Livré©e') },
+        { key: 'CANCELLED', label: t('status.cancelled', 'Annulé©e') },
     ];
 
     // Status Selector Component
@@ -52,10 +52,10 @@ const AdminOrders = ({ auth, orders, filters }) => {
         const statusMap = {
             'PENDING': { label: t('status.pending', 'En Attente'), style: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
             'PROCESSING': { label: t('status.processing', 'En Traitement'), style: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
-            'CONFIRMED': { label: t('status.confirmed', 'ConfirmÃ©e'), style: 'bg-pink-100 text-pink-800 dark:bg-[#DB8B89]/20 dark:text-[#DB8B89]' },
-            'SHIPPED': { label: t('status.shipped', 'ExpÃ©diÃ©e'), style: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' },
-            'DELIVERED': { label: t('status.delivered', 'LivrÃ©e'), style: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
-            'CANCELLED': { label: t('status.cancelled', 'AnnulÃ©e'), style: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
+            'CONFIRMED': { label: t('status.confirmed', 'Confirmé©e'), style: 'bg-pink-100 text-pink-800 dark:bg-[#DB8B89]/20 dark:text-[#DB8B89]' },
+            'SHIPPED': { label: t('status.shipped', 'Expé©dié©e'), style: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' },
+            'DELIVERED': { label: t('status.delivered', 'Livré©e'), style: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+            'CANCELLED': { label: t('status.cancelled', 'Annulé©e'), style: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
         };
 
         const handleStatusChange = (e) => {
@@ -90,10 +90,10 @@ const AdminOrders = ({ auth, orders, filters }) => {
             >
                 <option value="PENDING">{t('status.pending', 'En Attente')}</option>
                 <option value="PROCESSING">{t('status.processing', 'En Traitement')}</option>
-                <option value="CONFIRMED">{t('status.confirmed', 'ConfirmÃ©e')}</option>
-                <option value="SHIPPED">{t('status.shipped', 'ExpÃ©diÃ©e')}</option>
-                <option value="DELIVERED">{t('status.delivered', 'LivrÃ©e')}</option>
-                <option value="CANCELLED">{t('status.cancelled', 'AnnulÃ©e')}</option>
+                <option value="CONFIRMED">{t('status.confirmed', 'Confirmé©e')}</option>
+                <option value="SHIPPED">{t('status.shipped', 'Expé©dié©e')}</option>
+                <option value="DELIVERED">{t('status.delivered', 'Livré©e')}</option>
+                <option value="CANCELLED">{t('status.cancelled', 'Annulé©e')}</option>
             </select>
         );
     };
@@ -144,9 +144,9 @@ const AdminOrders = ({ auth, orders, filters }) => {
                         <table className="w-full text-sm text-start">
                             <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-gray-400 font-medium">
                                 <tr>
-                                    <th className="px-4 py-4">{t('admin.order_no', 'NÂ°')}</th>
+                                    <th className="px-4 py-4">{t('admin.order_no', 'N°')}</th>
                                     <th className="px-4 py-4">{t('admin.client', 'Client')}</th>
-                                    <th className="px-4 py-4">{t('admin.phone', 'TÃ©lÃ©phone')}</th>
+                                    <th className="px-4 py-4">{t('admin.phone', 'Té©lé©phone')}</th>
                                     <th className="px-4 py-4">{t('admin.date', 'Date & Heure')}</th>
                                     <th className="px-4 py-4">{t('admin.location', 'Localisation')}</th>
                                     <th className="px-4 py-4">{t('admin.total', 'Total')}</th>
@@ -186,7 +186,7 @@ const AdminOrders = ({ auth, orders, filters }) => {
                                         </td>
                                         <td className="px-4 py-4 text-end">
                                             <div className={`flex ${isRtl ? 'justify-start' : 'justify-end'} gap-1`}>
-                                                <Link href={route('admin.orders.show', order.id)} className="p-1.5 text-gray-400 hover:text-[#DB8B89] dark:hover:text-[#DB8B89] transition-colors" title={t('common.details', 'Voir dÃ©tails')}>
+                                                <Link href={route('admin.orders.show', order.id)} className="p-1.5 text-gray-400 hover:text-[#DB8B89] dark:hover:text-[#DB8B89] transition-colors" title={t('common.details', 'Voir dé©tails')}>
                                                     <Eye className="w-4 h-4" />
                                                 </Link>
                                                 {order.status === 'PENDING' && (
@@ -207,7 +207,7 @@ const AdminOrders = ({ auth, orders, filters }) => {
                                         <td colSpan="8" className="px-4 py-12 text-center text-gray-500">
                                             <div className="flex flex-col items-center gap-2">
                                                 <ShoppingCart className="w-8 h-8 opacity-20" />
-                                                {t('admin.no_orders', 'Aucune commande trouvÃ©e.')}
+                                                {t('admin.no_orders', 'Aucune commande trouvé©e.')}
                                             </div>
                                         </td>
                                     </tr>

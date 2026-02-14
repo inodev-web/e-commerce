@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import { Share2, Users, Copy, Check } from 'lucide-react';
@@ -35,14 +35,14 @@ export default function Referral({ auth, referral_code, referrals }) {
 
                         <div className="flex justify-center items-center gap-4 mt-6">
                             <div className="bg-gray-100 px-8 py-4 rounded-xl text-2xl font-mono tracking-widest font-bold text-gray-800 border-2 border-dashed border-gray-300">
-                                {referral_code || getLabel('referral_generation', 'GÃ‰NÃ‰RATION...')}
+                                {referral_code || getLabel('referral_generation', 'Gé‰Né‰RATION...')}
                             </div>
                             <button
                                 onClick={copyToClipboard}
                                 className="bg-teal-600 hover:bg-teal-700 text-white p-4 rounded-xl transition-colors flex items-center gap-2 font-bold"
                             >
                                 {copied ? <Check size={24} /> : <Copy size={24} />}
-                                {copied ? getLabel('referral_copied', 'CopiÃ© !') : getLabel('referral_copy', 'Copier')}
+                                {copied ? getLabel('referral_copied', 'Copié© !') : getLabel('referral_copy', 'Copier')}
                             </button>
                         </div>
                     </div>
@@ -51,7 +51,7 @@ export default function Referral({ auth, referral_code, referrals }) {
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <div className="flex items-center gap-3 mb-6">
                             <Users className="text-gray-400" />
-                            <h3 className="text-lg font-bold text-gray-900">{getLabel('referral_friends', 'Vos amis parrainÃ©s')} ({referrals.length})</h3>
+                            <h3 className="text-lg font-bold text-gray-900">{getLabel('referral_friends', 'Vos amis parrainé©s')} ({referrals.length})</h3>
                         </div>
 
                         {referrals.length > 0 ? (
@@ -81,7 +81,7 @@ export default function Referral({ auth, referral_code, referrals }) {
                             </div>
                         ) : (
                             <div className="text-center py-10 text-gray-400 italic">
-                                {getLabel('referral_none', "Vous n'avez parrainÃ© personne pour le moment.")}
+                                {getLabel('referral_none', "Vous n'avez parrainé© personne pour le moment.")}
                             </div>
                         )}
                     </div>

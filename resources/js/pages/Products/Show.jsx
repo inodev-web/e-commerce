@@ -1,4 +1,4 @@
-import { router, useForm, usePage, Link } from '@inertiajs/react';
+﻿import { router, useForm, usePage, Link } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Star, ShoppingCart, Minus, Plus, ChevronLeft, Loader2, CreditCard, CheckCircle, Phone, MapPin, Truck, Building, User, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
@@ -17,7 +17,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     const { auth, communes: pageCommunes, delivery_tariffs, selected_tariff, order, newLoyaltyBalance, flash } = usePage().props;
     const communes = pageCommunes || [];
 
-    // âš¡ï¸ VUE SUCCÃˆS SPA (Si la commande vient d'Ãªtre passÃ©e)
+    // š¡ï¸ VUE SUCCéˆS SPA (Si la commande vient d'éªtre passé©e)
     if (order) {
         return (
             <div className={`checkout-page min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
@@ -27,9 +27,9 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
                             <CheckCircle size={40} />
                         </div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Commande RÃ©ussie !</h1>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Commande Ré©ussie !</h1>
                         <p className="text-gray-500 mb-8">
-                            Merci <span className="font-semibold">{order.first_name}</span>. Votre commande <span className="font-mono text-[#DB8B89]">#{order.id}</span> est confirmÃ©e.
+                            Merci <span className="font-semibold">{order.first_name}</span>. Votre commande <span className="font-mono text-[#DB8B89]">#{order.id}</span> est confirmé©e.
                         </p>
                         <div className="bg-gray-50 p-6 rounded-2xl mb-8 text-left border border-gray-100">
                             <div className="flex justify-between mb-2">
@@ -37,12 +37,12 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                 <span className="font-bold">{order.total_price.toLocaleString()} DA</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-500">Livraison Ã :</span>
+                                <span className="text-gray-500">Livraison é :</span>
                                 <span className="font-medium">{order.commune_name}, {order.wilaya_name}</span>
                             </div>
                             {newLoyaltyBalance != null && (
                                 <div className="flex justify-between mt-2 pt-2 border-t">
-                                    <span className="text-gray-500">Nouveaux points de fidÃ©litÃ©:</span>
+                                    <span className="text-gray-500">Nouveaux points de fidé©lité©:</span>
                                     <span className="font-bold text-[#DB8B89]">{newLoyaltyBalance} pts</span>
                                 </div>
                             )}
@@ -57,7 +57,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
         );
     }
 
-    // âš¡ï¸ CRITIQUE : Garder le produit en mÃ©moire mÃªme si il devient null aprÃ¨s commande
+    // š¡ï¸ CRITIQUE : Garder le produit en mé©moire méªme si il devient null apré¨s commande
     const productRef = useRef(product);
     useEffect(() => {
         if (product) {
@@ -130,7 +130,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
             onSuccess: () => {
                 setCartModalOpen(true);
                 setAddingToCart(false);
-                toast.success(t('product.added_to_cart', 'Produit ajoutÃ© au panier'));
+                toast.success(t('product.added_to_cart', 'Produit ajouté© au panier'));
 
                 // Track AddToCart event
                 trackEvent('AddToCart', {
@@ -156,10 +156,10 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
         setData(d => ({ ...d, wilaya_id: wilayaId, commune_id: '' }));
     };
 
-    // âš¡ï¸ OPTIMISATION CRITIQUE : On ne recharge QUE si la wilaya change
-    // On rÃ©cupÃ¨re les tarifs pour TOUS les modes d'un coup (Domicile & Bureau)
+    // š¡ï¸ OPTIMISATION CRITIQUE : On ne recharge QUE si la wilaya change
+    // On ré©cupé¨re les tarifs pour TOUS les modes d'un coup (Domicile & Bureau)
     useEffect(() => {
-        if (!data.wilaya_id || order) return; // Pas de rechargement si la commande est passÃ©e (SPA)
+        if (!data.wilaya_id || order) return; // Pas de rechargement si la commande est passé©e (SPA)
 
         setIsCalculatingShipping(true);
         router.get(route('products.show', currentProduct?.id || 0),
@@ -174,7 +174,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
         );
     }, [data.wilaya_id, order]);
 
-    // Mise Ã  jour locale immÃ©diate du prix quand le type change (sans requÃªte rÃ©seau)
+    // Mise é  jour locale immé©diate du prix quand le type change (sans requéªte ré©seau)
     useEffect(() => {
         if (selected_tariff && data.delivery_type) {
             const price = selected_tariff[data.delivery_type];
@@ -183,7 +183,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                 setDeliveryTypeError('');
             } else {
                 setShippingPrice(0);
-                setDeliveryTypeError(`Ce type de livraison (${data.delivery_type === 'DOMICILE' ? 'Domicile' : 'Bureau'}) n'est pas supportÃ© pour cette wilaya`);
+                setDeliveryTypeError(`Ce type de livraison (${data.delivery_type === 'DOMICILE' ? 'Domicile' : 'Bureau'}) n'est pas supporté© pour cette wilaya`);
             }
         } else if (selected_tariff === null && data.wilaya_id) {
             setDeliveryTypeError('Cette wilaya n\'est pas disponible pour la livraison');
@@ -197,7 +197,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     }, [selectedSpecValues]);
 
     const [useLoyaltyEnabled, setUseLoyaltyEnabled] = useState(false);
-    // âš¡ï¸ OPTIMISATION : Utiliser le nouveau solde si disponible (aprÃ¨s commande), sinon le solde actuel
+    // š¡ï¸ OPTIMISATION : Utiliser le nouveau solde si disponible (apré¨s commande), sinon le solde actuel
     // Correction: On s'assure que loyaltyBalance n'est jamais null si auth.user.points existe
     const pointsAvailable = auth?.user?.points ?? 0;
     const loyaltyBalance = (newLoyaltyBalance !== null && newLoyaltyBalance !== undefined) ? newLoyaltyBalance : pointsAvailable;
@@ -217,11 +217,11 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
 
     const productsTotal = (currentProduct?.price || 0) * data.quantity;
-    // âš¡ï¸ Calcul du montant maximum convertible en points (Total + Livraison - Remise Promo)
+    // š¡ï¸ Calcul du montant maximum convertible en points (Total + Livraison - Remise Promo)
     const activeShippingPrice = isFreeShipping ? 0 : shippingPrice;
     const maxReducibleAmount = Math.max(0, productsTotal + activeShippingPrice - promoDiscount);
 
-    // Calcul de la remise fidÃ©litÃ© rÃ©elle
+    // Calcul de la remise fidé©lité© ré©elle
     const potentialLoyaltyDiscount = useLoyaltyEnabled ? (data.use_loyalty_points * loyaltyRate) : 0;
     const finalLoyaltyDiscount = Math.min(potentialLoyaltyDiscount, maxReducibleAmount);
 
@@ -283,10 +283,10 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
         // Safety timeout to prevent infinite loading (30 seconds)
         const timeoutId = setTimeout(() => {
             setPlacingOrder(false);
-            toast.error(t('checkout.timeout_error', 'La requÃªte a pris trop de temps. Veuillez rÃ©essayer.'));
+            toast.error(t('checkout.timeout_error', 'La requéªte a pris trop de temps. Veuillez ré©essayer.'));
         }, 30000);
 
-        // âš¡ï¸ FIX: Utiliser router.post avec l'objet de donnÃ©es direct pour Ã©viter l'asynchronisme de setData
+        // š¡ï¸ FIX: Utiliser router.post avec l'objet de donné©es direct pour é©viter l'asynchronisme de setData
         const submissionData = {
             ...data,
             specification_values: selectedSpecValues,
@@ -336,7 +336,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
             >
                 <button onClick={() => router.visit(route('products.index'))} className="back-button">
                     <ChevronLeft size={20} />
-                    {t('nav.shop', 'Retour Ã  la boutique')}
+                    {t('nav.shop', 'Retour é  la boutique')}
                 </button>
 
                 <div className="product-content">
@@ -392,7 +392,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
                         <div className="stock-status">
                             {(selectedVariant?.stock || currentProduct?.stock || 0) > 0 ? (
-                                <span className="in-stock">âœ“ {t('product.in_stock', 'En stock')} ({selectedVariant?.stock || currentProduct?.stock || 0} {t('product.available', 'disponibles')})</span>
+                                <span className="in-stock">œ“ {t('product.in_stock', 'En stock')} ({selectedVariant?.stock || currentProduct?.stock || 0} {t('product.available', 'disponibles')})</span>
                             ) : (
                                 <span className="out-of-stock">{t('product.out_of_stock', 'En rupture de stock')}</span>
                             )
@@ -432,7 +432,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                             </div>
                                             <div className="mt-2 flex items-center gap-2">
                                                 {variant.stock > 0 ? (
-                                                    <span className="in-stock text-xs">âœ“ {t('product.in_stock', 'En stock')} ({variant.stock})</span>
+                                                    <span className="in-stock text-xs">œ“ {t('product.in_stock', 'En stock')} ({variant.stock})</span>
                                                 ) : (
                                                     <span className="out-of-stock text-xs">{t('product.out_of_stock', 'En rupture de stock')}</span>
                                                 )}
@@ -441,13 +441,13 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                     ))}
                                 </div>
                                 {!selectedVariant && (
-                                    <p className="mt-2 text-xs text-amber-600">* {t('product.select_variant', 'Veuillez sÃ©lectionner une variante')}</p>
+                                    <p className="mt-2 text-xs text-amber-600">* {t('product.select_variant', 'Veuillez sé©lectionner une variante')}</p>
                                 )}
                             </div>
                         )}
 
                         <div className="quantity-section">
-                            <label>{t('cart.quantity', 'QuantitÃ©')}:</label>
+                            <label>{t('cart.quantity', 'Quantité©')}:</label>
                             <div className="quantity-selector">
                                 <button onClick={() => setData('quantity', Math.max(1, data.quantity - 1))} className="qty-btn">
                                     <Minus size={16} />
@@ -462,7 +462,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         {/* Specification Values Selector */}
                         {currentProduct?.specification_values && currentProduct.specification_values.length > 0 && (
                             <div className="mt-6">
-                                <h3 className="text-sm font-medium text-gray-900 mb-3">{t('product.specifications', 'SpÃ©cifications')}</h3>
+                                <h3 className="text-sm font-medium text-gray-900 mb-3">{t('product.specifications', 'Spé©cifications')}</h3>
                                 <div className="space-y-4">
                                     {(() => {
                                         const specsBySpecId = {};
@@ -530,7 +530,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                             <form onSubmit={handlePlaceOrder} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-6">
                                 <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
                                     <ShoppingBag size={22} className="text-[#DB8B89]" />
-                                    {t('checkout.title', 'ComplÃ©tez votre commande')}
+                                    {t('checkout.title', 'Complé©tez votre commande')}
                                 </h2>
 
                                 {/* Contact Person Section */}
@@ -540,7 +540,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.first_name', 'PrÃ©nom')}</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.first_name', 'Pré©nom')}</label>
                                             <input
                                                 type="text"
                                                 value={data.first_name}
@@ -562,7 +562,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                             {errors.last_name && <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>}
                                         </div>
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.phone', 'TÃ©lÃ©phone')}</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.phone', 'Té©lé©phone')}</label>
                                             <div className="relative">
                                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                                 <input
@@ -596,7 +596,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                     className={`w-full pl-10 border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:[color-scheme:dark] ${errors.wilaya_id ? 'border-red-500' : 'border-gray-300'}`}
                                                     required
                                                 >
-                                                    <option value="" className="dark:bg-gray-700 dark:text-white">{t('common.select', 'SÃ©lectionner')}</option>
+                                                    <option value="" className="dark:bg-gray-700 dark:text-white">{t('common.select', 'Sé©lectionner')}</option>
                                                     {wilayas.map(w => (
                                                         <option key={w.id} value={w.id} className="dark:bg-gray-700 dark:text-white">{w.code} - {isRTL() || i18n.language === 'ar' ? (w.name_ar || w.name) : w.name}</option>
                                                     ))}
@@ -613,7 +613,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                 required
                                                 disabled={!data.wilaya_id}
                                             >
-                                                <option value="" className="dark:bg-gray-700 dark:text-white">{t('common.select', 'SÃ©lectionner')}</option>
+                                                <option value="" className="dark:bg-gray-700 dark:text-white">{t('common.select', 'Sé©lectionner')}</option>
                                                 {communes.map(c => (
                                                     <option key={c.id} value={c.id} className="dark:bg-gray-700 dark:text-white">{isRTL() || i18n.language === 'ar' ? (c.name_ar || c.name) : c.name}</option>
                                                 ))}
@@ -622,15 +622,17 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                         </div>
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                {t('checkout.address_placeholder', 'Adresse complÃ¨te (optionnelle)')}
+                                                {t('checkout.address_placeholder', 'Adresse complé¨te (optionnelle)')}
                                             </label>
-                                            <textarea
+                                            <input
+                                                type="text"
+                                                id="address"
+                                                name="address"
                                                 value={data.address}
-                                                onChange={e => setData('address', e.target.value)}
-                                                rows="2"
-                                                className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
-                                                placeholder="Quartier, NÂ° rue, BÃ¢timent..."
-                                            ></textarea>
+                                                onChange={(e) => setData('address', e.target.value)}
+                                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                                placeholder="Quartier, N° rue, Bé¢timent..."
+                                            />
                                             {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
                                         </div>
 
@@ -638,7 +640,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{t('checkout.delivery_type', 'Type de livraison')}</label>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {[
-                                                    { value: 'DOMICILE', label: t('checkout.home_delivery', 'Ã€ Domicile'), icon: <MapPin size={18} /> },
+                                                    { value: 'DOMICILE', label: t('checkout.home_delivery', 'é€ Domicile'), icon: <MapPin size={18} /> },
                                                     { value: 'BUREAU', label: t('checkout.office_delivery', 'Bureau / Point Relais'), icon: <Building size={18} /> }
                                                 ].map(type => {
                                                     const isSupported = selected_tariff && selected_tariff[type.value] !== undefined;
@@ -709,7 +711,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                 </span>
                                             </div>
                                             <div className="summary-row total flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 mt-2 pt-2 text-lg dark:text-white">
-                                                <span>{t('cart.total', 'Total Ã  payer')}</span>
+                                                <span>{t('cart.total', 'Total é  payer')}</span>
                                                 <span>{finalTotal.toLocaleString()} {t('currency.symbol', 'DA')}</span>
                                             </div>
 
@@ -791,7 +793,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                                     className="px-4 py-2 bg-[#DB8B89] text-white rounded-lg text-sm font-medium hover:bg-[#C07573] disabled:opacity-50"
                                                                 >
                                                                     {isValidatingPromo
-                                                                        ? t('common.loading', 'VÃ©rification...')
+                                                                        ? t('common.loading', 'Vé©rification...')
                                                                         : t('common.apply', 'Appliquer')}
                                                                 </button>
                                                             </div>
@@ -832,7 +834,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         <div className="product-tabs mt-8">
                             <div className="tab-headers border-b dark:border-gray-700 flex gap-6">
                                 <button className={`pb-2 ${activeTab === 'description' ? 'border-b-2 border-[#DB8B89] font-bold text-[#DB8B89]' : ''}`} onClick={() => setActiveTab('description')}>{t('product.description', 'Description')}</button>
-                                <button className={`pb-2 ${activeTab === 'features' ? 'border-b-2 border-[#DB8B89] font-bold text-[#DB8B89]' : ''}`} onClick={() => setActiveTab('features')}>{t('product.specifications', 'SpÃ©cifications')}</button>
+                                <button className={`pb-2 ${activeTab === 'features' ? 'border-b-2 border-[#DB8B89] font-bold text-[#DB8B89]' : ''}`} onClick={() => setActiveTab('features')}>{t('product.specifications', 'Spé©cifications')}</button>
                             </div>
                             <div className="tab-content py-4">
                                 {activeTab === 'description' && <p>{currentProduct ? getTranslated(currentProduct, 'description') : ''}</p>}

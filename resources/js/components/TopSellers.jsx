@@ -1,4 +1,4 @@
-import { Star, ShoppingCart } from 'lucide-react';
+﻿import { Star, ShoppingCart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';

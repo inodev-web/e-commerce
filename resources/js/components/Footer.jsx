@@ -23,7 +23,7 @@ const Footer = () => {
                         <span className="logo-text">Puréva</span>
                     </div>
                     <p className="footer-description">
-                        {t('footer.description', 'Votre partenaire de confiance pour tous vos besoins mÃ©dicaux et cosmÃ©tiques. QualitÃ© et soin livrÃ©s Ã  votre porte.')}
+                        {t('footer.description', 'Votre partenaire de confiance pour tous vos besoins médicaux et cosmétiques. Qualité et soin livrés é  votre porte.')}
                     </p>
                 </div>
 
@@ -31,7 +31,7 @@ const Footer = () => {
                 <div className="footer-section">
                     <h3 className="footer-heading">{t('footer.quick_links', 'Liens Rapides')}</h3>
                     <ul className="footer-links">
-                        <li><a href="#">{t('footer.about', 'Ã€ Propos')}</a></li>
+                        <li><a href="#">{t('footer.about', 'é€ Propos')}</a></li>
                         <li><a href="#">{t('footer.contact', 'Contact')}</a></li>
                         <li><a href="#">{t('footer.faq', 'FAQ')}</a></li>
                         <li><a href="#">{t('footer.shipping_policy', 'Politique de Livraison')}</a></li>
@@ -40,11 +40,11 @@ const Footer = () => {
 
                 {/* Categories */}
                 <div className="footer-section">
-                    <h3 className="footer-heading">{t('footer.categories', 'CatÃ©gories')}</h3>
+                    <h3 className="footer-heading">{t('footer.categories', 'Catégories')}</h3>
                     <ul className="footer-links">
                         <li><a href="#">{t('footer.skin_care', 'Soins de la Peau')}</a></li>
                         <li><a href="#">{t('footer.hair_care', 'Soins Capillaires')}</a></li>
-                        <li><a href="#">{t('footer.baby_care', 'Soins BÃ©bÃ©')}</a></li>
+                        <li><a href="#">{t('footer.baby_care', 'Soins Bébé')}</a></li>
                         <li><a href="#">{t('footer.vitamins', 'Vitamines')}</a></li>
                     </ul>
                 </div>
@@ -55,7 +55,7 @@ const Footer = () => {
                     <ul className="footer-links">
                         <li><a href="#">support@pureva.dz</a></li>
                         <li><a href="#">+213 555 123 456</a></li>
-                        <li><a href="#">Alger, AlgÃ©rie</a></li>
+                        <li><a href="#">Alger, Algérie</a></li>
                     </ul>
                 </div>
             </div>

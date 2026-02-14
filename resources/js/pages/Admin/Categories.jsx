@@ -67,13 +67,13 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
     };
 
     const handleDeleteCategory = (categoryId) => {
-        if (confirm('ÃŠtes-vous sÃ»r de vouloir supprimer cette catÃ©gorie ? Cela supprimera Ã©galement toutes ses sous-catÃ©gories et les produits associÃ©s.')) {
+        if (confirm('éŠtes-vous sé»r de vouloir supprimer cette catégorie ? Cela supprimera également toutes ses sous-catégories et les produits associés.')) {
             categoryForm.delete(route('admin.categories.destroy', categoryId));
         }
     };
 
     const handleDeleteSubCategory = (subCategoryId) => {
-        if (confirm('ÃŠtes-vous sÃ»r de vouloir supprimer cette sous-catÃ©gorie ? Cela supprimera Ã©galement les produits associÃ©s.')) {
+        if (confirm('éŠtes-vous sé»r de vouloir supprimer cette sous-catégorie ? Cela supprimera également les produits associés.')) {
             subCategoryForm.delete(route('admin.sub-categories.destroy', subCategoryId));
         }
     };
@@ -82,13 +82,13 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
         <AdminLayout theme={theme} toggleTheme={toggleTheme}>
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">CatÃ©gories</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Catégories</h1>
                     <Button
                         onClick={() => setIsAddCategoryOpen(true)}
                         className="bg-[#DB8B89] text-white hover:bg-[#C07573]"
                     >
                         <Plus className="w-4 h-4 mr-2" />
-                        Ajouter une catÃ©gorie
+                        Ajouter une catégorie
                     </Button>
                 </div>
 
@@ -99,7 +99,7 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                             <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-gray-400 font-medium border-b border-gray-200 dark:border-zinc-800">
                                 <tr>
                                     <th className="px-6 py-4">Nom</th>
-                                    <th className="px-6 py-4">Sous-catÃ©gories</th>
+                                    <th className="px-6 py-4">Sous-catégories</th>
                                     <th className="px-6 py-4">Statut</th>
                                     <th className="px-6 py-4 text-right">Actions</th>
                                 </tr>
@@ -154,7 +154,7 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                                         }}
                                                         className="px-3 py-1.5 text-xs font-medium text-[#DB8B89] hover:bg-pink-50 dark:hover:bg-pink-900/10 rounded-md transition-colors"
                                                     >
-                                                        + Sous-catÃ©gorie
+                                                        + Sous-catégorie
                                                     </button>
                                                     <button className="p-2 text-gray-400 hover:text-[#DB8B89] dark:hover:text-[#DB8B89] transition-colors">
                                                         <Edit className="w-4 h-4" />
@@ -173,7 +173,7 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                             <tr key={subCategory.id} className="bg-gray-50/50 dark:bg-zinc-800/20">
                                                 <td className="px-6 py-3 pl-16">
                                                     <span className="text-sm text-gray-600 dark:text-gray-400">
-                                                        â†’ {getTranslated(subCategory, 'name')}
+                                                        †’ {getTranslated(subCategory, 'name')}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-3 text-gray-400 text-sm">-</td>
@@ -211,18 +211,18 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                 <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
                     <DialogContent className="sm:max-w-[500px]">
                         <DialogHeader>
-                            <DialogTitle>Ajouter une catÃ©gorie</DialogTitle>
+                            <DialogTitle>Ajouter une catégorie</DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleAddCategory}>
                             <div className="grid gap-4 py-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Nom de la catÃ©gorie</label>
+                                    <label className="text-sm font-medium">Nom de la catégorie</label>
                                     <input
                                         type="text"
                                         value={categoryForm.data.name}
                                         onChange={e => categoryForm.setData('name', e.target.value)}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
-                                        placeholder="Ex: VÃªtements"
+                                        placeholder="Ex: Vêtements"
                                         required
                                     />
                                 </div>
@@ -268,12 +268,12 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                 <Dialog open={isAddSubCategoryOpen} onOpenChange={setIsAddSubCategoryOpen}>
                     <DialogContent className="sm:max-w-[500px]">
                         <DialogHeader>
-                            <DialogTitle>Ajouter une sous-catÃ©gorie Ã  "{selectedCategory ? getTranslated(selectedCategory, 'name') : ''}"</DialogTitle>
+                            <DialogTitle>Ajouter une sous-catégorie é  "{selectedCategory ? getTranslated(selectedCategory, 'name') : ''}"</DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleAddSubCategory}>
                             <div className="grid gap-4 py-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Nom de la sous-catÃ©gorie</label>
+                                    <label className="text-sm font-medium">Nom de la sous-catégorie</label>
                                     <input
                                         type="text"
                                         value={subCategoryForm.data.name}

@@ -68,8 +68,8 @@ const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleThem
         { name: t('admin.orders', 'Commandes'), path: route('admin.orders.index'), icon: ShoppingCart },
         { name: t('admin.delivery', 'Livraison'), path: route('admin.delivery.index'), icon: Truck },
         { name: t('admin.customers', 'Clients'), path: route('admin.customers.index'), icon: Users },
-        { name: t('admin.loyalty_promos', 'FidÃ©litÃ© & Promos'), path: route('admin.loyalty.index'), icon: Gift },
-        { name: t('admin.settings', 'ParamÃ¨tres'), path: route('admin.settings.pixel'), icon: Settings },
+        { name: t('admin.loyalty_promos', 'Fidélité & Promos'), path: route('admin.loyalty.index'), icon: Gift },
+        { name: t('admin.settings', 'Paramé¨tres'), path: route('admin.settings.pixel'), icon: Settings },
     ];
 
     return (
@@ -116,11 +116,11 @@ const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleThem
                 <div className="absolute bottom-0 w-full p-4 border-t border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
                     <button
                         onClick={() => router.post(route('logout'))}
-                        title={isCollapsed ? t('nav.logout', 'DÃ©connexion') : ""}
+                        title={isCollapsed ? t('nav.logout', 'Déconnexion') : ""}
                         className={`flex items-center gap-3 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all ${isCollapsed ? "justify-center px-0 w-12 mx-auto" : "px-4 w-full"}`}
                     >
                         <LogOut size={18} className="shrink-0" />
-                        {!isCollapsed && <span>{t('nav.logout', 'DÃ©connexion')}</span>}
+                        {!isCollapsed && <span>{t('nav.logout', 'Déconnexion')}</span>}
                     </button>
                 </div>
             </aside>
@@ -141,7 +141,7 @@ const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleThem
                         <button
                             onClick={toggleCollapse}
                             className="hidden lg:flex p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors border border-gray-100 dark:border-zinc-800"
-                            title={isCollapsed ? "DÃ©velopper" : "RÃ©duire"}
+                            title={isCollapsed ? "Développer" : "Réduire"}
                         >
                             <Menu size={20} className="text-gray-500" />
                         </button>

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Analytics utility to track events across different platforms (Facebook, TikTok, Google)
  * 
  * @param {string} eventName - The name of the event (e.g., 'AddToCart', 'Purchase')
