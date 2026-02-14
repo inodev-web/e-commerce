@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Search, Save, MapPin } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { Button } from "@/Components/ui/button";
 import AdminLayout from '../../components/AdminLayout';
 import { router } from '@inertiajs/react';
 import { useForm } from '@inertiajs/react';

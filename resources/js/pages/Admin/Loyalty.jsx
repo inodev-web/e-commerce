@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Save, Gift, Tag, Zap, TrendingUp, ShieldAlert, Plus, Trash2, Edit, Check, X, Search, Coins, Users } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/Components/ui/button";
+import { Badge } from "@/Components/ui/badge";
 import AdminLayout from '../../components/AdminLayout';
 import { Head, useForm, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +11,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogFooter,
-} from "@/components/ui/dialog";
+} from "@/Components/ui/dialog";
 
 const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
     const { t } = useTranslation();

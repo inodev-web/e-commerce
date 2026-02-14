@@ -15,7 +15,7 @@ import {
     Package
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
-import { Button } from "@/components/ui/button";
+import { Button } from "@/Components/ui/button";
 import { getTranslated } from '@/utils/translation';
 
 const AdminOrderDetails = ({ auth, order }) => {

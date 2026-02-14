@@ -8,7 +8,7 @@ import {
     CarouselItem,
     CarouselNext,
     CarouselPrevious,
-} from "@/components/ui/carousel"
+} from "@/Components/ui/carousel"
 
 const CategorySection = ({ categories: propCategories }) => {
     const { t } = useTranslation();

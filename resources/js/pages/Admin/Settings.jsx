@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Save, Globe, Plus, Trash2, CheckCircle2, XCircle } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { Button } from "@/Components/ui/button";
 import AdminLayout from '../../components/AdminLayout';
 import { Head, useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';

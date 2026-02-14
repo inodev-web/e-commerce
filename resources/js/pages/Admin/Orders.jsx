@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import AdminLayout from '../../components/AdminLayout';
-import { Button } from "@/components/ui/button";
+import { Button } from "@/Components/ui/button";
 import { Search, Eye, Check, Filter, ShoppingCart } from 'lucide-react';
 
 const AdminOrders = ({ auth, orders, filters }) => {
