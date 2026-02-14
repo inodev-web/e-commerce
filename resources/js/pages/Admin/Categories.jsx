@@ -123,7 +123,7 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                                         )}
                                                     </button>
                                                     {category.image_path && (
-                                                        <div className="w-10 h-10 rounded-md overflow-hidden border border-gray-200 dark:border-zinc-700">
+                                                        <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 dark:border-zinc-700 shadow-sm flex-shrink-0 transition-transform hover:scale-110">
                                                             <img
                                                                 src={`/storage/${category.image_path}`}
                                                                 alt={getTranslated(category, 'name')}

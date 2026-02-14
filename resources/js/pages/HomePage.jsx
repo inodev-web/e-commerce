@@ -52,11 +52,11 @@ const HomePage = ({ featuredProducts, topSellers, categories, theme, toggleTheme
                                             <Star size={14} fill="#FFC107" stroke="#FFC107" />
                                             <span>{(Math.random() * (5 - 4) + 4).toFixed(1)}</span>
                                         </div>
-                                        <div className="seller-image bg-gray-50">
+                                        <div className="seller-image aspect-square w-full bg-gray-50 overflow-hidden">
                                             <img
                                                 src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.svg'}
                                                 alt={getTranslated(product, 'name')}
-                                                className="seller-image-img object-cover"
+                                                className="seller-image-img w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                                             />
                                         </div>
                                         <div className="seller-info">

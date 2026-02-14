@@ -82,7 +82,7 @@ class ProductController extends Controller
             ->map(function($product) {
                 return [
                     'id' => $product->id,
-                    'name' => $product->name,
+                    'name' => $product->getTranslation('name', app()->getLocale()),
                     'price' => $product->price,
                     'formatted_price' => number_format($product->price, 0, ',', ' ') . ' DA',
                     'image' => $product->images->first() ? '/storage/' . $product->images->first()->image_path : '/placeholder.svg',

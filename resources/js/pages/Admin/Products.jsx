@@ -795,6 +795,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                 <table className="w-full text-sm text-left">
                                     <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-gray-400 font-medium border-b border-gray-200 dark:border-zinc-800">
                                         <tr>
+                                            <th className="px-6 py-4 w-16"></th>
                                             <th className="px-6 py-4">{t('admin.product_name', 'Nom du produit')}</th>
                                             <th className="px-6 py-4">{t('admin.category', 'Catégorie')}</th>
                                             <th className="px-6 py-4">{t('admin.price', 'Prix')}</th>
@@ -806,6 +807,15 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
                                         {products?.data?.length ? products.data.map((product) => (
                                             <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800 shadow-sm transition-transform hover:scale-105">
+                                                        <img
+                                                            src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.svg'}
+                                                            alt={getTranslated(product, 'name')}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                </td>
                                                 <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">{getTranslated(product, 'name')}</td>
                                                 <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
                                                     {getTranslated(product.sub_category?.category, 'name') || '—'}
@@ -836,7 +846,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                             </tr>
                                         )) : (
                                             <tr>
-                                                <td colSpan="6" className="px-6 py-10 text-center text-gray-500">
+                                                <td colSpan="7" className="px-6 py-10 text-center text-gray-500">
                                                     {t('admin.no_products_found', 'Aucun produit trouvé.')}
                                                 </td>
                                             </tr>
@@ -897,6 +907,13 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                             >
                                                                 {expandedCategories.has(category.id) ? '?' : '?'}
                                                             </button>
+                                                            <div className="w-10 h-10 rounded-md overflow-hidden border border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800 shadow-sm flex-shrink-0">
+                                                                <img
+                                                                    src={category.image_path ? `/storage/${category.image_path}` : '/placeholder.svg'}
+                                                                    alt={getTranslated(category, 'name')}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            </div>
                                                             <span className="font-medium text-gray-900 dark:text-gray-100">{getTranslated(category, 'name')}</span>
                                                         </div>
                                                     </td>

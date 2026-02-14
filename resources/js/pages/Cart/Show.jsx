@@ -86,11 +86,11 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
 
                                 return (
                                     <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm flex gap-4 items-center">
-                                        <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
+                                        <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden aspect-square">
                                             <img
                                                 src={displayImage}
                                                 alt={getTranslated(item.product, 'name')}
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-cover transition-transform hover:scale-110 duration-500"
                                             />
                                         </div>
                                         <div className="flex-grow">

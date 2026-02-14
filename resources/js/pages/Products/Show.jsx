@@ -342,17 +342,20 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                 <div className="product-content">
                     {/* Image Gallery */}
                     <div className="product-gallery">
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="main-image-container"
-                        >
-                            <img
-                                src={currentProduct?.images && currentProduct.images.length > 0 ? `/storage/${currentProduct.images[selectedImage].image_path}` : '/placeholder.svg'}
-                                alt={currentProduct ? getTranslated(currentProduct, 'name') : ''}
-                                className="main-product-image object-contain"
-                            />
-                        </motion.div>
+                        <div className="main-image-container relative overflow-hidden">
+                            <AnimatePresence mode="wait">
+                                <motion.img
+                                    key={selectedImage}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.3 }}
+                                    src={currentProduct?.images && currentProduct.images.length > 0 ? `/storage/${currentProduct.images[selectedImage].image_path}` : '/placeholder.svg'}
+                                    alt={currentProduct ? getTranslated(currentProduct, 'name') : ''}
+                                    className="main-product-image object-contain w-full h-full"
+                                />
+                            </AnimatePresence>
+                        </div>
 
                         <div className="thumbnail-container">
                             {currentProduct?.images && currentProduct.images.map((img, index) => (

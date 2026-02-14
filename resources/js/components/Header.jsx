@@ -38,6 +38,7 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
     const [searchResults, setSearchResults] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -47,7 +48,7 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                     .then(res => res.json())
                     .then(data => {
                         setSearchResults(data);
-                        setShowDropdown(true);
+                        if (isFocused) setShowDropdown(true);
                         setIsLoading(false);
                     })
                     .catch(() => {
@@ -58,10 +59,10 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                 setSearchResults([]);
                 setShowDropdown(false);
             }
-        }, 500);
+        }, 300);
 
         return () => clearTimeout(timer);
-    }, [searchQuery]);
+    }, [searchQuery, isFocused]);
 
     const handleSearch = (e) => {
         if (e.key === 'Enter' && searchQuery.trim()) {
@@ -107,13 +108,22 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={handleSearch}
-                        onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                        onFocus={() => searchQuery.length >= 2 && setShowDropdown(true)}
+                        onFocus={() => {
+                            setIsFocused(true);
+                            if (searchQuery.length >= 2) setShowDropdown(true);
+                        }}
+                        onBlur={() => {
+                            // Delay blur to allow clicks on dropdown
+                            setTimeout(() => {
+                                setIsFocused(false);
+                                setShowDropdown(false);
+                            }, 200);
+                        }}
                     />
 
                     {/* Search Results Dropdown */}
                     {showDropdown && (
-                        <div className="search-dropdown absolute top-full left-0 w-full bg-white dark:bg-zinc-900 shadow-xl rounded-xl border border-gray-100 dark:border-zinc-800 mt-2 max-h-96 overflow-y-auto z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="absolute top-full left-0 w-full bg-white dark:bg-zinc-900 shadow-2xl rounded-xl border border-gray-200 dark:border-zinc-800 mt-2 max-h-96 overflow-y-auto z-[999]">
                             {isLoading ? (
                                 <div className="p-4 text-center text-gray-400">
                                     <div className="flex items-center justify-center gap-2">
