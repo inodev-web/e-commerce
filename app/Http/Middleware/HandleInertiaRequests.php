@@ -36,16 +36,6 @@ class HandleInertiaRequests extends Middleware
         
         if ($user && $user->client) {
             $points = app(\App\Services\LoyaltyService::class)->getBalance($user->client->id);
-            \Log::info('HandleInertiaRequests - User points loaded', [
-                'user_id' => $user->id,
-                'client_id' => $user->client->id,
-                'points' => $points,
-            ]);
-        } else {
-            \Log::info('HandleInertiaRequests - No user or client', [
-                'has_user' => !is_null($user),
-                'has_client' => $user?->client ? true : false,
-            ]);
         }
         
         return [
@@ -59,6 +49,7 @@ class HandleInertiaRequests extends Middleware
                     'last_name' => $user->client?->last_name,
                     'full_name' => $user->client ? ($user->client->first_name . ' ' . $user->client->last_name) : 'Utilisateur',
                     'phone' => $user->phone,
+                    'role' => $user->role,
                     'roles' => $user->getRoleNames(),
                     'status' => $user->status,
                     'points' => $points,

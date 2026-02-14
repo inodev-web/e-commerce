@@ -157,7 +157,7 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                     <LanguageSwitcher />
 
                     {/* Admin Dashboard Link */}
-                    {auth.user && auth.user.roles && auth.user.roles.includes('admin') && (
+                    {auth.user && auth.user.role === 'admin' && (
                         <Link href={route('admin.dashboard')} className="nav-link text-teal-600 font-bold">
                             <ShieldCheck className="nav-icon" size={22} />
                             <span>{t('nav.dashboard', 'Tableau de bord')}</span>
@@ -165,7 +165,7 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                     )}
 
                     {/* Client Links (Profile/Cart) - Hide for Admin */}
-                    {(!auth.user || !auth.user.roles || !auth.user.roles.includes('admin')) && (
+                    {(!auth.user || auth.user.role !== 'admin') && (
                         <>
                             <Link href={auth.user ? route('profile.edit') : route('auth')} className="nav-link">
                                 <User className="nav-icon" size={22} />

@@ -44,11 +44,11 @@ class AuthenticatedSessionController extends Controller
         $user = Auth::user();
 
         // Sync Spatie role if missing (Self-healing permissions)
-        if ($user->role === 'admin' && ! $user->hasRole('admin')) {
+        if (strtolower($user->role) === 'admin' && ! $user->hasRole('admin')) {
             $user->assignRole('admin');
         }
 
-        if ($user->role === 'admin') {
+        if (strtolower($user->role) === 'admin') {
             return redirect()->route('admin.dashboard');
         }
 

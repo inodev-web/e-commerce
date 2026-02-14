@@ -13,14 +13,14 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        $phone = '0663890338';
+        $phone = '0540225128';
         
         // Créer l'admin s'il n'existe pas déjà
         if (!User::where('phone', $phone)->exists()) {
             try {
                 $admin = User::create([
                     'phone' => $phone,
-                    'password' => Hash::make('0663890338'),
+                    'password' => Hash::make('password'),
                     'role' => 'admin',
                     'status' => 'active',
                 ]);

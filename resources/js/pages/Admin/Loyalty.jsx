@@ -217,7 +217,7 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex justify-between items-center">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('admin.active_promos', 'Codes Promotionnels')}</h3>
-                <Button onClick={openPromoCreate} className="bg-[#DB8B89] text-white hover:bg-[#C07573] shadow-md hover:shadow-lg transition-all rounded-xl">
+                <Button onClick={openPromoCreate} className="bg-[#DB8B89] hover:bg-[#C07573] text-white">
                     <Plus className="w-4 h-4 mr-2" />
                     {t('admin.new_promo', 'Nouveau Code')}
                 </Button>
@@ -440,7 +440,7 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
                             onChange={e => setAdjustData('description', e.target.value)}
                             rows="3"
                             className="w-full p-4 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-[#DB8B89]/20 transition-all text-sm resize-none"
-                            placeholder={t('admin.search_client_placeholder', 'Rechercher un client (nom, email, téléphone)...')}
+                            placeholder={t('admin.reason_placeholder', 'Motif de l\'ajustement...')}
                             required
                         />
                         {adjustErrors.description && <p className="text-red-500 text-[10px] mt-1 font-bold">{adjustErrors.description}</p>}

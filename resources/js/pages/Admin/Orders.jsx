@@ -105,7 +105,7 @@ const AdminOrders = ({ auth, orders, filters }) => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">{t('admin.orders_title', 'Commandes')}</h1>
                     <div className="flex gap-2">
-                        <Button variant="outline" className="dark:bg-zinc-900 dark:text-gray-100">{t('admin.export_csv', 'Export CSV')}</Button>
+                        {/* Export CSV removed */}
                     </div>
                 </div>
 
@@ -147,7 +147,7 @@ const AdminOrders = ({ auth, orders, filters }) => {
                                     <th className="px-4 py-4">{t('admin.order_no', 'N°')}</th>
                                     <th className="px-4 py-4">{t('admin.customer', 'Client')}</th>
                                     <th className="px-4 py-4">{t('admin.phone', 'Téléphone')}</th>
-                                    <th className="px-4 py-4">{t('admin.date', 'Date & Heure')}</th>
+                                    <th className="px-4 py-4">{t('admin.date_time', 'Date & Heure')}</th>
                                     <th className="px-4 py-4">{t('admin.location', 'Localisation')}</th>
                                     <th className="px-4 py-4">{t('admin.total', 'Total')}</th>
                                     <th className="px-4 py-4">{t('admin.status', 'Statut')}</th>

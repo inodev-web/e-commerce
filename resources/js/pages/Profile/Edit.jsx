@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { usePage, useForm, Head, router, Link } from '@inertiajs/react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import { getLocalizedName } from '@/utils/localization';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 

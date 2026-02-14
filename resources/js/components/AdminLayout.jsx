@@ -83,10 +83,8 @@ const AdminLayout = ({ children, theme: propsTheme, toggleTheme: propsToggleThem
             >
                 <div className={`flex items-center justify-between h-16 border-b border-gray-200 dark:border-zinc-800 transition-all duration-300 ${isCollapsed ? "px-4" : "px-6"}`}>
                     <Link href={route('admin.dashboard')} className="flex items-center gap-2 font-bold text-xl tracking-tight overflow-hidden whitespace-nowrap">
-                        <div className="w-8 h-8 rounded shrink-0 bg-[#DB8B89] flex items-center justify-center text-white font-serif">
-                            A
-                        </div>
-                        {!isCollapsed && <span className="text-[#DB8B89]">Admin</span>}
+                        <img src="/logo.png" alt="Pureva Pharma" className="w-8 h-8 rounded shrink-0 object-contain" />
+                        {!isCollapsed && <span className="text-[#DB8B89]">Pureva Pharma</span>}
                     </Link>
                     <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-1 rounded-md hover:bg-pink-50 dark:hover:bg-pink-900/10">
                         <X size={20} />

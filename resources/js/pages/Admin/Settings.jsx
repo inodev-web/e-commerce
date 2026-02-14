@@ -163,7 +163,7 @@ const AdminSettings = ({ auth, pixelSettings }) => {
                             className="bg-[#DB8B89] text-white hover:bg-[#C07573]"
                         >
                             <Save className="w-4 h-4 mr-2" />
-                            {processing ? t('common.saving', 'Sauvegarde...') : t('common.save_changes', 'Enregistrer les modifications')}
+                            {processing ? t('common.saving', 'Enregistrement...') : t('admin.save_config', 'Enregistrer les modifications')}
                         </Button>
                     </div>
                 </form>

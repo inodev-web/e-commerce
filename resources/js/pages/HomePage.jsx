@@ -42,7 +42,7 @@ const HomePage = ({ featuredProducts, topSellers, categories, theme, toggleTheme
             {featuredProducts && featuredProducts.length > 0 && (
                 <div className="product-section">
                     <div className="section-container">
-                        <h2 className="section-title">{t('home.recommended', 'Recommandé© pour vous')}</h2>
+                        <h2 className="section-title">{t('home.recommended', 'Recommandé pour vous')}</h2>
                         <div className="product-grid">
                             {featuredProducts.slice(0, 4).map((product) => (
                                 <Link href={route('products.show', product.id)} key={product.id} style={{ textDecoration: 'none', color: 'inherit' }}>

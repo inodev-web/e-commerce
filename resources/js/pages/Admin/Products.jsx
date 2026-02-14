@@ -1008,7 +1008,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                         ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                                                         : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
                                                         }`}>
-                                                        {subCategory.active ? 'Active' : 'Inactive'}
+                                                        {subCategory.active ? t('admin.active', 'Active') : t('admin.inactive', 'Inactive')}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
@@ -1121,7 +1121,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         value={productForm.data.name.fr}
                                         onChange={(e) => productForm.setData('name', { ...productForm.data.name, fr: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
-                                        placeholder="Nom en français"
+                                        placeholder={t('admin.name_placeholder_fr', 'Nom en français')}
                                         required
                                     />
                                     {productForm.errors['name.fr'] && <p className="text-xs text-red-500">{productForm.errors['name.fr']}</p>}
@@ -1227,7 +1227,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         value={productForm.data.description.fr}
                                         onChange={(e) => productForm.setData('description', { ...productForm.data.description, fr: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 min-h-[100px]"
-                                        placeholder="Description en français..."
+                                        placeholder={t('admin.description_placeholder_fr', 'Description en français...')}
                                     />
                                     {productForm.errors['description.fr'] && <p className="text-xs text-red-500">{productForm.errors['description.fr']}</p>}
                                 </div>
@@ -1243,7 +1243,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Images</label>
+                                <label className="text-sm font-medium">{t('admin.images', 'Images')}</label>
                                 <input
                                     type="file"
                                     multiple
@@ -1415,7 +1415,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                                                             newSelected[spec.id][value] = parseInt(e.target.value) || 0;
                                                                                             setSelectedSpecificationValues(newSelected);
                                                                                         }}
-                                                                                        placeholder="Qté"
+                                                                                        placeholder={t('admin.quantity_short', 'Qté')}
                                                                                         className="w-20 h-8 text-sm"
                                                                                         disabled={selectedValues[value] === undefined}
                                                                                     />
@@ -1655,13 +1655,13 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                 <Dialog open={isSpecificationModalOpen} onOpenChange={setIsSpecificationModalOpen}>
                     <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
-                            <DialogTitle>{editingSpecification ? 'Modifier la spécification' : 'Ajouter une spécification'}</DialogTitle>
-                            <DialogDescription className="sr-only">Formulaire de gestion des spécifications</DialogDescription>
+                            <DialogTitle>{editingSpecification ? t('admin.edit_specification', 'Modifier la spécification') : t('admin.add_specification', 'Ajouter une spécification')}</DialogTitle>
+                            <DialogDescription className="sr-only">{t('admin.specifications_management', 'Formulaire de gestion des spécifications')}</DialogDescription>
                         </DialogHeader>
                         <form onSubmit={submitSpecification}>
                             <div className="grid gap-4 py-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Sous-catégorie</label>
+                                    <label className="text-sm font-medium">{t('admin.sub_categories', 'Sous-catégorie')}</label>
                                     <select
                                         value={specificationForm.data.sub_category_id}
                                         onChange={(e) => specificationForm.setData('sub_category_id', e.target.value)}
@@ -1669,7 +1669,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         disabled={!!editingSpecification}
                                         required
                                     >
-                                        <option value="">Sélectionner...</option>
+                                        <option value="">{t('common.choose', 'Sélectionner...')}</option>
                                         {allSubCategories.map((subCategory) => (
                                             <option key={subCategory.id} value={subCategory.id}>{getTranslated(subCategory, 'name')}</option>
                                         ))}
@@ -1677,25 +1677,25 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     {specificationForm.errors.sub_category_id && <p className="text-xs text-red-500">{specificationForm.errors.sub_category_id}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Nom (FR)</label>
+                                    <label className="text-sm font-medium">{t('admin.name_fr', 'Nom (FR)')}</label>
                                     <input
                                         type="text"
                                         value={specificationForm.data.name.fr}
                                         onChange={(e) => specificationForm.setData('name', { ...specificationForm.data.name, fr: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
-                                        placeholder="Nom en français"
+                                        placeholder={t('admin.name_placeholder_fr', 'Nom en français')}
                                         required
                                     />
                                     {specificationForm.errors['name.fr'] && <p className="text-xs text-red-500">{specificationForm.errors['name.fr']}</p>}
                                 </div>
                                 <div className="space-y-2" dir="rtl">
-                                    <label className="text-sm font-medium text-right block">????? (AR)</label>
+                                    <label className="text-sm font-medium text-right block">{t('admin.name_ar', 'الاسم (AR)')}</label>
                                     <input
                                         type="text"
                                         value={specificationForm.data.name.ar}
                                         onChange={(e) => specificationForm.setData('name', { ...specificationForm.data.name, ar: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 text-right"
-                                        placeholder="????? ????????"
+                                        placeholder={t('admin.name_placeholder_ar', 'الاسم بالعربية')}
                                     />
                                     {specificationForm.errors['name.ar'] && <p className="text-xs text-red-500">{specificationForm.errors['name.ar']}</p>}
                                 </div>
@@ -1707,17 +1707,17 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         onChange={(e) => specificationForm.setData('required', e.target.checked)}
                                         className="rounded"
                                     />
-                                    <label htmlFor="spec-required" className="text-sm font-medium">Obligatoire</label>
+                                    <label htmlFor="spec-required" className="text-sm font-medium">{t('admin.required', 'Obligatoire')}</label>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Valeurs</label>
+                                    <label className="text-sm font-medium">{t('admin.values', 'Valeurs')}</label>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
                                             value={specificationForm.data.newValue || ''}
                                             onChange={(e) => specificationForm.setData('newValue', e.target.value)}
                                             className="flex-1 px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
-                                            placeholder="Ajouter une valeur"
+                                            placeholder={t('admin.add_value', 'Ajouter une valeur')}
                                             onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecificationValue())}
                                         />
                                         <Button
@@ -1749,10 +1749,10 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                             </div>
                             <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsSpecificationModalOpen(false)}>
-                                    Annuler
+                                    {t('admin.cancel', 'Annuler')}
                                 </Button>
                                 <Button type="submit" className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
-                                    {editingSpecification ? 'Mettre à jour' : 'Sauvegarder'}
+                                    {editingSpecification ? t('admin.update', 'Mettre à jour') : t('admin.save', 'Sauvegarder')}
                                 </Button>
                             </DialogFooter>
                         </form>
