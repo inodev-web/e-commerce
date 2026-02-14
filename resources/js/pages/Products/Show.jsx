@@ -374,7 +374,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         transition={{ delay: 0.2 }}
                         className="product-info-section"
                     >
-                        <div className="product-brand">{currentProduct?.sub_category ? getTranslated(currentProduct.sub_category, 'name') : 'PurÃ©va'}</div>
+                        <div className="product-brand">{currentProduct?.sub_category ? getTranslated(currentProduct.sub_category, 'name') : 'Puréva'}</div>
                         <h1 className="product-title text-gray-900 dark:text-white">{currentProduct ? getTranslated(currentProduct, 'name') : ''}</h1>
 
                         <div className="product-rating-section">

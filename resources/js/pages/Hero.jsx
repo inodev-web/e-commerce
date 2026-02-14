@@ -15,7 +15,7 @@ const Hero = () => {
                 </div>
                 {/* Branding Title */}
                 <h1 className="hero-title !mb-4">
-                    PurÃ©va Pharma
+                    Puréva Pharma
                 </h1>
 
                 {/* Catchphrase */}

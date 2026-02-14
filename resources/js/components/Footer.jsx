@@ -20,7 +20,7 @@ const Footer = () => {
                         <svg className="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                         </svg>
-                        <span className="logo-text">PurÃ©va</span>
+                        <span className="logo-text">Puréva</span>
                     </div>
                     <p className="footer-description">
                         {t('footer.description', 'Votre partenaire de confiance pour tous vos besoins mÃ©dicaux et cosmÃ©tiques. QualitÃ© et soin livrÃ©s Ã  votre porte.')}
@@ -63,7 +63,7 @@ const Footer = () => {
             {/* Bottom Bar */}
             <div className="footer-bottom">
                 <div className="footer-container">
-                    <p className="copyright">{t('footer.copyright', 'Â© 2024 PurÃ©va. Tous droits rÃ©servÃ©s.')}</p>
+                    <p className="copyright">{t('footer.copyright', '© 2024 Puréva. Tous droits réservés.')}</p>
                     <div className="social-links">
                         <a href="#"><Facebook /></a>
                         <a href="#"><Twitter /></a>

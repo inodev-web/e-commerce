@@ -315,7 +315,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                             </div>
                             <div className="seller-info">
                                 <div className="seller-brand text-xs uppercase tracking-wider font-bold mb-1">
-                                    {product.sub_category ? getTranslated(product.sub_category, 'name') : 'PurÃ©va'}
+                                    {product.sub_category ? getTranslated(product.sub_category, 'name') : 'Puréva'}
                                 </div>
                                 <h3 className="seller-name text-gray-800 dark:text-gray-100 font-semibold line-clamp-2 min-h-[3rem]">
                                     {getTranslated(product, 'name')}

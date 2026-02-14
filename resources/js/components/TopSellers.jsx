@@ -44,7 +44,7 @@ const TopSellers = ({ products = [] }) => {
                                 </div>
                                 <div className="seller-info">
                                     <div className="seller-brand text-xs uppercase tracking-wider text-teal-600 font-bold mb-1">
-                                        {product.sub_category ? getTranslated(product.sub_category, 'name') : 'PurÃ©va'}
+                                        {product.sub_category ? getTranslated(product.sub_category, 'name') : 'Puréva'}
                                     </div>
                                     <h3 className="seller-name text-gray-800 font-semibold line-clamp-2 min-h-[3rem]">
                                         {truncateName(getTranslated(product, 'name'))}
