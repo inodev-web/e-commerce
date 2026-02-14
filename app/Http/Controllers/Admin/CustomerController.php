@@ -20,10 +20,7 @@ class CustomerController extends Controller
                 $query->where(function ($q) use ($search) {
                     $q->where('first_name', 'like', "%{$search}%")
                       ->orWhere('last_name', 'like', "%{$search}%")
-                      ->orWhere('phone', 'like', "%{$search}%")
-                      ->orWhereHas('user', function ($q) use ($search) {
-                          $q->where('email', 'like', "%{$search}%");
-                      });
+                      ->orWhere('phone', 'like', "%{$search}%");
                 });
             })
             ->latest()

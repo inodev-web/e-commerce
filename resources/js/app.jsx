@@ -9,7 +9,7 @@ import { createRoot } from 'react-dom/client';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Puréva Pharma';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
