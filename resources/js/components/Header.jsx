@@ -113,32 +113,49 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
 
                     {/* Search Results Dropdown */}
                     {showDropdown && (
-                        <div className="search-dropdown absolute top-full left-0 w-full bg-white dark:bg-gray-800 shadow-lg rounded-b-lg border border-gray-200 dark:border-gray-700 mt-1 max-h-96 overflow-y-auto z-50">
+                        <div className="search-dropdown absolute top-full left-0 w-full bg-white dark:bg-zinc-900 shadow-xl rounded-xl border border-gray-100 dark:border-zinc-800 mt-2 max-h-96 overflow-y-auto z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                             {isLoading ? (
-                                <div className="p-4 text-center text-gray-500">{t('common.loading', 'Chargement...')}</div>
+                                <div className="p-4 text-center text-gray-400">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <div className="w-4 h-4 border-2 border-[#DB8B89] border-t-transparent rounded-full animate-spin"></div>
+                                        <span>{t('common.loading', 'Chargement...')}</span>
+                                    </div>
+                                </div>
                             ) : searchResults.length > 0 ? (
-                                <ul>
+                                <ul className="py-2">
                                     {searchResults.map((product) => (
                                         <li key={product.id}>
                                             <Link
                                                 href={product.url}
-                                                className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-0"
+                                                className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
+                                                onClick={() => {
+                                                    setShowDropdown(false);
+                                                    setSearchQuery('');
+                                                }}
                                             >
-                                                <img
-                                                    src={product.image}
-                                                    alt={product.name}
-                                                    className="w-10 h-10 object-cover rounded"
-                                                />
-                                                <div className="flex-1">
-                                                    <div className="font-medium text-gray-800 dark:text-gray-200">{product.name}</div>
-                                                    <div className="text-sm font-bold text-teal-600">{product.formatted_price}</div>
+                                                <div className="flex-shrink-0">
+                                                    <img
+                                                        src={product.image}
+                                                        alt={product.name}
+                                                        className="w-12 h-12 object-cover rounded-full border border-gray-100 dark:border-zinc-700 shadow-sm"
+                                                    />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-semibold text-gray-900 dark:text-gray-100 truncate">
+                                                        {product.name}
+                                                    </div>
+                                                    <div className="text-sm font-bold text-[#DB8B89] mt-0.5">
+                                                        {product.formatted_price}
+                                                    </div>
                                                 </div>
                                             </Link>
                                         </li>
                                     ))}
                                 </ul>
                             ) : (
-                                <div className="p-4 text-center text-gray-500">{t('admin.no_results', 'Aucun résultat trouvé.')}</div>
+                                <div className="p-6 text-center text-gray-500 text-sm">
+                                    {t('admin.no_results', 'Aucun résultat trouvé.')}
+                                </div>
                             )}
                         </div>
                     )}
