@@ -113,7 +113,7 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
     };
 
     const deletePromo = (id) => {
-        if (confirm('éŠtes-vous sé»r de vouloir supprimer ce code ?')) {
+        if (confirm(t('admin.confirm_delete_promo', 'Êtes-vous sûr de vouloir supprimer ce code ?'))) {
             destroyPromo(route('admin.promo-codes.destroy', id));
         }
     };
@@ -127,7 +127,7 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
         <div className="space-y-6 animate-in fade-in duration-500">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
-                    title={t('admin.loyalty_debt', 'Dette Fidé©lité©')}
+                    title={t('admin.loyalty_debt', 'Dette Fidélité')}
                     value={`${stats.debt} DA`}
                     subtitle={t('admin.points_value', 'Valeur totale des points')}
                     icon={<Coins className="w-5 h-5" />}
@@ -136,19 +136,19 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
                 <StatCard
                     title={t('admin.promo_revenue', 'Chiffre d\'Affaires Promo')}
                     value={`${stats.promo_impact} DA`}
-                    subtitle={t('admin.promo_impact_desc', 'Ventes avec ré©duction')}
+                    subtitle={t('admin.promo_impact_desc', 'Ventes avec réduction')}
                     icon={<TrendingUp className="w-5 h-5" />}
                     color="pink"
                 />
                 <StatCard
                     title={t('admin.total_referrals', 'Total Parrainages')}
                     value={stats.referrals}
-                    subtitle={t('admin.successful_invites', 'Invitations ré©ussies')}
+                    subtitle={t('admin.successful_invites', 'Invitations réussies')}
                     icon={<Users className="w-5 h-5" />}
                     color="blue"
                 />
                 <StatCard
-                    title={t('admin.active_clients', 'Clients Engagé©s')}
+                    title={t('admin.active_clients', 'Clients Engagés')}
                     value={stats.clients}
                     subtitle={t('admin.loyal_users', 'Utilisateurs de points')}
                     icon={<Zap className="w-5 h-5" />}
@@ -164,7 +164,7 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
                     </div>
                     <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                         <ShieldAlert className="w-5 h-5 text-[#DB8B89]" />
-                        {t('admin.security_status', 'Statut de Sé©curité©')}
+                        {t('admin.security_status', 'Statut de Sécurité')}
                     </h3>
                     <div className="space-y-4">
                         <SecurityCheck
@@ -175,12 +175,12 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
                         <SecurityCheck
                             label={t('admin.anti_cumul', 'Anti-Cumul (Promo/Ref)')}
                             status="active"
-                            desc={t('admin.anti_cumul_desc', 'Empéªche l\'usage de deux codes')}
+                            desc={t('admin.anti_cumul_desc', 'Empêche l\'usage de deux codes')}
                         />
                         <SecurityCheck
                             label={t('admin.first_order_lock', 'Verrou Premier Achat')}
                             status="active"
-                            desc={t('admin.first_order_lock_desc', 'Parrainage limité© aux nouveaux')}
+                            desc={t('admin.first_order_lock_desc', 'Parrainage limité aux nouveaux')}
                         />
                     </div>
                 </div>
@@ -192,19 +192,19 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
                     <div className="relative z-10">
                         <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
                             <Gift className="w-6 h-6" />
-                            {t('admin.loyalty_program', 'Programme de Fidé©lité©')}
+                            {t('admin.loyalty_program', 'Programme de Fidélité')}
                         </h3>
                         <p className="text-white/80 text-sm mb-6 max-w-sm">
-                            {t('admin.loyalty_hero_desc', 'Gé©né©rez de la ré©tention en ré©compensant vos clients fidé¨les. Le systé¨me est automatisé© et sé©curisé©.')}
+                            {t('admin.loyalty_hero_desc', 'Générez de la rétention en récompensant vos clients fidèles. Le système est automatisé et sécurisé.')}
                         </p>
                         <div className="flex gap-4">
                             <div className="bg-white/20 backdrop-blur-md rounded-xl p-3 flex-1 text-center">
                                 <div className="text-2xl font-bold">{stats.distributed}</div>
-                                <div className="text-[10px] uppercase opacity-60 font-bold">{t('admin.distributed', 'Distribué©s')}</div>
+                                <div className="text-[10px] uppercase opacity-60 font-bold">{t('admin.distributed', 'Distribués')}</div>
                             </div>
                             <div className="bg-white/20 backdrop-blur-md rounded-xl p-3 flex-1 text-center">
                                 <div className="text-2xl font-bold">{stats.used}</div>
-                                <div className="text-[10px] uppercase opacity-60 font-bold">{t('admin.used', 'é‰changé©s')}</div>
+                                <div className="text-[10px] uppercase opacity-60 font-bold">{t('admin.used', 'Échangés')}</div>
                             </div>
                         </div>
                     </div>
@@ -291,7 +291,7 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
                 {promoCodes.data.length === 0 && (
                     <div className="col-span-full bg-gray-50 dark:bg-zinc-800/20 border border-dashed rounded-2xl py-12 text-center text-gray-500">
                         <Tag className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                        <p>{t('admin.no_promos_found', 'Aucun code promotionnel configuré©.')}</p>
+                        <p>{t('admin.no_promos_found', 'Aucun code promotionnel configuré.')}</p>
                     </div>
                 )}
             </div>
@@ -323,8 +323,8 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
                         <Gift className="w-6 h-6 text-[#DB8B89]" />
                     </div>
                     <div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('admin.loyalty_rules', 'Ré¨gles de Fidé©lité©')}</h3>
-                        <p className="text-sm text-gray-500">{t('admin.loyalty_rules_desc', 'Configurez comment les points sont gé©né©ré©s et convertis.')}</p>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('admin.loyalty_rules', 'Règles de Fidélité')}</h3>
+                        <p className="text-sm text-gray-500">{t('admin.loyalty_rules_desc', 'Configurez comment les points sont générés et convertis.')}</p>
                     </div>
                 </div>
 
@@ -346,24 +346,24 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
                         value={settingsData.referral_reward_points}
                         onChange={val => setSettingsData('referral_reward_points', val)}
                         error={settingsErrors.referral_reward_points}
-                        helper={t('admin.referral_points_helper', 'Points cré©dité©s au parrain apré¨s la 1é¨re commande.')}
+                        helper={t('admin.referral_points_helper', 'Points crédités au parrain après la 1ère commande.')}
                         icon={<Coins className="w-4 h-4" />}
                     />
 
                     <InputField
-                        label={t('admin.referral_discount', 'Ré©duction Nouvel Acheteur')}
+                        label={t('admin.referral_discount', 'Réduction Nouvel Acheteur')}
                         type="number"
                         value={settingsData.referral_discount_amount}
                         onChange={val => setSettingsData('referral_discount_amount', val)}
                         error={settingsErrors.referral_discount_amount}
-                        helper={t('admin.referral_discount_helper', 'Montant fixe retiré© é  la premié¨re commande de l\'invité©.')}
+                        helper={t('admin.referral_discount_helper', 'Montant fixe retiré à la première commande de l\'invité.')}
                         suffix="DA"
                         icon={<Tag className="w-4 h-4" />}
                     />
 
                     <Button type="submit" disabled={settingsProcessing} className="w-full h-12 bg-[#DB8B89] text-white hover:bg-[#C07573] rounded-xl font-bold shadow-lg shadow-pink-500/10 transition-all">
                         <Save className="w-4 h-4 mr-2" />
-                        {settingsProcessing ? t('common.processing', 'Mise é  jour...') : t('admin.save_config', 'Enregistrer la Configuration')}
+                        {settingsProcessing ? t('common.processing', 'Mise à jour...') : t('admin.save_config', 'Enregistrer la Configuration')}
                     </Button>
                 </form>
             </div>
@@ -382,7 +382,7 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
 
                 <form onSubmit={handleAdjust} className="space-y-6">
                     <div className="relative">
-                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">{t('admin.client_phone', 'Té©lé©phone Client')}</label>
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">{t('admin.client_phone', 'Téléphone Client')}</label>
                         <div className="relative group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#DB8B89] transition-colors" />
                             <input
@@ -456,7 +456,7 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
 
     return (
         <AdminLayout user={auth.user}>
-            <Head title={t('admin.loyalty_panel', 'Gestion Fidé©lité© & Promos')} />
+            <Head title={t('admin.loyalty_panel', 'Gestion Fidélité & Promos')} />
 
             <div className="max-w-7xl mx-auto space-y-8 pb-12">
                 {/* Header with Glassmorphic feel */}
@@ -464,13 +464,13 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
                     <div className="space-y-2">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-50 dark:bg-[#DB8B89]/10 border border-pink-100 dark:border-[#DB8B89]/20">
                             <Tag className="w-3.5 h-3.5 text-[#DB8B89]" />
-                            <span className="text-[10px] font-black uppercase tracking-wider text-[#DB8B89]">{t('admin.loyalty_module', 'Module Fidé©lité©')}</span>
+                            <span className="text-[10px] font-black uppercase tracking-wider text-[#DB8B89]">{t('admin.loyalty_module', 'Module Fidélité')}</span>
                         </div>
                         <h1 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white leading-tight">
-                            {t('admin.loyalty_promos', 'Fidé©lité© & Promotions')}
+                            {t('admin.loyalty_promos', 'Fidélité & Promotions')}
                         </h1>
                         <p className="text-gray-500 dark:text-gray-400 max-w-lg">
-                            {t('admin.loyalty_header_desc', 'Gé©rez les ré©compenses clients, les codes promo et analysez l\'impact financier du programme.')}
+                            {t('admin.loyalty_header_desc', 'Gérez les récompenses clients, les codes promo et analysez l\'impact financier du programme.')}
                         </p>
                     </div>
 
@@ -504,7 +504,7 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="col-span-2">
                                 <InputField
-                                    label="Code"
+                                    label={t('admin.code', 'Code')}
                                     value={promoData.code}
                                     onChange={val => setPromoData('code', val.toUpperCase())}
                                     error={promoErrors.code}
@@ -568,7 +568,7 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
                             />
                             <div className="flex-1">
                                 <div className="text-sm font-bold text-gray-900 dark:text-white leading-none mb-1">{t('admin.activate_code', 'Activer ce code')}</div>
-                                <div className="text-[10px] text-gray-500">{t('admin.activate_desc', 'Rend le code immé©diatement utilisable par les clients.')}</div>
+                                <div className="text-[10px] text-gray-500">{t('admin.activate_desc', 'Rend le code immédiatement utilisable par les clients.')}</div>
                             </div>
                         </div>
 

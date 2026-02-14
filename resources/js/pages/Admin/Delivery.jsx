@@ -4,6 +4,7 @@ import { Button } from "@/Components/ui/button";
 import AdminLayout from '../../components/AdminLayout';
 import { router } from '@inertiajs/react';
 import { useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 
 const AdminDelivery = ({ wilayas, theme, toggleTheme }) => {
     const [search, setSearch] = useState('');
@@ -12,6 +13,15 @@ const AdminDelivery = ({ wilayas, theme, toggleTheme }) => {
     const { data, setData, post, processing } = useForm({
         wilayas: wilayas
     });
+    const { t, i18n } = useTranslation();
+
+    const getTranslated = (obj, field) => {
+        if (!obj) return '';
+        if (i18n.language === 'ar' && (obj[`${field}_ar`] || obj[`${field}ar`])) {
+            return obj[`${field}_ar`] || obj[`${field}ar`] || obj[field];
+        }
+        return obj[field] || obj[`${field}_fr`] || '';
+    };
 
     const filteredWilayas = data.wilayas.filter(w =>
         w.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -68,7 +78,7 @@ const AdminDelivery = ({ wilayas, theme, toggleTheme }) => {
         });
 
         if (modifiedWilayas.length === 0) {
-            alert('Aucune modification dé©tecté©e');
+            alert(t('admin.no_modifications_detected', 'Aucune modification détectée'));
             return;
         }
 
@@ -91,14 +101,14 @@ const AdminDelivery = ({ wilayas, theme, toggleTheme }) => {
         <AdminLayout theme={theme} toggleTheme={toggleTheme}>
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Livraison</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">{t('admin.delivery', 'Livraison')}</h1>
                     <Button
                         onClick={handleSave}
                         disabled={isProcessing}
                         className="bg-[#DB8B89] text-white hover:bg-[#C07573]"
                     >
                         <Save className="w-4 h-4 mr-2" />
-                        {isProcessing ? 'Sauvegarde...' : 'Sauvegarder tout'}
+                        {isProcessing ? t('common.saving', 'Sauvegarde...') : t('admin.save_all', 'Sauvegarder tout')}
                     </Button>
                 </div>
 
@@ -107,7 +117,7 @@ const AdminDelivery = ({ wilayas, theme, toggleTheme }) => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Rechercher une wilaya..."
+                            placeholder={t('admin.search_wilaya_placeholder', 'Rechercher une wilaya...')}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#DB8B89]/20 focus:border-[#DB8B89]"
@@ -120,20 +130,20 @@ const AdminDelivery = ({ wilayas, theme, toggleTheme }) => {
                         <table className="w-full text-sm text-left">
                             <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-gray-400 font-medium">
                                 <tr>
-                                    <th className="px-6 py-4 w-20">Code</th>
-                                    <th className="px-6 py-4">Wilaya</th>
-                                    <th className="px-6 py-4 text-center">Active (Tout)</th>
-                                    <th className="px-6 py-4">Domicile (DA)</th>
-                                    <th className="px-6 py-4 text-center">Active</th>
-                                    <th className="px-6 py-4">Bureau (DA)</th>
-                                    <th className="px-6 py-4 text-center">Active</th>
+                                    <th className="px-6 py-4 w-20">{t('admin.code', 'Code')}</th>
+                                    <th className="px-6 py-4">{t('admin.wilaya', 'Wilaya')}</th>
+                                    <th className="px-6 py-4 text-center">{t('admin.active_all', 'Active (Tout)')}</th>
+                                    <th className="px-6 py-4">{t('admin.home_delivery_da', 'Domicile (DA)')}</th>
+                                    <th className="px-6 py-4 text-center">{t('admin.active', 'Active')}</th>
+                                    <th className="px-6 py-4">{t('admin.desk_delivery_da', 'Bureau (DA)')}</th>
+                                    <th className="px-6 py-4 text-center">{t('admin.active', 'Active')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
                                 {filteredWilayas.map((wilaya) => (
                                     <tr key={wilaya.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
                                         <td className="px-6 py-4 text-gray-500">{wilaya.code}</td>
-                                        <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">{wilaya.name}</td>
+                                        <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">{getTranslated(wilaya, 'name')}</td>
                                         <td className="px-6 py-4 text-center">
                                             <input
                                                 type="checkbox"

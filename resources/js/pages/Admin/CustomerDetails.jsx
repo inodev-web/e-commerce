@@ -38,11 +38,11 @@ const CustomerDetails = ({ auth, client }) => {
                                 </div>
                                 <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
                                     <MapPin className="w-4 h-4" />
-                                    <span>{client.address}, {client.commune?.name || ''}, {client.wilaya?.name || ''}</span>
+                                    <span>{client.address}, {getTranslated(client.commune, 'name')}, {getTranslated(client.wilaya, 'name')}</span>
                                 </div>
                                 <div className="flex items-center gap-3 text-[#DB8B89] font-medium">
                                     <Gift className="w-4 h-4" />
-                                    <span>{client.loyalty_points?.reduce((acc, p) => acc + p.points, 0) || 0} Points</span>
+                                    <span>{client.loyalty_points?.reduce((acc, p) => acc + p.points, 0) || 0} {t('admin.points', 'Points')}</span>
                                 </div>
                             </div>
                         </div>
@@ -63,10 +63,10 @@ const CustomerDetails = ({ auth, client }) => {
                                 <table className="w-full text-sm text-left">
                                     <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500">
                                         <tr>
-                                            <th className="px-4 py-2">ID</th>
-                                            <th className="px-4 py-2">Date</th>
-                                            <th className="px-4 py-2">Total</th>
-                                            <th className="px-4 py-2">Status</th>
+                                            <th className="px-4 py-2">{t('admin.id', 'ID')}</th>
+                                            <th className="px-4 py-2">{t('admin.date', 'Date')}</th>
+                                            <th className="px-4 py-2">{t('admin.total', 'Total')}</th>
+                                            <th className="px-4 py-2">{t('admin.status', 'Statut')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
@@ -106,9 +106,9 @@ const CustomerDetails = ({ auth, client }) => {
                                 <table className="w-full text-sm text-left">
                                     <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500">
                                         <tr>
-                                            <th className="px-4 py-2">Date</th>
-                                            <th className="px-4 py-2">Description</th>
-                                            <th className="px-4 py-2 text-right">Points</th>
+                                            <th className="px-4 py-2">{t('admin.date', 'Date')}</th>
+                                            <th className="px-4 py-2">{t('admin.description', 'Description')}</th>
+                                            <th className="px-4 py-2 text-right">{t('admin.points', 'Points')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">

@@ -8,9 +8,11 @@ import { Table, TableHeader, TableBody, TableRow, TableCell, TableHead } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/Components/ui/tooltip";
 import AdminLayout from '../../components/AdminLayout';
 import { Link, router, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import { getTranslated } from '@/utils/translation';
 
 const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleTheme }) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('products');
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
@@ -462,7 +464,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     };
 
     const deleteProduct = (productId) => {
-        if (confirm('êtes-vous sûr de vouloir supprimer ce produit ?')) {
+        if (confirm(t('common.confirm_delete_product', 'êtes-vous sûr de vouloir supprimer ce produit ?'))) {
             router.delete(route('admin.products.destroy', productId));
         }
     };
@@ -541,7 +543,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     };
 
     const deleteCategory = (categoryId) => {
-        if (confirm('êtes-vous sûr de vouloir supprimer cette catégorie ? Cela supprimera également toutes ses sous-catégories et les produits associés.')) {
+        if (confirm(t('common.confirm_delete_category', 'Êtes-vous sûr de vouloir supprimer cette catégorie ? Cela supprimera également toutes ses sous-catégories et les produits associés.'))) {
             categoryForm.delete(route('admin.categories.destroy', categoryId));
         }
     };
@@ -593,7 +595,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     };
 
     const deleteSubCategory = (subCategoryId) => {
-        if (confirm('êtes-vous sûr de vouloir supprimer cette sous-catégorie ? Cela supprimera également tous les produits associés.')) {
+        if (confirm(t('common.confirm_delete_subcategory', 'Êtes-vous sûr de vouloir supprimer cette sous-catégorie ? Cela supprimera également tous les produits associés.'))) {
             router.delete(route('admin.sub-categories.destroy', subCategoryId));
         }
     };
@@ -649,26 +651,26 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     };
 
     const deleteSpecification = (specificationId) => {
-        if (confirm('êtes-vous sûr de vouloir supprimer cette spécification ?')) {
+        if (confirm(t('common.confirm_delete_specification', 'Êtes-vous sûr de vouloir supprimer cette spécification ?'))) {
             router.delete(route('admin.specifications.destroy', specificationId));
         }
     };
 
     const tabs = [
-        { id: 'products', label: 'Produits' },
-        { id: 'categories', label: 'Catégories' },
-        { id: 'subcategories', label: 'Sous-catégories' },
-        { id: 'specifications', label: 'Spécifications' },
+        { id: 'products', label: t('admin.products', 'Produits') },
+        { id: 'categories', label: t('admin.categories', 'Catégories') },
+        { id: 'subcategories', label: t('admin.sub_categories', 'Sous-catégories') },
+        { id: 'specifications', label: t('admin.specifications', 'Spécifications') },
     ];
 
     return (
         <AdminLayout theme={theme} toggleTheme={toggleTheme}>
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Gestion des Produits</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">{t('admin.products_title', 'Gestion des Produits')}</h1>
                     <Button onClick={openCreateProduct} className="bg-[#DB8B89] text-white hover:bg-[#C07573] dark:bg-[#DB8B89] dark:text-white dark:hover:bg-[#C07573]">
                         <Plus className="w-4 h-4 mr-2" />
-                        Ajouter un produit
+                        {t('admin.add_product', 'Ajouter un produit')}
                     </Button>
                 </div>
 
@@ -700,7 +702,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                 <input
                                     type="text"
-                                    placeholder="Rechercher un produit..."
+                                    placeholder={t('admin.search_product', 'Rechercher un produit...')}
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#DB8B89]/20 focus:border-[#DB8B89]"
@@ -712,10 +714,10 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                 className="px-4 py-2 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
                             >
                                 <Filter className="w-4 h-4" />
-                                <span>Filtres</span>
+                                <span>{t('admin.filters', 'Filtres')}</span>
                             </button>
                             <Button type="button" onClick={handleSearch} className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
-                                Appliquer
+                                {t('admin.apply', 'Appliquer')}
                             </Button>
                         </div>
 
@@ -793,12 +795,12 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                 <table className="w-full text-sm text-left">
                                     <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-gray-400 font-medium border-b border-gray-200 dark:border-zinc-800">
                                         <tr>
-                                            <th className="px-6 py-4">Nom du produit</th>
-                                            <th className="px-6 py-4">Catégorie</th>
-                                            <th className="px-6 py-4">Prix</th>
-                                            <th className="px-6 py-4">Stock</th>
-                                            <th className="px-6 py-4">Statut</th>
-                                            <th className="px-6 py-4 text-right">Actions</th>
+                                            <th className="px-6 py-4">{t('admin.product_name', 'Nom du produit')}</th>
+                                            <th className="px-6 py-4">{t('admin.category', 'Catégorie')}</th>
+                                            <th className="px-6 py-4">{t('admin.price', 'Prix')}</th>
+                                            <th className="px-6 py-4">{t('admin.stock', 'Stock')}</th>
+                                            <th className="px-6 py-4">{t('admin.status', 'Statut')}</th>
+                                            <th className="px-6 py-4 text-right">{t('admin.actions', 'Actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
@@ -835,7 +837,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         )) : (
                                             <tr>
                                                 <td colSpan="6" className="px-6 py-10 text-center text-gray-500">
-                                                    Aucun produit trouvé.
+                                                    {t('admin.no_products_found', 'Aucun produit trouvé.')}
                                                 </td>
                                             </tr>
                                         )}
@@ -868,7 +870,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                         <div className="flex justify-end">
                             <Button onClick={openCreateCategory} className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
                                 <Plus className="w-4 h-4 mr-2" />
-                                Ajouter Catégorie
+                                {t('admin.add_category', 'Ajouter Catégorie')}
                             </Button>
                         </div>
                         <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm">
@@ -876,10 +878,10 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                 <table className="w-full text-sm text-left">
                                     <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-gray-400 font-medium border-b border-gray-200 dark:border-zinc-800">
                                         <tr>
-                                            <th className="px-6 py-4">Nom</th>
-                                            <th className="px-6 py-4">Sous-catégories</th>
-                                            <th className="px-6 py-4">Statut</th>
-                                            <th className="px-6 py-4 text-right">Actions</th>
+                                            <th className="px-6 py-4">{t('admin.name', 'Nom')}</th>
+                                            <th className="px-6 py-4">{t('admin.sub_categories', 'Sous-catégories')}</th>
+                                            <th className="px-6 py-4">{t('admin.status', 'Statut')}</th>
+                                            <th className="px-6 py-4 text-right">{t('admin.actions', 'Actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
@@ -906,7 +908,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                             ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                                                             : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
                                                             }`}>
-                                                            {category.active ? 'Active' : 'Inactive'}
+                                                            {category.active ? t('admin.active', 'Active') : t('admin.inactive', 'Inactive')}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
@@ -915,7 +917,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                                 onClick={() => openCreateSubCategory(category)}
                                                                 className="px-3 py-1.5 text-xs font-medium text-[#DB8B89] hover:bg-pink-50 dark:hover:bg-pink-900/10 rounded-md transition-colors"
                                                             >
-                                                                + Sous-catégorie
+                                                                + {t('admin.sub_category', 'Sous-catégorie')}
                                                             </button>
                                                             <button
                                                                 onClick={() => openEditCategory(category)}
@@ -943,7 +945,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                                 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                                                                 : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
                                                                 }`}>
-                                                                {subCategory.active ? 'Active' : 'Inactive'}
+                                                                {subCategory.active ? t('admin.active', 'Active') : t('admin.inactive', 'Inactive')}
                                                             </span>
                                                         </td>
                                                         <td className="px-6 py-3 text-right">
@@ -979,7 +981,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                         <div className="flex justify-end">
                             <Button onClick={() => openCreateSubCategory()} className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
                                 <Plus className="w-4 h-4 mr-2" />
-                                Ajouter Sous-catégorie
+                                {t('admin.add_sub_category', 'Ajouter Sous-catégorie')}
                             </Button>
                         </div>
                         <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm">
@@ -987,10 +989,10 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                 <table className="w-full text-sm text-left">
                                     <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-gray-400">
                                         <tr>
-                                            <th className="px-6 py-4">Nom</th>
-                                            <th className="px-6 py-4">Catégorie parente</th>
-                                            <th className="px-6 py-4">Statut</th>
-                                            <th className="px-6 py-4 text-right">Actions</th>
+                                            <th className="px-6 py-4">{t('admin.name', 'Nom')}</th>
+                                            <th className="px-6 py-4">{t('admin.parent_category', 'Catégorie parente')}</th>
+                                            <th className="px-6 py-4">{t('admin.status', 'Statut')}</th>
+                                            <th className="px-6 py-4 text-right">{t('admin.actions', 'Actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
@@ -1029,7 +1031,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         )) : (
                                             <tr>
                                                 <td colSpan="4" className="px-6 py-10 text-center text-gray-500">
-                                                    Aucune sous-catégorie disponible.
+                                                    {t('admin.no_subcategories_available', 'Aucune sous-catégorie disponible.')}
                                                 </td>
                                             </tr>
                                         )}
@@ -1046,7 +1048,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                         <div className="flex justify-end">
                             <Button onClick={openCreateSpecification} className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
                                 <Plus className="w-4 h-4 mr-2" />
-                                Ajouter Spécification
+                                {t('admin.add_specification', 'Ajouter Spécification')}
                             </Button>
                         </div>
                         <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm">
@@ -1054,10 +1056,10 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                 <table className="w-full text-sm text-left">
                                     <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-gray-400">
                                         <tr>
-                                            <th className="px-6 py-4">Nom</th>
-                                            <th className="px-6 py-4">Sous-catégorie</th>
-                                            <th className="px-6 py-4">Obligatoire</th>
-                                            <th className="px-6 py-4 text-right">Actions</th>
+                                            <th className="px-6 py-4">{t('admin.name', 'Nom')}</th>
+                                            <th className="px-6 py-4">{t('admin.sub_category', 'Sous-catégorie')}</th>
+                                            <th className="px-6 py-4">{t('admin.required', 'Obligatoire')}</th>
+                                            <th className="px-6 py-4 text-right">{t('admin.actions', 'Actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
@@ -1070,7 +1072,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                         ? 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-[#DB8B89]'
                                                         : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
                                                         }`}>
-                                                        {spec.required ? 'Oui' : 'Non'}
+                                                        {spec.required ? t('common.yes', 'Oui') : t('common.no', 'Non')}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
@@ -1093,7 +1095,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         )) : (
                                             <tr>
                                                 <td colSpan="4" className="px-6 py-10 text-center text-gray-500">
-                                                    Aucune spécification disponible.
+                                                    {t('admin.no_specifications_available', 'Aucune spécification disponible.')}
                                                 </td>
                                             </tr>
                                         )}
@@ -1108,13 +1110,13 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                 <Dialog open={isProductModalOpen} onOpenChange={setIsProductModalOpen}>
                     <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
-                            <DialogTitle>{editingProduct ? 'Modifier le produit' : 'Ajouter un nouveau produit'}</DialogTitle>
+                            <DialogTitle>{editingProduct ? t('admin.edit_product', 'Modifier le produit') : t('admin.add_new_product', 'Ajouter un nouveau produit')}</DialogTitle>
                             <DialogDescription className="sr-only">Formulaire de création ou modification de produit</DialogDescription>
                         </DialogHeader>
                         <form onSubmit={submitProduct} className="grid gap-4 py-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Nom (FR)</label>
+                                    <label className="text-sm font-medium">{t('admin.name_fr', 'Nom (FR)')}</label>
                                     <input
                                         value={productForm.data.name.fr}
                                         onChange={(e) => productForm.setData('name', { ...productForm.data.name, fr: e.target.value })}
@@ -1125,37 +1127,37 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     {productForm.errors['name.fr'] && <p className="text-xs text-red-500">{productForm.errors['name.fr']}</p>}
                                 </div>
                                 <div className="space-y-2" dir="rtl">
-                                    <label className="text-sm font-medium">????? (AR)</label>
+                                    <label className="text-sm font-medium">{t('admin.name_ar', 'الاسم (AR)')}</label>
                                     <input
                                         value={productForm.data.name.ar}
                                         onChange={(e) => productForm.setData('name', { ...productForm.data.name, ar: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 text-right"
-                                        placeholder="????? ????????"
+                                        placeholder={t('admin.placeholder_ar', 'الاسم بالعربية')}
                                     />
                                     {productForm.errors['name.ar'] && <p className="text-xs text-red-500">{productForm.errors['name.ar']}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Catégorie</label>
+                                    <label className="text-sm font-medium">{t('admin.category', 'Catégorie')}</label>
                                     <select
                                         value={productCategoryId}
                                         onChange={(e) => handleProductCategoryChange(e.target.value)}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
                                     >
-                                        <option value="">Toutes</option>
+                                        <option value="">{t('admin.all', 'Toutes')}</option>
                                         {categories.map((category) => (
                                             <option key={category.id} value={category.id}>{getTranslated(category, 'name')}</option>
                                         ))}
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Sous-catégorie</label>
+                                    <label className="text-sm font-medium">{t('admin.sub_category', 'Sous-catégorie')}</label>
                                     <select
                                         value={productForm.data.sub_category_id}
                                         onChange={(e) => handleSubCategoryChange(e.target.value)}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
                                         required
                                     >
-                                        <option value="">Sélectionner...</option>
+                                        <option value="">{t('admin.select', 'Sélectionner...')}</option>
                                         {subCategoriesForProduct.map((subCategory) => (
                                             <option key={subCategory.id} value={subCategory.id}>{getTranslated(subCategory, 'name')}</option>
                                         ))}
@@ -1164,7 +1166,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     {productForm.errors.sub_category_id && <p className="text-xs text-red-500">{productForm.errors.sub_category_id}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Options de livraison</label>
+                                    <label className="text-sm font-medium">{t('admin.shipping_options', 'Options de livraison')}</label>
                                     <div className="flex items-center gap-2 p-3 border rounded-md dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/50">
                                         <input
                                             type="checkbox"
@@ -1173,11 +1175,11 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                             onChange={(e) => productForm.setData('free_shipping', e.target.checked)}
                                             className="w-4 h-4 rounded border-gray-300 text-[#DB8B89] focus:ring-[#DB8B89]"
                                         />
-                                        <label htmlFor="free_shipping" className="text-sm font-medium cursor-pointer">Livraison Gratuite</label>
+                                        <label htmlFor="free_shipping" className="text-sm font-medium cursor-pointer">{t('admin.free_shipping', 'Livraison Gratuite')}</label>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Statut</label>
+                                    <label className="text-sm font-medium">{t('admin.status', 'Statut')}</label>
                                     <select
                                         value={productForm.data.status}
                                         onChange={(e) => productForm.setData('status', e.target.value)}
@@ -1191,7 +1193,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     {productForm.errors.status && <p className="text-xs text-red-500">{productForm.errors.status}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Prix (DA)</label>
+                                    <label className="text-sm font-medium">{t('admin.price', 'Prix')} (DA)</label>
                                     <input
                                         type="number"
                                         value={productForm.data.price}
@@ -1205,7 +1207,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     {productForm.errors.price && <p className="text-xs text-red-500">{productForm.errors.price}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Stock</label>
+                                    <label className="text-sm font-medium">{t('admin.stock', 'Stock')}</label>
                                     <input
                                         type="number"
                                         value={productForm.data.stock}
@@ -1220,7 +1222,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Description (FR)</label>
+                                    <label className="text-sm font-medium">{t('admin.description_fr', 'Description (FR)')}</label>
                                     <textarea
                                         value={productForm.data.description.fr}
                                         onChange={(e) => productForm.setData('description', { ...productForm.data.description, fr: e.target.value })}
@@ -1230,12 +1232,12 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     {productForm.errors['description.fr'] && <p className="text-xs text-red-500">{productForm.errors['description.fr']}</p>}
                                 </div>
                                 <div className="space-y-2" dir="rtl">
-                                    <label className="text-sm font-medium text-right block">????? (AR)</label>
+                                    <label className="text-sm font-medium text-right block">{t('admin.description_ar', 'الوصف (AR)')}</label>
                                     <textarea
                                         value={productForm.data.description.ar}
                                         onChange={(e) => productForm.setData('description', { ...productForm.data.description, ar: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 min-h-[100px] text-right"
-                                        placeholder="????? ????????..."
+                                        placeholder={t('admin.description_placeholder_ar', 'الوصف بالعربية...')}
                                     />
                                     {productForm.errors['description.ar'] && <p className="text-xs text-red-500">{productForm.errors['description.ar']}</p>}
                                 </div>
@@ -1307,14 +1309,14 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
 
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <label className="text-sm font-medium">Gestion des Variantes</label>
+                                    <label className="text-sm font-medium">{t('admin.variant_management', 'Gestion des Variantes')}</label>
                                     <Button
                                         type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={() => setShowVariantManager(!showVariantManager)}
                                     >
-                                        {showVariantManager ? 'Masquer' : 'Afficher'}
+                                        {showVariantManager ? t('admin.hide', 'Masquer') : t('admin.show', 'Afficher')}
                                     </Button>
                                 </div>
 
@@ -1322,14 +1324,14 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     <div className="space-y-4">
                                         <div className="space-y-4">
                                             <div className="flex items-center gap-2">
-                                                <label className="text-sm font-medium">Spécifications avec Valeurs</label>
+                                                <label className="text-sm font-medium">{t('admin.specs_with_values', 'Spécifications avec Valeurs')}</label>
                                                 <TooltipProvider>
                                                     <Tooltip>
                                                         <TooltipTrigger>
                                                             <Info size={16} className="text-gray-400" />
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            <p className="text-xs">Sélectionnez les valeurs de chaque spécification et définissez la quantité pour créer des variantes.</p>
+                                                            <p className="text-xs">{t('admin.select_values_desc', 'Sélectionnez les valeurs de chaque spécification et définissez la quantité pour créer des variantes.')}</p>
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
@@ -1421,14 +1423,14 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                                             ))}
                                                                         </div>
                                                                     ) : (
-                                                                        <p className="text-sm text-gray-500">Aucune valeur définie pour cette spécification.</p>
+                                                                        <p className="text-sm text-gray-500">{t('admin.no_values_defined', 'Aucune valeur définie pour cette spécification.')}</p>
                                                                     )
                                                                 }
                                                             </div>
                                                         );
                                                     })
                                                 ) : (
-                                                    <p className="text-sm text-gray-500">Aucune spécification disponible pour cette sous-catégorie.</p>
+                                                    <p className="text-sm text-gray-500">{t('admin.no_specs_available', 'Aucune spécification disponible pour cette sous-catégorie.')}</p>
                                                 );
                                             })()}
                                         </div>
@@ -1438,7 +1440,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
 
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <label className="text-sm font-medium">Variantes Générées</label>
+                                    <label className="text-sm font-medium">{t('admin.generated_variants', 'Variantes Générées')}</label>
                                 </div>
 
                                 {(() => {
@@ -1466,9 +1468,9 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                             <Table>
                                                 <TableHeader>
                                                     <TableRow>
-                                                        <TableHead className="min-w-[200px]">Spécification</TableHead>
-                                                        <TableHead className="w-32">Valeur</TableHead>
-                                                        <TableHead className="w-24">Quantité</TableHead>
+                                                        <TableHead className="min-w-[200px]">{t('admin.specification', 'Spécification')}</TableHead>
+                                                        <TableHead className="w-32">{t('admin.value', 'Valeur')}</TableHead>
+                                                        <TableHead className="w-24">{t('admin.quantity', 'Quantité')}</TableHead>
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
@@ -1485,15 +1487,15 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                             </Table>
                                         </div>
                                     ) : (
-                                        <p className="text-sm text-gray-500">Aucune variante générée. Sélectionnez des valeurs et définissez des quantités.</p>
+                                        <p className="text-sm text-gray-500">{t('admin.no_variants_generated', 'Aucune variante générée. Sélectionnez des valeurs et définissez des quantités.')}</p>
                                     );
                                 })()}
                             </div>
 
                             <DialogFooter>
-                                <Button type="button" variant="outline" onClick={() => setIsProductModalOpen(false)}>Annuler</Button>
+                                <Button type="button" variant="outline" onClick={() => setIsProductModalOpen(false)}>{t('admin.cancel', 'Annuler')}</Button>
                                 <Button type="submit" className="bg-[#DB8B89] text-white hover:bg-[#C07573]" disabled={productForm.processing}>
-                                    {editingProduct ? 'Mettre à jour' : 'Sauvegarder'}
+                                    {editingProduct ? t('admin.update', 'Mettre à jour') : t('admin.save', 'Sauvegarder')}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -1504,31 +1506,31 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                 <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
                     <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
-                            <DialogTitle>{editingCategory ? 'Modifier la catégorie' : 'Ajouter une catégorie'}</DialogTitle>
-                            <DialogDescription className="sr-only">Formulaire de gestion des catégories</DialogDescription>
+                            <DialogTitle>{editingCategory ? t('admin.edit_category', 'Modifier la catégorie') : t('admin.add_category', 'Ajouter une catégorie')}</DialogTitle>
+                            <DialogDescription className="sr-only">{t('admin.categories_management', 'Formulaire de gestion des catégories')}</DialogDescription>
                         </DialogHeader>
                         <form onSubmit={submitCategory}>
                             <div className="grid gap-4 py-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Nom (FR)</label>
+                                    <label className="text-sm font-medium">{t('admin.name_fr', 'Nom (FR)')}</label>
                                     <input
                                         type="text"
                                         value={categoryForm.data.name.fr}
                                         onChange={(e) => categoryForm.setData('name', { ...categoryForm.data.name, fr: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
-                                        placeholder="Nom en français"
+                                        placeholder={t('admin.name_placeholder_fr', 'Nom en français')}
                                         required
                                     />
                                     {categoryForm.errors['name.fr'] && <p className="text-xs text-red-500">{categoryForm.errors['name.fr']}</p>}
                                 </div>
                                 <div className="space-y-2" dir="rtl">
-                                    <label className="text-sm font-medium text-right block">????? (AR)</label>
+                                    <label className="text-sm font-medium text-right block">{t('admin.name_ar', 'الاسم (AR)')}</label>
                                     <input
                                         type="text"
                                         value={categoryForm.data.name.ar}
                                         onChange={(e) => categoryForm.setData('name', { ...categoryForm.data.name, ar: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 text-right"
-                                        placeholder="????? ????????"
+                                        placeholder={t('admin.name_placeholder_ar', 'الاسم بالعربية')}
                                     />
                                     {categoryForm.errors['name.ar'] && <p className="text-xs text-red-500">{categoryForm.errors['name.ar']}</p>}
                                 </div>
@@ -1540,10 +1542,10 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         onChange={(e) => categoryForm.setData('active', e.target.checked)}
                                         className="rounded"
                                     />
-                                    <label htmlFor="category-active" className="text-sm font-medium">Active</label>
+                                    <label htmlFor="category-active" className="text-sm font-medium">{t('admin.active', 'Active')}</label>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Image</label>
+                                    <label className="text-sm font-medium">{t('admin.image', 'Image')}</label>
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -1569,10 +1571,10 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                             </div>
                             <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsCategoryModalOpen(false)}>
-                                    Annuler
+                                    {t('admin.cancel', 'Annuler')}
                                 </Button>
                                 <Button type="submit" className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
-                                    {editingCategory ? 'Mettre à jour' : 'Sauvegarder'}
+                                    {editingCategory ? t('admin.update', 'Mettre à jour') : t('admin.save', 'Sauvegarder')}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -1583,20 +1585,20 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                 <Dialog open={isSubCategoryModalOpen} onOpenChange={setIsSubCategoryModalOpen}>
                     <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
-                            <DialogTitle>{editingSubCategory ? 'Modifier la sous-catégorie' : 'Ajouter une sous-catégorie'}</DialogTitle>
-                            <DialogDescription className="sr-only">Formulaire de gestion des sous-catégories</DialogDescription>
+                            <DialogTitle>{editingSubCategory ? t('admin.edit_subcategory', 'Modifier la sous-catégorie') : t('admin.add_subcategory', 'Ajouter une sous-catégorie')}</DialogTitle>
+                            <DialogDescription className="sr-only">{t('admin.subcategories_management', 'Formulaire de gestion des sous-catégories')}</DialogDescription>
                         </DialogHeader>
                         <form onSubmit={submitSubCategory}>
                             <div className="grid gap-4 py-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Catégorie parente</label>
+                                    <label className="text-sm font-medium">{t('admin.parent_category', 'Catégorie parente')}</label>
                                     <select
                                         value={subCategoryForm.data.category_id}
                                         onChange={(e) => subCategoryForm.setData('category_id', e.target.value)}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
                                         disabled={!!editingSubCategory}
                                     >
-                                        <option value="">Sélectionner...</option>
+                                        <option value="">{t('common.choose', 'Sélectionner...')}</option>
                                         {categories.map((category) => (
                                             <option key={category.id} value={category.id}>{getTranslated(category, 'name')}</option>
                                         ))}
@@ -1604,25 +1606,25 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     {subCategoryForm.errors.category_id && <p className="text-xs text-red-500">{subCategoryForm.errors.category_id}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Nom (FR)</label>
+                                    <label className="text-sm font-medium">{t('admin.name_fr', 'Nom (FR)')}</label>
                                     <input
                                         type="text"
                                         value={subCategoryForm.data.name.fr}
                                         onChange={(e) => subCategoryForm.setData('name', { ...subCategoryForm.data.name, fr: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
-                                        placeholder="Nom en français"
+                                        placeholder={t('admin.name_placeholder_fr', 'Nom en français')}
                                         required
                                     />
                                     {subCategoryForm.errors['name.fr'] && <p className="text-xs text-red-500">{subCategoryForm.errors['name.fr']}</p>}
                                 </div>
                                 <div className="space-y-2" dir="rtl">
-                                    <label className="text-sm font-medium text-right block">????? (AR)</label>
+                                    <label className="text-sm font-medium text-right block">{t('admin.name_ar', 'الاسم (AR)')}</label>
                                     <input
                                         type="text"
                                         value={subCategoryForm.data.name.ar}
                                         onChange={(e) => subCategoryForm.setData('name', { ...subCategoryForm.data.name, ar: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 text-right"
-                                        placeholder="????? ????????"
+                                        placeholder={t('admin.name_placeholder_ar', 'الاسم بالعربية')}
                                     />
                                     {subCategoryForm.errors['name.ar'] && <p className="text-xs text-red-500">{subCategoryForm.errors['name.ar']}</p>}
                                 </div>
@@ -1634,15 +1636,15 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         onChange={(e) => subCategoryForm.setData('active', e.target.checked)}
                                         className="rounded"
                                     />
-                                    <label htmlFor="sub-active" className="text-sm font-medium">Active</label>
+                                    <label htmlFor="sub-active" className="text-sm font-medium">{t('admin.active', 'Active')}</label>
                                 </div>
                             </div>
                             <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsSubCategoryModalOpen(false)}>
-                                    Annuler
+                                    {t('admin.cancel', 'Annuler')}
                                 </Button>
                                 <Button type="submit" className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
-                                    {editingSubCategory ? 'Mettre à jour' : 'Sauvegarder'}
+                                    {editingSubCategory ? t('admin.update', 'Mettre à jour') : t('admin.save', 'Sauvegarder')}
                                 </Button>
                             </DialogFooter>
                         </form>

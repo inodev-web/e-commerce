@@ -41,8 +41,8 @@ const AdminCustomers = ({ auth, theme, toggleTheme, clients, filters }) => {
                                 <tr>
                                     <th className="px-6 py-4">{t('admin.client', 'Client')}</th>
                                     <th className="px-6 py-4">{t('admin.total_orders', 'Total Commandes')}</th>
-                                    <th className="px-6 py-4">{t('admin.loyalty_points', 'Points Fidé©lité©')}</th>
-                                    <th className="px-6 py-4">{t('admin.status', 'Status')}</th>
+                                    <th className="px-6 py-4">{t('admin.loyalty_points', 'Points Fidélité')}</th>
+                                    <th className="px-6 py-4">{t('admin.status', 'Statut')}</th>
                                     <th className="px-6 py-4 text-right">{t('admin.actions', 'Actions')}</th>
                                 </tr>
                             </thead>
@@ -70,12 +70,12 @@ const AdminCustomers = ({ auth, theme, toggleTheme, clients, filters }) => {
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
                                                 ${client.user?.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
-                                                {client.user?.status || 'Active'}
+                                                {client.user?.status ? t('status.' + client.user.status, client.user.status) : t('status.active', 'Actif')}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex justify-end gap-2">
-                                                <Link href={route('admin.customers.show', client.id)} className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400" title={t('common.details', 'Dé©tails')}>
+                                                <Link href={route('admin.customers.show', client.id)} className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400" title={t('admin.details', 'Détails')}>
                                                     <Eye className="w-4 h-4" />
                                                 </Link>
                                                 <button
@@ -84,7 +84,7 @@ const AdminCustomers = ({ auth, theme, toggleTheme, clients, filters }) => {
                                                         onSuccess: () => router.reload({ only: ['clients'] })
                                                     })}
                                                     className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                                                    title={client.user?.status === 'banned' ? 'Dé©bloquer' : 'Bloquer'}
+                                                    title={client.user?.status === 'banned' ? t('admin.unblock', 'Débloquer') : t('admin.block', 'Bloquer')}
                                                 >
                                                     <Ban className="w-4 h-4" />
                                                 </button>
@@ -95,7 +95,7 @@ const AdminCustomers = ({ auth, theme, toggleTheme, clients, filters }) => {
                                 {clients.data.length === 0 && (
                                     <tr>
                                         <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
-                                            {t('admin.no_clients', 'Aucun client trouvé©.')}
+                                            {t('admin.no_clients', 'Aucun client trouvé.')}
                                         </td>
                                     </tr>
                                 )}

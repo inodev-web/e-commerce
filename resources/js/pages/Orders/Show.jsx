@@ -11,7 +11,7 @@ const Show = ({ order }) => {
     const isRtl = i18n.dir() === 'rtl';
 
     const handleCancel = () => {
-        if (confirm('éŠtes-vous sé»r de vouloir annuler cette commande ?')) {
+        if (confirm(t('orders.confirm_cancel_msg', 'Êtes-vous sûr de vouloir annuler cette commande ?'))) {
             router.post(route('orders.cancel', order.id));
         }
     };
@@ -23,7 +23,7 @@ const Show = ({ order }) => {
                 ? getTranslated({ name: snapshotName }, 'name')
                 : snapshotName;
         }
-        return item?.product ? getTranslated(item.product, 'name') : 'Produit supprimé©';
+        return item?.product ? getTranslated(item.product, 'name') : t('common.product_deleted', 'Produit supprimé');
     };
 
     return (
@@ -32,7 +32,7 @@ const Show = ({ order }) => {
 
             <main className="flex-grow container mx-auto px-4 py-8 max-w-4xl">
                 <Link href={route('orders.index')} className="inline-flex items-center gap-2 text-gray-500 hover:text-[#DB8B89] mb-6 font-medium dark:text-gray-400 dark:hover:text-[#DB8B89]">
-                    {isRtl ? <ArrowRight size={18} /> : <ArrowLeft size={18} />} {t('orders.back', 'Retour é  mes commandes')}
+                    {isRtl ? <ArrowRight size={18} /> : <ArrowLeft size={18} />} {t('orders.back', 'Retour à mes commandes')}
                 </Link>
 
                 <div className="bg-white dark:bg-[#171717] rounded-2xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-800">
@@ -43,13 +43,13 @@ const Show = ({ order }) => {
                                 {t('orders.order', 'Commande')} #{order.id}
                             </h1>
                             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                                {t('orders.placed_on', 'Passé©e le')} {new Date(order.created_at).toLocaleString()}
+                                {t('orders.placed_on', 'Passée le')} {new Date(order.created_at).toLocaleString()}
                             </p>
                         </div>
                         <div className={`px-4 py-1.5 rounded-full text-sm font-bold ${order.status === 'En attente' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' :
-                            order.status === 'Confirmé©e' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' :
-                                order.status === 'Livré©e' ? 'bg-[#DB8B89]/10 text-[#DB8B89] dark:bg-[#DB8B89]/20' :
-                                    order.status === 'Annulé©e' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                            order.status === 'Confirmée' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' :
+                                order.status === 'Livrée' ? 'bg-[#DB8B89]/10 text-[#DB8B89] dark:bg-[#DB8B89]/20' :
+                                    order.status === 'Annulée' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                             }`}>
                             {order.status}
                         </div>
@@ -95,7 +95,7 @@ const Show = ({ order }) => {
 
                     {/* Order Items */}
                     <div className="border-t dark:border-gray-800 p-6">
-                        <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 bg-gray-50 dark:bg-[#1a1a1a] p-2 rounded">{t('orders.ordered_products', 'Produits commandé©s')}</h3>
+                        <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 bg-gray-50 dark:bg-[#1a1a1a] p-2 rounded">{t('orders.ordered_products', 'Produits commandés')}</h3>
                         <div className="space-y-4">
                             {order.items.map((item) => (
                                 <div key={item.id} className="flex gap-4 items-center">

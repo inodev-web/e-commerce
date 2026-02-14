@@ -1,0 +1,24 @@
+Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [name] => Adrar
+            [name_ar] => أدرار
+        )
+
+    [1] => Array
+        (
+            [id] => 44
+            [name] => Aïn Defla
+            [name_ar] => عين الدفلة
+        )
+
+    [2] => Array
+        (
+            [id] => 46
+            [name] => Aïn Témouchent
+            [name_ar] => عين تيموشنت
+        )
+
+)

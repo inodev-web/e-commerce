@@ -10,6 +10,7 @@ import CartConfirmationModal from '../../components/CartConfirmationModal';
 import '../../../css/productPage.css';
 import { useTranslation } from 'react-i18next';
 import { getTranslated, isRTL } from '@/utils/translation';
+import { getLocalizedName } from '@/utils/localization';
 import { trackEvent } from '@/utils/analytics';
 
 const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
@@ -17,7 +18,6 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
     const { auth, communes: pageCommunes, delivery_tariffs, selected_tariff, order, newLoyaltyBalance, flash } = usePage().props;
     const communes = pageCommunes || [];
 
-    // š¡ï¸ VUE SUCCéˆS SPA (Si la commande vient d'éªtre passé©e)
     if (order) {
         return (
             <div className={`checkout-page min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
@@ -27,28 +27,28 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
                             <CheckCircle size={40} />
                         </div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Commande Ré©ussie !</h1>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('checkout.order_confirmed', 'Commande Confirmée !')}</h1>
                         <p className="text-gray-500 mb-8">
-                            Merci <span className="font-semibold">{order.first_name}</span>. Votre commande <span className="font-mono text-[#DB8B89]">#{order.id}</span> est confirmé©e.
+                            {t('checkout.thank_you', 'Merci')} <span className="font-semibold">{order.first_name}</span>. {t('checkout.order_confirmed', 'Votre commande')} <span className="font-mono text-[#DB8B89]">#{order.id}</span> {t('status.confirmed', 'est confirmée')}.
                         </p>
                         <div className="bg-gray-50 p-6 rounded-2xl mb-8 text-left border border-gray-100">
                             <div className="flex justify-between mb-2">
-                                <span className="text-gray-500">Montant total:</span>
+                                <span className="text-gray-500">{t('cart.total', 'Montant total')}:</span>
                                 <span className="font-bold">{order.total_price.toLocaleString()} DA</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-500">Livraison é :</span>
+                                <span className="text-gray-500">{t('checkout.shipping_to', 'Livraison à')}:</span>
                                 <span className="font-medium">{order.commune_name}, {order.wilaya_name}</span>
                             </div>
                             {newLoyaltyBalance != null && (
                                 <div className="flex justify-between mt-2 pt-2 border-t">
-                                    <span className="text-gray-500">Nouveaux points de fidé©lité©:</span>
+                                    <span className="text-gray-500">{t('loyalty.earned_points', 'Nouveaux points de fidélité')}:</span>
                                     <span className="font-bold text-[#DB8B89]">{newLoyaltyBalance} pts</span>
                                 </div>
                             )}
                         </div>
                         <div className="flex gap-4 justify-center">
-                            <Link href={route('products.index')} className="bg-[#DB8B89] text-white px-8 py-3 rounded-xl font-bold">Continuer les achats</Link>
+                            <Link href={route('products.index')} className="bg-[#DB8B89] text-white px-8 py-3 rounded-xl font-bold">{t('cart.continue_shopping', 'Continuer les achats')}</Link>
                         </div>
                     </div>
                 </main>
@@ -130,7 +130,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
             onSuccess: () => {
                 setCartModalOpen(true);
                 setAddingToCart(false);
-                toast.success(t('product.added_to_cart', 'Produit ajouté© au panier'));
+                toast.success(t('product.added_to_cart', 'Produit ajouté au panier'));
 
                 // Track AddToCart event
                 trackEvent('AddToCart', {
@@ -183,7 +183,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                 setDeliveryTypeError('');
             } else {
                 setShippingPrice(0);
-                setDeliveryTypeError(`Ce type de livraison (${data.delivery_type === 'DOMICILE' ? 'Domicile' : 'Bureau'}) n'est pas supporté© pour cette wilaya`);
+                setDeliveryTypeError(`Ce type de livraison (${data.delivery_type === 'DOMICILE' ? t('checkout.home_delivery', 'Domicile') : t('checkout.office_delivery', 'Bureau')}) n'est pas supporté pour cette wilaya`);
             }
         } else if (selected_tariff === null && data.wilaya_id) {
             setDeliveryTypeError('Cette wilaya n\'est pas disponible pour la livraison');
@@ -283,7 +283,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
         // Safety timeout to prevent infinite loading (30 seconds)
         const timeoutId = setTimeout(() => {
             setPlacingOrder(false);
-            toast.error(t('checkout.timeout_error', 'La requéªte a pris trop de temps. Veuillez ré©essayer.'));
+            toast.error(t('checkout.timeout_error', 'La requête a pris trop de temps. Veuillez réessayer.'));
         }, 30000);
 
         // š¡ï¸ FIX: Utiliser router.post avec l'objet de donné©es direct pour é©viter l'asynchronisme de setData
@@ -392,7 +392,9 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
                         <div className="stock-status">
                             {(selectedVariant?.stock || currentProduct?.stock || 0) > 0 ? (
-                                <span className="in-stock">œ“ {t('product.in_stock', 'En stock')} ({selectedVariant?.stock || currentProduct?.stock || 0} {t('product.available', 'disponibles')})</span>
+                                <span className="in-stock flex items-center gap-1">
+                                    <CheckCircle size={16} /> {t('product.in_stock', 'En stock')} ({selectedVariant?.stock || currentProduct?.stock || 0} {t('product.available', 'disponibles')})
+                                </span>
                             ) : (
                                 <span className="out-of-stock">{t('product.out_of_stock', 'En rupture de stock')}</span>
                             )
@@ -432,7 +434,9 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                             </div>
                                             <div className="mt-2 flex items-center gap-2">
                                                 {variant.stock > 0 ? (
-                                                    <span className="in-stock text-xs">œ“ {t('product.in_stock', 'En stock')} ({variant.stock})</span>
+                                                    <span className="in-stock text-xs flex items-center gap-1">
+                                                        <CheckCircle size={12} /> {t('product.in_stock', 'En stock')} ({variant.stock})
+                                                    </span>
                                                 ) : (
                                                     <span className="out-of-stock text-xs">{t('product.out_of_stock', 'En rupture de stock')}</span>
                                                 )}
@@ -441,13 +445,13 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                     ))}
                                 </div>
                                 {!selectedVariant && (
-                                    <p className="mt-2 text-xs text-amber-600">* {t('product.select_variant', 'Veuillez sé©lectionner une variante')}</p>
+                                    <p className="mt-2 text-xs text-amber-600">* {t('product.select_variant', 'Veuillez sélectionner une variante')}</p>
                                 )}
                             </div>
                         )}
 
                         <div className="quantity-section">
-                            <label>{t('cart.quantity', 'Quantité©')}:</label>
+                            <label>{t('cart.quantity', 'Quantité')}:</label>
                             <div className="quantity-selector">
                                 <button onClick={() => setData('quantity', Math.max(1, data.quantity - 1))} className="qty-btn">
                                     <Minus size={16} />
@@ -462,7 +466,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         {/* Specification Values Selector */}
                         {currentProduct?.specification_values && currentProduct.specification_values.length > 0 && (
                             <div className="mt-6">
-                                <h3 className="text-sm font-medium text-gray-900 mb-3">{t('product.specifications', 'Spé©cifications')}</h3>
+                                <h3 className="text-sm font-medium text-gray-900 mb-3">{t('product.specifications', 'Spécifications')}</h3>
                                 <div className="space-y-4">
                                     {(() => {
                                         const specsBySpecId = {};
@@ -530,7 +534,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                             <form onSubmit={handlePlaceOrder} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-6">
                                 <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
                                     <ShoppingBag size={22} className="text-[#DB8B89]" />
-                                    {t('checkout.title', 'Complé©tez votre commande')}
+                                    {t('checkout.title', 'Complétez votre commande')}
                                 </h2>
 
                                 {/* Contact Person Section */}
@@ -540,7 +544,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.first_name', 'Pré©nom')}</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.first_name', 'Prénom')}</label>
                                             <input
                                                 type="text"
                                                 value={data.first_name}
@@ -562,7 +566,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                             {errors.last_name && <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>}
                                         </div>
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.phone', 'Té©lé©phone')}</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.phone', 'Téléphone')}</label>
                                             <div className="relative">
                                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                                 <input
@@ -596,9 +600,9 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                     className={`w-full pl-10 border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:[color-scheme:dark] ${errors.wilaya_id ? 'border-red-500' : 'border-gray-300'}`}
                                                     required
                                                 >
-                                                    <option value="" className="dark:bg-gray-700 dark:text-white">{t('common.select', 'Sé©lectionner')}</option>
+                                                    <option value="" className="dark:bg-gray-700 dark:text-white">{t('common.select', 'Sélectionner')}</option>
                                                     {wilayas.map(w => (
-                                                        <option key={w.id} value={w.id} className="dark:bg-gray-700 dark:text-white">{w.code} - {isRTL() || i18n.language === 'ar' ? (w.name_ar || w.name) : w.name}</option>
+                                                        <option key={w.id} value={w.id} className="dark:bg-gray-700 dark:text-white">{w.code} - {getLocalizedName(w)}</option>
                                                     ))}
                                                 </select>
                                             </div>
@@ -613,25 +617,25 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                 required
                                                 disabled={!data.wilaya_id}
                                             >
-                                                <option value="" className="dark:bg-gray-700 dark:text-white">{t('common.select', 'Sé©lectionner')}</option>
+                                                <option value="" className="dark:bg-gray-700 dark:text-white">{t('common.select', 'Sélectionner')}</option>
                                                 {communes.map(c => (
-                                                    <option key={c.id} value={c.id} className="dark:bg-gray-700 dark:text-white">{isRTL() || i18n.language === 'ar' ? (c.name_ar || c.name) : c.name}</option>
+                                                    <option key={c.id} value={c.id} className="dark:bg-gray-700 dark:text-white">{getLocalizedName(c)}</option>
                                                 ))}
                                             </select>
                                             {errors.commune_id && <p className="text-red-500 text-xs mt-1">{errors.commune_id}</p>}
                                         </div>
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                {t('checkout.address_placeholder', 'Adresse complé¨te (optionnelle)')}
+                                                {t('checkout.address', 'Adresse complète (optionnelle)')}
                                             </label>
-                                            <input
-                                                type="text"
+                                            <textarea
                                                 id="address"
                                                 name="address"
                                                 value={data.address}
                                                 onChange={(e) => setData('address', e.target.value)}
-                                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                                                placeholder="Quartier, N° rue, Bé¢timent..."
+                                                rows="2"
+                                                className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
+                                                placeholder={t('checkout.address_placeholder', 'Quartier, N° rue, Bâtiment...')}
                                             />
                                             {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
                                         </div>
@@ -640,7 +644,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{t('checkout.delivery_type', 'Type de livraison')}</label>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {[
-                                                    { value: 'DOMICILE', label: t('checkout.home_delivery', 'é€ Domicile'), icon: <MapPin size={18} /> },
+                                                    { value: 'DOMICILE', label: t('checkout.home_delivery', 'À Domicile'), icon: <MapPin size={18} /> },
                                                     { value: 'BUREAU', label: t('checkout.office_delivery', 'Bureau / Point Relais'), icon: <Building size={18} /> }
                                                 ].map(type => {
                                                     const isSupported = selected_tariff && selected_tariff[type.value] !== undefined;
@@ -685,37 +689,37 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
                                 {/* Pricing Summary */}
                                 <AnimatePresence>
-                                    {data.wilaya_id && (
-                                        <motion.div
-                                            initial={{ opacity: 0, height: 0 }}
-                                            animate={{ opacity: 1, height: 'auto' }}
-                                            className="pricing-summary overflow-hidden mt-4 p-4 bg-gray-50 dark:bg-white/5 dark:text-gray-200 rounded-xl transition-colors duration-300"
-                                        >
-                                            <div className="summary-row flex justify-between">
-                                                <span>{t('cart.subtotal', 'Sous-total')}</span>
-                                                <span>{((currentProduct?.price || 0) * data.quantity).toLocaleString()} {t('currency.symbol', 'DA')}</span>
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        className="pricing-summary overflow-hidden mt-4 p-4 bg-gray-50 dark:bg-white/5 dark:text-gray-200 rounded-xl transition-colors duration-300"
+                                    >
+                                        <div className="summary-row flex justify-between">
+                                            <span>{t('cart.subtotal', 'Sous-total')}</span>
+                                            <span>{((currentProduct?.price || 0) * data.quantity).toLocaleString()} {t('currency.symbol', 'DA')}</span>
+                                        </div>
+                                        {promoDiscount > 0 && (
+                                            <div className="summary-row flex justify-between text-green-600 text-sm">
+                                                <span>{t('admin.promo_codes', 'Code promo')}</span>
+                                                <span>-{promoDiscount.toLocaleString()} {t('currency.symbol', 'DA')}</span>
                                             </div>
-                                            {promoDiscount > 0 && (
-                                                <div className="summary-row flex justify-between text-green-600 text-sm">
-                                                    <span>{t('admin.promo_codes', 'Code promo')}</span>
-                                                    <span>-{promoDiscount.toLocaleString()} {t('currency.symbol', 'DA')}</span>
-                                                </div>
-                                            )}
-                                            <div className="summary-row flex justify-between">
-                                                <span>{t('cart.shipping', 'Livraison')}</span>
-                                                <span className={isFreeShipping ? "text-green-600 font-bold" : ""}>
-                                                    {isCalculatingShipping
-                                                        ? '...'
-                                                        : (isFreeShipping ? t('cart.free_shipping', 'Gratuit (Promo)') : `${shippingPrice.toLocaleString()} ${t('currency.symbol', 'DA')}`)
-                                                    }
-                                                </span>
-                                            </div>
-                                            <div className="summary-row total flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 mt-2 pt-2 text-lg dark:text-white">
-                                                <span>{t('cart.total', 'Total é  payer')}</span>
-                                                <span>{finalTotal.toLocaleString()} {t('currency.symbol', 'DA')}</span>
-                                            </div>
+                                        )}
+                                        <div className="summary-row flex justify-between">
+                                            <span>{t('cart.shipping', 'Livraison')}</span>
+                                            <span className={isFreeShipping ? "text-green-600 font-bold" : ""}>
+                                                {isCalculatingShipping
+                                                    ? '...'
+                                                    : (isFreeShipping ? t('cart.free_shipping', 'Gratuit (Promo)') : (data.wilaya_id ? `${shippingPrice.toLocaleString()} ${t('currency.symbol', 'DA')}` : '--'))
+                                                }
+                                            </span>
+                                        </div>
+                                        <div className="summary-row total flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 mt-2 pt-2 text-lg dark:text-white">
+                                            <span>{t('cart.total', 'Total à payer')}</span>
+                                            <span>{finalTotal.toLocaleString()} {t('currency.symbol', 'DA')}</span>
+                                        </div>
 
-                                            {/* Loyalty Points Section */}
+                                        {/* Loyalty Points Section */}
+                                        {auth?.user && loyaltyBalance > 0 && (
                                             <div className="mt-4 border-t border-gray-100 dark:border-gray-700 pt-4">
                                                 <label className="flex items-center justify-between cursor-pointer p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors">
                                                     <div className="flex items-center gap-3">
@@ -745,69 +749,69 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                     )}
                                                 </label>
                                             </div>
+                                        )}
 
-                                            {/* Promo code section */}
-                                            <div className="mt-4">
-                                                {!showPromo ? (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowPromo(true)}
-                                                        className="text-sm text-[#DB8B89] underline"
-                                                    >
-                                                        {t('checkout.promo_link', 'code promo ?')}
-                                                    </button>
-                                                ) : (
-                                                    <div className="space-y-2">
-                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                            {t('checkout.promo_label', 'Code promo')}
-                                                        </label>
-                                                        {data.promo_code ? (
-                                                            <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 rounded-lg text-sm transition-colors">
-                                                                <div>
-                                                                    <p className="font-medium text-green-800">{data.promo_code}</p>
-                                                                    <p className="text-xs text-green-600">
-                                                                        {isFreeShipping ? t('cart.free_shipping', 'Livraison Gratuite') : `-${promoDiscount.toLocaleString()} ${t('currency.symbol', 'DA')}`}
-                                                                    </p>
-                                                                </div>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={removePromoCode}
-                                                                    className="text-red-500 hover:text-red-700 text-xs font-medium"
-                                                                >
-                                                                    {t('common.remove', 'Retirer')}
-                                                                </button>
+                                        {/* Promo code section */}
+                                        <div className="mt-4">
+                                            {!showPromo ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPromo(true)}
+                                                    className="text-sm text-[#DB8B89] underline"
+                                                >
+                                                    {t('checkout.promo_link', 'code promo ?')}
+                                                </button>
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                        {t('checkout.promo_label', 'Code promo')}
+                                                    </label>
+                                                    {data.promo_code ? (
+                                                        <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 rounded-lg text-sm transition-colors">
+                                                            <div>
+                                                                <p className="font-medium text-green-800 dark:text-green-400">{data.promo_code}</p>
+                                                                <p className="text-xs text-green-600 dark:text-green-500">
+                                                                    {isFreeShipping ? t('cart.free_shipping', 'Livraison Gratuite') : `-${promoDiscount.toLocaleString()} ${t('currency.symbol', 'DA')}`}
+                                                                </p>
                                                             </div>
-                                                        ) : (
-                                                            <div className="flex gap-2">
-                                                                <input
-                                                                    type="text"
-                                                                    value={promoInput}
-                                                                    onChange={e => setPromoInput(e.target.value.toUpperCase())}
-                                                                    placeholder={t('checkout.promo_placeholder', 'Entrez votre code')}
-                                                                    className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89] dark:bg-neutral-800 dark:border-neutral-700 dark:text-white transition-colors"
-                                                                />
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={validatePromoCode}
-                                                                    disabled={isValidatingPromo || !promoInput.trim()}
-                                                                    className="px-4 py-2 bg-[#DB8B89] text-white rounded-lg text-sm font-medium hover:bg-[#C07573] disabled:opacity-50"
-                                                                >
-                                                                    {isValidatingPromo
-                                                                        ? t('common.loading', 'Vé©rification...')
-                                                                        : t('common.apply', 'Appliquer')}
-                                                                </button>
-                                                            </div>
-                                                        )}
-                                                        {promoError && (
-                                                            <p className="text-xs text-red-500">
-                                                                {promoError}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </motion.div>
-                                    )}
+                                                            <button
+                                                                type="button"
+                                                                onClick={removePromoCode}
+                                                                className="text-red-500 hover:text-red-700 text-xs font-medium"
+                                                            >
+                                                                {t('common.remove', 'Retirer')}
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex gap-2">
+                                                            <input
+                                                                type="text"
+                                                                value={promoInput}
+                                                                onChange={e => setPromoInput(e.target.value.toUpperCase())}
+                                                                placeholder={t('checkout.promo_placeholder', 'Entrez votre code')}
+                                                                className="flex-1 border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#DB8B89] dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={validatePromoCode}
+                                                                disabled={isValidatingPromo || !promoInput.trim()}
+                                                                className="px-4 py-2 bg-[#DB8B89] text-white rounded-lg text-sm font-medium hover:bg-[#C07573] disabled:opacity-50"
+                                                            >
+                                                                {isValidatingPromo
+                                                                    ? t('common.loading', 'Vérification...')
+                                                                    : t('common.apply', 'Appliquer')}
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                    {promoError && (
+                                                        <p className="text-xs text-red-500">
+                                                            {promoError}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </motion.div>
                                 </AnimatePresence>
 
                                 <div className="product-actions mt-6 flex gap-2">
@@ -834,7 +838,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         <div className="product-tabs mt-8">
                             <div className="tab-headers border-b dark:border-gray-700 flex gap-6">
                                 <button className={`pb-2 ${activeTab === 'description' ? 'border-b-2 border-[#DB8B89] font-bold text-[#DB8B89]' : ''}`} onClick={() => setActiveTab('description')}>{t('product.description', 'Description')}</button>
-                                <button className={`pb-2 ${activeTab === 'features' ? 'border-b-2 border-[#DB8B89] font-bold text-[#DB8B89]' : ''}`} onClick={() => setActiveTab('features')}>{t('product.specifications', 'Spé©cifications')}</button>
+                                <button className={`pb-2 ${activeTab === 'features' ? 'border-b-2 border-[#DB8B89] font-bold text-[#DB8B89]' : ''}`} onClick={() => setActiveTab('features')}>{t('product.specifications', 'Spécifications')}</button>
                             </div>
                             <div className="tab-content py-4">
                                 {activeTab === 'description' && <p>{currentProduct ? getTranslated(currentProduct, 'description') : ''}</p>}

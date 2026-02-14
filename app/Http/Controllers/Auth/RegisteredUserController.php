@@ -28,7 +28,7 @@ class RegisteredUserController extends Controller
         $activeWilayas = \App\Models\Wilaya::active()
             ->orderBy('name')
             ->get()
-            ->map(fn($w) => ['id' => $w->id, 'name' => $w->name]);
+            ->map(fn($w) => ['id' => $w->id, 'name' => $w->name, 'name_ar' => $w->name_ar]);
 
         \Illuminate\Support\Facades\Log::info('RegisteredUserController: Active Wilayas Count', ['count' => $activeWilayas->count(), 'data' => $activeWilayas->toArray()]);
 

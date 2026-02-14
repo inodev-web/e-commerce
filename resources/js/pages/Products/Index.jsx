@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Star, Search as SearchIcon, Sparkles, ChevronUp } from 'lucide-react';
+import { ShoppingCart, Star, Search as SearchIcon, Sparkles, ChevronUp, ChevronDown, X, PackageOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { router, Link, usePage } from '@inertiajs/react';
 import { getTranslated } from '@/utils/translation';
@@ -141,9 +141,9 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                     <Sparkles className="shop-hero-sparkle" size={20} />
                     <Sparkles className="shop-hero-sparkle" size={16} />
                     <Sparkles className="shop-hero-sparkle" size={14} />
-                    <h1 className="shop-title">{getLabel('all_products')}</h1>
+                    <h1 className="shop-title">{getLabel('common.all_products') || getLabel('nav.shop')}</h1>
                     <p className="shop-subtitle">
-                        utilisez les filtres et la barre de recherche
+                        {getLabel('common.use_filters')}
                     </p>
                     <div className="shop-hero-divider" />
                 </div>
@@ -157,7 +157,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                         <Dialog>
                             <DialogTrigger asChild>
                                 <button className="filter-button">
-                                    {getLabel('categories')} <span className="arrow">–¼</span>
+                                    {getLabel('common.categories')} <ChevronDown size={16} />
                                 </button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[425px] p-6 lg:p-10">
@@ -202,7 +202,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                         <Dialog>
                             <DialogTrigger asChild>
                                 <button className="filter-button">
-                                    {getLabel('price')} <span className="arrow">–¼</span>
+                                    {getLabel('common.price')} <ChevronDown size={16} />
                                 </button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[425px] p-10">
@@ -260,26 +260,26 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                     <div className="active-filters">
                         {filters.search && (
                             <span className="filter-tag">
-                                {getLabel('search')}: {filters.search}
-                                <button onClick={() => setSearchTerm('')}>œ•</button>
+                                {getLabel('common.search')}: {filters.search}
+                                <button onClick={() => setSearchTerm('')}><X size={14} /></button>
                             </span>
                         )}
                         {filters.category_id && (
                             <span className="filter-tag">
-                                {getLabel('categories')}: {categories.find(c => c.id == filters.category_id)?.name || filters.category_id}
-                                <button onClick={() => handleFilterChange('category_id', null)}>œ•</button>
+                                {getLabel('common.categories')}: {categories.find(c => c.id == filters.category_id)?.name || filters.category_id}
+                                <button onClick={() => handleFilterChange('category_id', null)}><X size={14} /></button>
                             </span>
                         )}
                         {filters.min_price && (
                             <span className="filter-tag">
-                                Min: {filters.min_price} DA
-                                <button onClick={() => handlePriceChange('min_price', '')}>œ•</button>
+                                {getLabel('common.min')}: {filters.min_price} DA
+                                <button onClick={() => handlePriceChange('min_price', '')}><X size={14} /></button>
                             </span>
                         )}
                         {filters.max_price && (
                             <span className="filter-tag">
-                                Max: {filters.max_price} DA
-                                <button onClick={() => handlePriceChange('max_price', '')}>œ•</button>
+                                {getLabel('common.max')}: {filters.max_price} DA
+                                <button onClick={() => handlePriceChange('max_price', '')}><X size={14} /></button>
                             </span>
                         )}
                         <button className="clear-all" onClick={clearFilters}>
@@ -291,7 +291,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                 {/* Results Bar */}
                 <div className="results-bar">
                     <p className="results-count">
-                        <strong>{products.total || products.data.length}</strong> {getLabel('products_found') || 'produits trouvé©s'}
+                        <strong>{products.total || products.data.length}</strong> {getLabel('common.products_found')}
                     </p>
                 </div>
 
@@ -300,7 +300,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                     {products.data.length > 0 ? products.data.map((product) => (
                         <Link key={product.id} href={route('products.show', product.id)} className="top-seller-card h-full">
                             {product.stock <= 0 && (
-                                <span className="seller-badge out-of-stock">{getLabel('out_of_stock')}</span>
+                                <span className="seller-badge out-of-stock">{getLabel('product.out_of_stock')}</span>
                             )}
                             <div className="seller-rating">
                                 <Star size={14} fill="#FFC107" stroke="#FFC107" />
@@ -333,8 +333,8 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                         </Link>
                     )) : (
                         <div className="shop-empty-state">
-                            <div className="empty-icon">ðŸ”</div>
-                            <p>{getLabel('no_products_match') || 'Aucun produit ne correspond é  vos crité¨res.'}</p>
+                            <div className="empty-icon"><PackageOpen size={48} /></div>
+                            <p>{getLabel('common.no_products_match')}</p>
                         </div>
                     )}
                 </div>

@@ -5,8 +5,10 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import confetti from 'canvas-confetti';
 import { trackEvent } from '@/utils/analytics';
+import { useTranslation } from 'react-i18next';
 
 const Success = ({ order, newLoyaltyBalance }) => {
+    const { t } = useTranslation();
     const pageProps = usePage().props;
     const auth = pageProps.auth;
     const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
@@ -68,24 +70,24 @@ const Success = ({ order, newLoyaltyBalance }) => {
                         <CheckCircle size={48} />
                     </div>
 
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Commande Confirmé©e !</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('checkout.order_confirmed', 'Commande Confirmée !')}</h1>
                     <p className="text-gray-500 dark:text-gray-400 text-lg mb-8">
-                        Merci <span className="font-semibold text-[#DB8B89]">{order.first_name}</span>, votre commande <span className="font-mono bg-[#F8E4E0] dark:bg-[#DB8B89]/20 px-2 py-1 rounded text-[#DB8B89]">#{order.id}</span> a é©té© enregistré©e avec succé¨s.
+                        {t('checkout.thank_you', 'Merci')} <span className="font-semibold text-[#DB8B89]">{order.first_name}</span>, {t('checkout.order_confirmed_text', 'votre commande')} <span className="font-mono bg-[#F8E4E0] dark:bg-[#DB8B89]/20 px-2 py-1 rounded text-[#DB8B89]">#{order.id}</span> {t('status.confirmed', 'a été enregistrée avec succès')}.
                     </p>
 
                     <div className="bg-[#FDF6F5] dark:bg-zinc-800 p-6 rounded-2xl mb-8 text-left border border-[#F3CFCB] dark:border-zinc-700">
-                        <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 border-b pb-2 border-gray-200 dark:border-zinc-700">Dé©tails de la livraison</h3>
+                        <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 border-b pb-2 border-gray-200 dark:border-zinc-700">{t('checkout.shipping_info', 'Détails de la livraison')}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
-                                <p className="text-gray-500 dark:text-gray-400">Adresse</p>
+                                <p className="text-gray-500 dark:text-gray-400">{t('checkout.address', 'Adresse')}</p>
                                 <p className="font-medium text-gray-900 dark:text-gray-100">{order.address}</p>
                                 <p className="font-medium text-gray-900 dark:text-gray-100">{order.commune_name}, {order.wilaya_name}</p>
                             </div>
                             <div>
-                                <p className="text-gray-500 dark:text-gray-400">Montant Total</p>
+                                <p className="text-gray-500 dark:text-gray-400">{t('cart.total', 'Montant Total')}</p>
                                 <p className="font-bold text-lg text-[#DB8B89]">{order.total_price.toLocaleString()} DA</p>
-                                <p className="text-gray-500 dark:text-gray-400 mt-2">Mode de paiement</p>
-                                <p className="font-medium text-gray-900 dark:text-gray-100">Paiement é  la livraison</p>
+                                <p className="text-gray-500 dark:text-gray-400 mt-2">{t('checkout.payment', 'Mode de paiement')}</p>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">{t('common.cash_on_delivery', 'Paiement à la livraison')}</p>
                             </div>
                         </div>
                     </div>
@@ -97,7 +99,7 @@ const Success = ({ order, newLoyaltyBalance }) => {
                                     <span className="text-white text-xl">˜…</span>
                                 </div>
                                 <div>
-                                    <p className="text-gray-600 dark:text-gray-300 text-sm">Votre nouveau solde de points fidé©lité©</p>
+                                    <p className="text-gray-600 dark:text-gray-300 text-sm">{t('loyalty.earned_points', 'Votre nouveau solde de points fidélité')}</p>
                                     <p className="font-bold text-2xl text-[#DB8B89]">{newLoyaltyBalance} points</p>
                                 </div>
                             </div>
@@ -109,14 +111,14 @@ const Success = ({ order, newLoyaltyBalance }) => {
                             href={route('products.index')}
                             className="bg-[#DB8B89] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#C07573] transition-colors flex items-center justify-center gap-2"
                         >
-                            <ShoppingBag size={20} /> Continuer les achats
+                            <ShoppingBag size={20} /> {t('cart.continue_shopping', 'Continuer les achats')}
                         </Link>
                         {isClient && (
                             <Link
                                 href={route('orders.show', order.id)}
                                 className="bg-white dark:bg-zinc-800 border-2 border-[#DB8B89] text-[#DB8B89] px-8 py-3 rounded-xl font-bold hover:bg-[#F8E4E0] dark:hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2"
                             >
-                                Suivre ma commande <ArrowRight size={20} />
+                                {t('orders.track', 'Suivre ma commande')} <ArrowRight size={20} />
                             </Link>
                         )}
                     </div>

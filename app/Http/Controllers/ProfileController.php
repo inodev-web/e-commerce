@@ -71,10 +71,10 @@ class ProfileController extends Controller
         }
 
         // Load wilayas and communes for the form
-        $wilayas = \App\Models\Wilaya::active()->orderBy('name')->get(['id', 'name']);
+        $wilayas = \App\Models\Wilaya::active()->orderBy('name')->get(['id', 'name', 'name_ar']);
         $communes = [];
         if ($client && $client->wilaya_id) {
-            $communes = \App\Models\Commune::where('wilaya_id', $client->wilaya_id)->orderBy('name')->get(['id', 'name']);
+            $communes = \App\Models\Commune::where('wilaya_id', $client->wilaya_id)->orderBy('name')->get(['id', 'name', 'name_ar']);
         }
 
         return Inertia::render('Profile/Edit', [

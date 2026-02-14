@@ -3,6 +3,7 @@ import { Mail, Lock, Eye, EyeOff, Loader2, Play, Phone, MapPin, Building, User }
 import { Link, useForm } from '@inertiajs/react';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import { getTranslated } from '@/utils/translation';
+import { getLocalizedName } from '@/utils/localization';
 import { getLabel } from '../../utils/i18n';
 
 const AuthPage = ({ wilayas }) => {
@@ -202,10 +203,10 @@ const AuthPage = ({ wilayas }) => {
                                                     className="w-full pl-10 px-4 py-3 border border-white/20 lg:border-gray-300 rounded-xl focus:ring-2 focus:ring-white lg:focus:ring-gray-900 focus:border-transparent outline-none transition-all bg-white/10 lg:bg-white text-white lg:text-gray-900 appearance-none"
                                                     required
                                                 >
-                                                    <option value="" className="text-gray-900">Choisir...</option>
+                                                    <option value="" className="text-gray-900">{getLabel('choose')}</option>
                                                     {wilayas && wilayas.map((wilaya) => (
                                                         <option key={wilaya.id} value={wilaya.id} className="text-gray-900">
-                                                            {wilaya.id} - {wilaya.name}
+                                                            {wilaya.id} - {getLocalizedName(wilaya)}
                                                         </option>
                                                     ))}
                                                 </select>
@@ -227,10 +228,10 @@ const AuthPage = ({ wilayas }) => {
                                                     required
                                                     disabled={!data.wilaya_id || loadingCommunes}
                                                 >
-                                                    <option value="" className="text-gray-900">Choisir...</option>
+                                                    <option value="" className="text-gray-900">{getLabel('choose')}</option>
                                                     {communes.map((commune) => (
                                                         <option key={commune.id} value={commune.id} className="text-gray-900">
-                                                            {getTranslated(commune, 'name')}
+                                                            {getLocalizedName(commune)}
                                                         </option>
                                                     ))}
                                                 </select>
@@ -279,7 +280,7 @@ const AuthPage = ({ wilayas }) => {
                             </div>
 
                             {/* Password Confirmation (Only for register mode if we had one here, but keeping for structure) */}
-                            {false && (
+                            {!isLogin && (
                                 <div className="space-y-1.5">
                                     <label className="block text-sm font-medium text-gray-200 lg:text-gray-700">{getLabel('confirm_password')}</label>
                                     <div className="relative">

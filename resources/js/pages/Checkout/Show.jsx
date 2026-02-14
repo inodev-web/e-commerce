@@ -5,6 +5,7 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { useTranslation } from 'react-i18next';
 import { getTranslated, isRTL } from '@/utils/translation';
+import { getLocalizedName } from '@/utils/localization';
 import { trackEvent } from '@/utils/analytics';
 
 const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalance: propLoyaltyBalance, communes: propCommunes }) => {
@@ -13,7 +14,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
     const toggleTheme = () => setTheme(pre => pre === 'dark' ? 'light' : 'dark');
 
     const { auth, delivery_tariffs, communes: pageCommunes, selected_tariff, order: flashOrder, newLoyaltyBalance } = usePage().props;
-    const order = flashOrder; // On ré©cupé¨re la commande en prop si elle vient d'éªtre cré©é©e
+    const order = flashOrder; // On récupère la commande en prop si elle vient d'être créée
 
     const communes = propCommunes || pageCommunes || [];
 
@@ -45,7 +46,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
     const [isValidatingPromo, setIsValidatingPromo] = useState(false);
     const [isFreeShipping, setIsFreeShipping] = useState(false);
 
-    // Loyalty points state (š¡ï¸ Utilise les points du user partagé©s par Inertia)
+    // Loyalty points state (Utilise les points du user partagés par Inertia)
     const loyaltyBalance = auth.user?.points || 0;
     const loyaltyRate = auth.user?.loyalty_conversion_rate || 1.0;
     const [useLoyaltyEnabled, setUseLoyaltyEnabled] = useState(false);
@@ -69,7 +70,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
         });
     }, []);
 
-    // Initial load or update when wilaya changes
+    // Initial load or update when cart changes
     useEffect(() => {
         if (cart?.id) {
             setData('cart_id', cart.id);
@@ -90,7 +91,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
         );
     }, [data.wilaya_id]);
 
-    // Mise é  jour locale immé©diate du prix quand le type change
+    // Mise à jour locale immédiate du prix quand le type change
     useEffect(() => {
         if (selected_tariff && data.delivery_type) {
             const price = selected_tariff[data.delivery_type];
@@ -99,7 +100,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                 setDeliveryTypeError('');
             } else {
                 setShippingPrice(0);
-                setDeliveryTypeError(`Ce type de livraison (${data.delivery_type === 'domicile' ? 'Domicile' : 'Bureau'}) n'est pas supporté© pour cette wilaya`);
+                setDeliveryTypeError(`Ce type de livraison (${data.delivery_type === 'domicile' ? 'Domicile' : 'Bureau'}) n'est pas supporté pour cette wilaya`);
             }
         } else if (selected_tariff === null && data.wilaya_id) {
             setDeliveryTypeError('Cette wilaya n\'est pas disponible pour la livraison');
@@ -175,7 +176,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
         });
     };
 
-    // š¡ï¸ VUE SUCCéˆS SPA (Si la commande vient d'éªtre passé©e)
+    // VUE SUCCÈS SPA (Si la commande vient d'être passée)
     if (order) {
         return (
             <div className={`checkout-page min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-black text-white' : 'bg-gray-50'}`} dir={isAr ? 'rtl' : 'ltr'}>
@@ -185,9 +186,9 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                         <div className="w-20 h-20 bg-[#DB8B89]/10 rounded-full flex items-center justify-center mx-auto mb-6 text-[#DB8B89]">
                             <CheckCircle size={40} />
                         </div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('common.success', 'Commande Ré©ussie !')}</h1>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('common.success', 'Commande Réussie !')}</h1>
                         <p className="text-gray-500 dark:text-gray-400 mb-8">
-                            {t('checkout.thank_you', 'Merci')} <span className="font-semibold text-gray-900 dark:text-gray-200">{order.first_name}</span>. {t('checkout.order_confirmed', 'Votre commande')} <span className="font-mono text-[#DB8B89]">#{order.id}</span> {t('status.confirmed', 'est confirmé©e')}.
+                            {t('checkout.thank_you', 'Merci')} <span className="font-semibold text-gray-900 dark:text-gray-200">{order.first_name}</span>. {t('checkout.order_confirmed', 'Votre commande')} <span className="font-mono text-[#DB8B89]">#{order.id}</span> {t('status.confirmed', 'est confirmée')}.
                         </p>
                         <div className="bg-gray-50 dark:bg-[#1a1a1a] p-6 rounded-2xl mb-8 text-left border border-gray-100 dark:border-gray-800">
                             <div className="flex justify-between mb-2">
@@ -195,7 +196,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                 <span className="font-bold text-gray-900 dark:text-gray-100">{order.total_price.toLocaleString()} DA</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-500 dark:text-gray-400">{t('checkout.shipping_to', 'Livraison é ')}:</span>
+                                <span className="text-gray-500 dark:text-gray-400">{t('checkout.shipping_to', 'Livraison à')}:</span>
                                 <span className="font-medium text-gray-900 dark:text-gray-100">{order.commune_name}, {order.wilaya_name}</span>
                             </div>
                         </div>
@@ -211,7 +212,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
 
     const activeShippingPrice = isFreeShipping ? 0 : shippingPrice;
 
-    // Calcul de la remise fidé©lité© ré©elle (plafonné©e par le total restant)
+    // Calcul de la remise fidélité réelle (plafonnée par le total restant)
     const maxReducibleAmount = Math.max(0, productsTotal + activeShippingPrice - promoDiscount);
     const potentialLoyaltyDiscount = useLoyaltyEnabled ? (data.use_loyalty_points * loyaltyRate) : 0;
     const loyaltyDiscount = Math.min(potentialLoyaltyDiscount, maxReducibleAmount);
@@ -251,7 +252,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                         {errors.last_name && <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.first_name', 'Pré©nom')}</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.first_name', 'Prénom')}</label>
                                         <input
                                             type="text"
                                             value={data.first_name}
@@ -262,7 +263,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                         {errors.first_name && <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>}
                                     </div>
                                     <div className="md:col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.phone', 'Té©lé©phone')}</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.phone', 'Téléphone')}</label>
                                         <input
                                             type="tel"
                                             value={data.phone}
@@ -293,9 +294,9 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                             className={`w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#DB8B89] bg-white dark:bg-[#1a1a1a] dark:text-white ${errors.wilaya_id ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'}`}
                                             required
                                         >
-                                            <option value="">{t('checkout.select_wilaya', 'Sé©lectionner une wilaya')}</option>
+                                            <option value="">{t('checkout.select_wilaya', 'Sélectionner une wilaya')}</option>
                                             {wilayas.map(w => (
-                                                <option key={w.id} value={w.id}>{w.id} - {isAr ? (w.name_ar || w.name) : w.name}</option>
+                                                <option key={w.id} value={w.id}>{w.id} - {getLocalizedName(w)}</option>
                                             ))}
                                         </select>
                                         {errors.wilaya_id && <p className="text-red-500 text-xs mt-1">{errors.wilaya_id}</p>}
@@ -314,9 +315,9 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                             required
                                             disabled={!data.wilaya_id}
                                         >
-                                            <option value="">{t('checkout.select_commune', 'Sé©lectionner une commune')}</option>
+                                            <option value="">{t('checkout.select_commune', 'Sélectionner une commune')}</option>
                                             {communes.map(c => (
-                                                <option key={c.id} value={c.id}>{isAr ? (c.name_ar || c.name) : c.name}</option>
+                                                <option key={c.id} value={c.id}>{getLocalizedName(c)}</option>
                                             ))}
                                         </select>
                                         {errors.commune_id && <p className="text-red-500 text-xs mt-1">{errors.commune_id}</p>}
@@ -324,7 +325,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
 
                                     {/* Address */}
                                     <div className="md:col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.address', 'Adresse complé¨te (optionnelle)')}</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('checkout.address', 'Adresse complète (optionnelle)')}</label>
                                         <textarea
                                             value={data.address}
                                             onChange={e => setData('address', e.target.value)}
@@ -359,7 +360,11 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                                                 className="text-[#DB8B89] focus:ring-[#DB8B89]"
                                                                 disabled={!isSupported}
                                                             />
-                                                            <span className="font-medium text-gray-900 dark:text-gray-100">{type.label}</span>
+                                                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                                                                {type.value === 'DOMICILE' ? t('checkout.domicile', 'Domicile') :
+                                                                    type.value === 'BUREAU' ? t('checkout.bureau', 'Bureau') :
+                                                                        type.label}
+                                                            </span>
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             {selected_tariff && selected_tariff[type.value] !== undefined && (
@@ -390,7 +395,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                     {/* Order Summary */}
                     <div className="lg:col-span-1">
                         <div className="checkout-card checkout-summary bg-white dark:bg-[#171717] p-6 rounded-2xl shadow-sm sticky top-24 border border-gray-100 dark:border-gray-800">
-                            <h3 className="text-xl font-bold mb-6 text-gray-900 dark:text-gray-100">{t('checkout.summary', 'Ré©capitulatif')}</h3>
+                            <h3 className="text-xl font-bold mb-6 text-gray-900 dark:text-gray-100">{t('checkout.summary', 'Récapitulatif')}</h3>
 
                             <div className="max-h-60 overflow-y-auto space-y-3 mb-6 pr-2">
                                 {items.map(item => (
@@ -460,7 +465,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                             disabled={isValidatingPromo || !promoInput.trim()}
                                             className="px-4 py-2 bg-[#DB8B89] text-white rounded-lg text-sm font-medium hover:bg-[#C07573] disabled:opacity-50"
                                         >
-                                            {isValidatingPromo ? t('common.loading', 'Vé©rification...') : t('common.apply', 'Appliquer')}
+                                            {isValidatingPromo ? t('common.loading', 'Vérification...') : t('common.apply', 'Appliquer')}
                                         </button>
                                     </div>
                                 )}
@@ -501,7 +506,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                     )}
                                     {loyaltyDiscount > 0 && (
                                         <p className="text-xs text-green-600 mt-1">
-                                            {t('cart.discount', 'Ré©duction')} : -{loyaltyDiscount.toLocaleString()} DA
+                                            {t('cart.discount', 'Réduction')} : -{loyaltyDiscount.toLocaleString()} DA
                                         </p>
                                     )}
                                 </div>
@@ -522,7 +527,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                 )}
                                 {loyaltyDiscount > 0 && (
                                     <div className="flex justify-between text-green-600 dark:text-green-500">
-                                        <span>{t('admin.loyalty', 'Points Fidé©lité©')}</span>
+                                        <span>{t('admin.loyalty', 'Points Fidélité')}</span>
                                         <span>-{loyaltyDiscount.toLocaleString()} DA</span>
                                     </div>
                                 )}
@@ -534,13 +539,13 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                         <span className={isFreeShipping ? "text-green-600 font-bold" : ""}>
                                             {isFreeShipping
                                                 ? t('cart.free_shipping', 'Gratuit (Promo)')
-                                                : (shippingPrice > 0 ? `${shippingPrice.toLocaleString()} DA` : t('cart.free_shipping', 'Gratuit / Non calculé©'))
+                                                : (shippingPrice > 0 ? `${shippingPrice.toLocaleString()} DA` : t('cart.free_shipping', 'Gratuit / Non calculé'))
                                             }
                                         </span>
                                     )}
                                 </div>
                                 <div className="border-t dark:border-gray-800 pt-3 flex justify-between font-bold text-xl text-gray-900 dark:text-white">
-                                    <span>{t('cart.total_to_pay', 'Total é  payer')}</span>
+                                    <span>{t('cart.total_to_pay', 'Total à payer')}</span>
                                     <span className="text-[#DB8B89]">{total.toLocaleString()} DA</span>
                                 </div>
                             </div>
@@ -554,7 +559,7 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                             </button>
 
                             <p className="text-xs text-gray-500 text-center mt-4">
-                                {t('checkout.terms', 'En confirmant, vous acceptez nos conditions gé©né©rales de vente.')}
+                                {t('checkout.terms', 'En confirmant, vous acceptez nos conditions générales de vente.')}
                             </p>
                         </div>
                     </div>

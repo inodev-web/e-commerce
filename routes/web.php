@@ -19,7 +19,7 @@ Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->name('h
 
 Route::get('/auth', function () {
     return Inertia::render('Auth/Login', [
-        'wilayas' => \App\Models\Wilaya::active()->select('id', 'name', 'code')->orderBy('name')->get()
+        'wilayas' => \App\Models\Wilaya::active()->select('id', 'name', 'name_ar', 'code')->orderBy('code')->get()
     ]);
 })->name('auth');
 

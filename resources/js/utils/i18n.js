@@ -63,6 +63,17 @@
         'referral_generation': 'GéNéRATION...',
         'login_hero_title': 'Trouvez Vos Essentiels Santé',
         'login_hero_text': "Accédez à une large gamme de produits parapharmaceutiques de qualité. Livraison rapide et conseils d'experts.",
+
+        // Common keys used in Products/Index.jsx
+        'common.all_products': 'Tous les produits',
+        'common.use_filters': 'Utilisez les filtres et la barre de recherche ci-dessous.',
+        'common.categories': 'Catégories',
+        'common.price': 'Prix',
+        'common.search': 'Rechercher',
+        'common.min': 'Min',
+        'common.max': 'Max',
+        'common.products_found': 'produits trouvés',
+        'common.no_products_match': 'Aucun produit ne correspond à vos critères.',
     },
     ar: {
         'login': 'تسجيل الدخول',
@@ -128,6 +139,17 @@
         'referral_generation': 'جاري التوليد...',
         'login_hero_title': 'اعثر على أساسيات صحتك',
         'login_hero_text': 'يمكنك الوصول إلى مجموعة واسعة من المنتجات شبه الصيدلانية عالية الجودة. توصيل سريع ومشورة الخبراء.',
+
+        // Common keys used in Products/Index.jsx
+        'common.all_products': 'جميع المنتجات',
+        'common.use_filters': 'استخدم المرشحات وشريط البحث أدناه.',
+        'common.categories': 'الفئات',
+        'common.price': 'السعر',
+        'common.search': 'بحث',
+        'common.min': 'الحد الأدنى',
+        'common.max': 'الحد الأقصى',
+        'common.products_found': 'منتج تم العثور عليه',
+        'common.no_products_match': 'لا توجد منتجات تطابق معايير البحث الخاصة بك.',
     }
 };
 

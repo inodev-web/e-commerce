@@ -201,7 +201,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                                     >
                                         <option value="">{t('checkout.select_wilaya', 'Sélectionner la wilaya')}</option>
                                         {wilayas.map(w => (
-                                            <option key={w.id} value={w.id}>{w.name}</option>
+                                            <option key={w.id} value={w.id}>{getLocalizedName(w)}</option>
                                         ))}
                                     </select>
                                     {errors.wilaya_id && <p className="text-red-500 text-xs mt-1">{errors.wilaya_id}</p>}
@@ -218,7 +218,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                                     >
                                         <option value="">{t('checkout.select_commune', 'Sélectionner la commune')}</option>
                                         {availableCommunes.map(c => (
-                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                            <option key={c.id} value={c.id}>{getLocalizedName(c)}</option>
                                         ))}
                                     </select>
                                     {errors.commune_id && <p className="text-red-500 text-xs mt-1">{errors.commune_id}</p>}

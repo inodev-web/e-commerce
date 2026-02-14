@@ -4,9 +4,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/Components/ui/button";
 import AdminLayout from '../../components/AdminLayout';
 import { useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import { getTranslated } from '@/utils/translation';
 
 const AdminCategories = ({ categories, theme, toggleTheme }) => {
+    const { t } = useTranslation();
     const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
     const [isAddSubCategoryOpen, setIsAddSubCategoryOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -67,13 +69,13 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
     };
 
     const handleDeleteCategory = (categoryId) => {
-        if (confirm('éŠtes-vous sé»r de vouloir supprimer cette catégorie ? Cela supprimera également toutes ses sous-catégories et les produits associés.')) {
+        if (confirm(t('common.confirm_delete_category', 'Êtes-vous sûr de vouloir supprimer cette catégorie ? Cela supprimera également toutes ses sous-catégories et les produits associés.'))) {
             categoryForm.delete(route('admin.categories.destroy', categoryId));
         }
     };
 
     const handleDeleteSubCategory = (subCategoryId) => {
-        if (confirm('éŠtes-vous sé»r de vouloir supprimer cette sous-catégorie ? Cela supprimera également les produits associés.')) {
+        if (confirm(t('common.confirm_delete_subcategory', 'Êtes-vous sûr de vouloir supprimer cette sous-catégorie ? Cela supprimera également les produits associés.'))) {
             subCategoryForm.delete(route('admin.sub-categories.destroy', subCategoryId));
         }
     };
@@ -82,13 +84,13 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
         <AdminLayout theme={theme} toggleTheme={toggleTheme}>
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Catégories</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">{t('admin.categories', 'Catégories')}</h1>
                     <Button
                         onClick={() => setIsAddCategoryOpen(true)}
                         className="bg-[#DB8B89] text-white hover:bg-[#C07573]"
                     >
                         <Plus className="w-4 h-4 mr-2" />
-                        Ajouter une catégorie
+                        {t('admin.add_category', 'Ajouter une catégorie')}
                     </Button>
                 </div>
 
@@ -98,10 +100,10 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                         <table className="w-full text-sm text-left">
                             <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-gray-400 font-medium border-b border-gray-200 dark:border-zinc-800">
                                 <tr>
-                                    <th className="px-6 py-4">Nom</th>
-                                    <th className="px-6 py-4">Sous-catégories</th>
-                                    <th className="px-6 py-4">Statut</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
+                                    <th className="px-6 py-4">{t('admin.name', 'Nom')}</th>
+                                    <th className="px-6 py-4">{t('admin.sub_categories', 'Sous-catégories')}</th>
+                                    <th className="px-6 py-4">{t('admin.status', 'Statut')}</th>
+                                    <th className="px-6 py-4 text-right">{t('admin.actions', 'Actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
@@ -142,7 +144,7 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                                     ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                                                     : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
                                                     }`}>
-                                                    {category.active ? 'Active' : 'Inactive'}
+                                                    {category.active ? t('admin.active', 'Active') : t('admin.inactive', 'Inactive')}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
@@ -154,7 +156,7 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                                         }}
                                                         className="px-3 py-1.5 text-xs font-medium text-[#DB8B89] hover:bg-pink-50 dark:hover:bg-pink-900/10 rounded-md transition-colors"
                                                     >
-                                                        + Sous-catégorie
+                                                        + {t('admin.sub_category', 'Sous-catégorie')}
                                                     </button>
                                                     <button className="p-2 text-gray-400 hover:text-[#DB8B89] dark:hover:text-[#DB8B89] transition-colors">
                                                         <Edit className="w-4 h-4" />
@@ -182,7 +184,7 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                                         ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                                                         : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
                                                         }`}>
-                                                        {subCategory.active ? 'Active' : 'Inactive'}
+                                                        {subCategory.active ? t('admin.active', 'Active') : t('admin.inactive', 'Inactive')}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-3 text-right">
@@ -257,7 +259,7 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                     Annuler
                                 </Button>
                                 <Button type="submit" className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
-                                    Sauvegarder
+                                    {t('admin.save', 'Sauvegarder')}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -268,7 +270,7 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                 <Dialog open={isAddSubCategoryOpen} onOpenChange={setIsAddSubCategoryOpen}>
                     <DialogContent className="sm:max-w-[500px]">
                         <DialogHeader>
-                            <DialogTitle>Ajouter une sous-catégorie é  "{selectedCategory ? getTranslated(selectedCategory, 'name') : ''}"</DialogTitle>
+                            <DialogTitle>{t('admin.add_sub_category_to', 'Ajouter une sous-catégorie à')} "{selectedCategory ? getTranslated(selectedCategory, 'name') : ''}"</DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleAddSubCategory}>
                             <div className="grid gap-4 py-4">

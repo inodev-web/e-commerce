@@ -38,10 +38,10 @@ const AdminOrders = ({ auth, orders, filters }) => {
     const statuses = [
         { key: 'ALL', label: t('admin.all', 'Toutes') },
         { key: 'PENDING', label: t('status.pending', 'En attente') },
-        { key: 'CONFIRMED', label: t('status.confirmed', 'Confirmé©e') },
-        { key: 'SHIPPED', label: t('status.shipped', 'Expé©dié©e') },
-        { key: 'DELIVERED', label: t('status.delivered', 'Livré©e') },
-        { key: 'CANCELLED', label: t('status.cancelled', 'Annulé©e') },
+        { key: 'CONFIRMED', label: t('status.confirmed', 'Confirmée') },
+        { key: 'SHIPPED', label: t('status.shipped', 'Expédiée') },
+        { key: 'DELIVERED', label: t('status.delivered', 'Livrée') },
+        { key: 'CANCELLED', label: t('status.cancelled', 'Annulée') },
     ];
 
     // Status Selector Component
@@ -52,10 +52,10 @@ const AdminOrders = ({ auth, orders, filters }) => {
         const statusMap = {
             'PENDING': { label: t('status.pending', 'En Attente'), style: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
             'PROCESSING': { label: t('status.processing', 'En Traitement'), style: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
-            'CONFIRMED': { label: t('status.confirmed', 'Confirmé©e'), style: 'bg-pink-100 text-pink-800 dark:bg-[#DB8B89]/20 dark:text-[#DB8B89]' },
-            'SHIPPED': { label: t('status.shipped', 'Expé©dié©e'), style: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' },
-            'DELIVERED': { label: t('status.delivered', 'Livré©e'), style: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
-            'CANCELLED': { label: t('status.cancelled', 'Annulé©e'), style: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
+            'CONFIRMED': { label: t('status.confirmed', 'Confirmée'), style: 'bg-pink-100 text-pink-800 dark:bg-[#DB8B89]/20 dark:text-[#DB8B89]' },
+            'SHIPPED': { label: t('status.shipped', 'Expédiée'), style: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' },
+            'DELIVERED': { label: t('status.delivered', 'Livrée'), style: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+            'CANCELLED': { label: t('status.cancelled', 'Annulée'), style: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
         };
 
         const handleStatusChange = (e) => {
@@ -90,10 +90,10 @@ const AdminOrders = ({ auth, orders, filters }) => {
             >
                 <option value="PENDING">{t('status.pending', 'En Attente')}</option>
                 <option value="PROCESSING">{t('status.processing', 'En Traitement')}</option>
-                <option value="CONFIRMED">{t('status.confirmed', 'Confirmé©e')}</option>
-                <option value="SHIPPED">{t('status.shipped', 'Expé©dié©e')}</option>
-                <option value="DELIVERED">{t('status.delivered', 'Livré©e')}</option>
-                <option value="CANCELLED">{t('status.cancelled', 'Annulé©e')}</option>
+                <option value="CONFIRMED">{t('status.confirmed', 'Confirmée')}</option>
+                <option value="SHIPPED">{t('status.shipped', 'Expédiée')}</option>
+                <option value="DELIVERED">{t('status.delivered', 'Livrée')}</option>
+                <option value="CANCELLED">{t('status.cancelled', 'Annulée')}</option>
             </select>
         );
     };
@@ -145,8 +145,8 @@ const AdminOrders = ({ auth, orders, filters }) => {
                             <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-gray-400 font-medium">
                                 <tr>
                                     <th className="px-4 py-4">{t('admin.order_no', 'N°')}</th>
-                                    <th className="px-4 py-4">{t('admin.client', 'Client')}</th>
-                                    <th className="px-4 py-4">{t('admin.phone', 'Té©lé©phone')}</th>
+                                    <th className="px-4 py-4">{t('admin.customer', 'Client')}</th>
+                                    <th className="px-4 py-4">{t('admin.phone', 'Téléphone')}</th>
                                     <th className="px-4 py-4">{t('admin.date', 'Date & Heure')}</th>
                                     <th className="px-4 py-4">{t('admin.location', 'Localisation')}</th>
                                     <th className="px-4 py-4">{t('admin.total', 'Total')}</th>
@@ -186,7 +186,7 @@ const AdminOrders = ({ auth, orders, filters }) => {
                                         </td>
                                         <td className="px-4 py-4 text-end">
                                             <div className={`flex ${isRtl ? 'justify-start' : 'justify-end'} gap-1`}>
-                                                <Link href={route('admin.orders.show', order.id)} className="p-1.5 text-gray-400 hover:text-[#DB8B89] dark:hover:text-[#DB8B89] transition-colors" title={t('common.details', 'Voir dé©tails')}>
+                                                <Link href={route('admin.orders.show', order.id)} className="p-1.5 text-gray-400 hover:text-[#DB8B89] dark:hover:text-[#DB8B89] transition-colors" title={t('common.details', 'Voir détails')}>
                                                     <Eye className="w-4 h-4" />
                                                 </Link>
                                                 {order.status === 'PENDING' && (
@@ -207,7 +207,7 @@ const AdminOrders = ({ auth, orders, filters }) => {
                                         <td colSpan="8" className="px-4 py-12 text-center text-gray-500">
                                             <div className="flex flex-col items-center gap-2">
                                                 <ShoppingCart className="w-8 h-8 opacity-20" />
-                                                {t('admin.no_orders', 'Aucune commande trouvé©e.')}
+                                                {t('admin.no_orders', 'Aucune commande trouvée.')}
                                             </div>
                                         </td>
                                     </tr>

@@ -28,7 +28,7 @@ class AuthenticatedSessionController extends Controller
             'wilayas' => \App\Models\Wilaya::active()
                 ->orderBy('name')
                 ->get()
-                ->map(fn($w) => ['id' => $w->id, 'name' => $w->name])
+                ->map(fn($w) => ['id' => $w->id, 'name' => $w->name, 'name_ar' => $w->name_ar])
         ]);
     }
 
