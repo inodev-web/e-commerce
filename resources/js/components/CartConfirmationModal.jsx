@@ -11,7 +11,7 @@ const CartConfirmationModal = ({ isOpen, onClose, product }) => {
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-[#DB8B89]">
-                        <CheckCircle size={24} /> Produit ajouté au panier !
+                        <CheckCircle size={24} /> Produit ajoutÃ© au panier !
                     </DialogTitle>
                 </DialogHeader>
 

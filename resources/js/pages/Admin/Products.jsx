@@ -462,7 +462,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     };
 
     const deleteProduct = (productId) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+        if (confirm('ÃŠtes-vous sÃ»r de vouloir supprimer ce produit ?')) {
             router.delete(route('admin.products.destroy', productId));
         }
     };
@@ -541,7 +541,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     };
 
     const deleteCategory = (categoryId) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ? Cela supprimera également toutes ses sous-catégories et les produits associés.')) {
+        if (confirm('ÃŠtes-vous sÃ»r de vouloir supprimer cette catÃ©gorie ? Cela supprimera Ã©galement toutes ses sous-catÃ©gories et les produits associÃ©s.')) {
             categoryForm.delete(route('admin.categories.destroy', categoryId));
         }
     };
@@ -580,7 +580,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         }
 
         if (!subCategoryForm.data.category_id) {
-            subCategoryForm.setError('category_id', 'Sélectionnez une catégorie.');
+            subCategoryForm.setError('category_id', 'SÃ©lectionnez une catÃ©gorie.');
             return;
         }
 
@@ -593,7 +593,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     };
 
     const deleteSubCategory = (subCategoryId) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cette sous-catégorie ? Cela supprimera également tous les produits associés.')) {
+        if (confirm('ÃŠtes-vous sÃ»r de vouloir supprimer cette sous-catÃ©gorie ? Cela supprimera Ã©galement tous les produits associÃ©s.')) {
             router.delete(route('admin.sub-categories.destroy', subCategoryId));
         }
     };
@@ -649,16 +649,16 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     };
 
     const deleteSpecification = (specificationId) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cette spécification ?')) {
+        if (confirm('ÃŠtes-vous sÃ»r de vouloir supprimer cette spÃ©cification ?')) {
             router.delete(route('admin.specifications.destroy', specificationId));
         }
     };
 
     const tabs = [
         { id: 'products', label: 'Produits' },
-        { id: 'categories', label: 'Catégories' },
-        { id: 'subcategories', label: 'Sous-catégories' },
-        { id: 'specifications', label: 'Spécifications' },
+        { id: 'categories', label: 'CatÃ©gories' },
+        { id: 'subcategories', label: 'Sous-catÃ©gories' },
+        { id: 'specifications', label: 'SpÃ©cifications' },
     ];
 
     return (
@@ -727,7 +727,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                 </DialogHeader>
                                 <div className="grid gap-4 py-4">
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium">Catégorie</label>
+                                        <label className="text-sm font-medium">CatÃ©gorie</label>
                                         <select
                                             value={filterState.category_id}
                                             onChange={(e) =>
@@ -746,7 +746,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium">Sous-catégorie</label>
+                                        <label className="text-sm font-medium">Sous-catÃ©gorie</label>
                                         <select
                                             value={filterState.sub_category_id}
                                             onChange={(e) => setFilterState((prev) => ({ ...prev, sub_category_id: e.target.value }))}
@@ -773,7 +773,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     </div>
                                 </div>
                                 <DialogFooter className="flex items-center justify-between">
-                                    <Button type="button" variant="outline" onClick={clearFilters}>Réinitialiser</Button>
+                                    <Button type="button" variant="outline" onClick={clearFilters}>RÃ©initialiser</Button>
                                     <Button
                                         type="button"
                                         className="bg-[#DB8B89] text-white hover:bg-[#C07573]"
@@ -794,7 +794,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-gray-400 font-medium border-b border-gray-200 dark:border-zinc-800">
                                         <tr>
                                             <th className="px-6 py-4">Nom du produit</th>
-                                            <th className="px-6 py-4">Catégorie</th>
+                                            <th className="px-6 py-4">CatÃ©gorie</th>
                                             <th className="px-6 py-4">Prix</th>
                                             <th className="px-6 py-4">Stock</th>
                                             <th className="px-6 py-4">Statut</th>
@@ -806,7 +806,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                             <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
                                                 <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">{getTranslated(product, 'name')}</td>
                                                 <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
-                                                    {getTranslated(product.sub_category?.category, 'name') || '—'}
+                                                    {getTranslated(product.sub_category?.category, 'name') || 'â€”'}
                                                 </td>
                                                 <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-medium">{Number(product.price).toLocaleString()} DA</td>
                                                 <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{product.stock}</td>
@@ -835,7 +835,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         )) : (
                                             <tr>
                                                 <td colSpan="6" className="px-6 py-10 text-center text-gray-500">
-                                                    Aucun produit trouvé.
+                                                    Aucun produit trouvÃ©.
                                                 </td>
                                             </tr>
                                         )}
@@ -868,7 +868,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                         <div className="flex justify-end">
                             <Button onClick={openCreateCategory} className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
                                 <Plus className="w-4 h-4 mr-2" />
-                                Ajouter Catégorie
+                                Ajouter CatÃ©gorie
                             </Button>
                         </div>
                         <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm">
@@ -877,7 +877,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-gray-400 font-medium border-b border-gray-200 dark:border-zinc-800">
                                         <tr>
                                             <th className="px-6 py-4">Nom</th>
-                                            <th className="px-6 py-4">Sous-catégories</th>
+                                            <th className="px-6 py-4">Sous-catÃ©gories</th>
                                             <th className="px-6 py-4">Statut</th>
                                             <th className="px-6 py-4 text-right">Actions</th>
                                         </tr>
@@ -915,7 +915,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                                 onClick={() => openCreateSubCategory(category)}
                                                                 className="px-3 py-1.5 text-xs font-medium text-[#DB8B89] hover:bg-pink-50 dark:hover:bg-pink-900/10 rounded-md transition-colors"
                                                             >
-                                                                + Sous-catégorie
+                                                                + Sous-catÃ©gorie
                                                             </button>
                                                             <button
                                                                 onClick={() => openEditCategory(category)}
@@ -937,7 +937,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                         <td className="px-6 py-3 pl-16 text-sm text-gray-600 dark:text-gray-400">
                                                             ? {getTranslated(subCategory, 'name')}
                                                         </td>
-                                                        <td className="px-6 py-3 text-gray-400 text-sm">—</td>
+                                                        <td className="px-6 py-3 text-gray-400 text-sm">â€”</td>
                                                         <td className="px-6 py-3">
                                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${subCategory.active
                                                                 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
@@ -979,7 +979,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                         <div className="flex justify-end">
                             <Button onClick={() => openCreateSubCategory()} className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
                                 <Plus className="w-4 h-4 mr-2" />
-                                Ajouter Sous-catégorie
+                                Ajouter Sous-catÃ©gorie
                             </Button>
                         </div>
                         <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm">
@@ -988,7 +988,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-gray-400">
                                         <tr>
                                             <th className="px-6 py-4">Nom</th>
-                                            <th className="px-6 py-4">Catégorie parente</th>
+                                            <th className="px-6 py-4">CatÃ©gorie parente</th>
                                             <th className="px-6 py-4">Statut</th>
                                             <th className="px-6 py-4 text-right">Actions</th>
                                         </tr>
@@ -998,7 +998,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                             <tr key={subCategory.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50">
                                                 <td className="px-6 py-4 font-medium dark:text-gray-100">{getTranslated(subCategory, 'name')}</td>
                                                 <td className="px-6 py-4 dark:text-gray-400">
-                                                    {getTranslated(categoryById[subCategory.category_id], 'name') || '—'}
+                                                    {getTranslated(categoryById[subCategory.category_id], 'name') || 'â€”'}
 
                                                 </td>
                                                 <td className="px-6 py-4">
@@ -1029,7 +1029,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         )) : (
                                             <tr>
                                                 <td colSpan="4" className="px-6 py-10 text-center text-gray-500">
-                                                    Aucune sous-catégorie disponible.
+                                                    Aucune sous-catÃ©gorie disponible.
                                                 </td>
                                             </tr>
                                         )}
@@ -1046,7 +1046,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                         <div className="flex justify-end">
                             <Button onClick={openCreateSpecification} className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
                                 <Plus className="w-4 h-4 mr-2" />
-                                Ajouter Spécification
+                                Ajouter SpÃ©cification
                             </Button>
                         </div>
                         <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm">
@@ -1055,7 +1055,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     <thead className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-gray-400">
                                         <tr>
                                             <th className="px-6 py-4">Nom</th>
-                                            <th className="px-6 py-4">Sous-catégorie</th>
+                                            <th className="px-6 py-4">Sous-catÃ©gorie</th>
                                             <th className="px-6 py-4">Obligatoire</th>
                                             <th className="px-6 py-4 text-right">Actions</th>
                                         </tr>
@@ -1064,7 +1064,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         {allSpecifications.length ? allSpecifications.map((spec) => (
                                             <tr key={spec.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50">
                                                 <td className="px-6 py-4 font-medium dark:text-gray-100">{getTranslated(spec, 'name')}</td>
-                                                <td className="px-6 py-4 dark:text-gray-400">{getTranslated(spec.sub_category, 'name') || '—'}</td>
+                                                <td className="px-6 py-4 dark:text-gray-400">{getTranslated(spec.sub_category, 'name') || 'â€”'}</td>
                                                 <td className="px-6 py-4">
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${spec.required
                                                         ? 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-[#DB8B89]'
@@ -1093,7 +1093,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         )) : (
                                             <tr>
                                                 <td colSpan="4" className="px-6 py-10 text-center text-gray-500">
-                                                    Aucune spécification disponible.
+                                                    Aucune spÃ©cification disponible.
                                                 </td>
                                             </tr>
                                         )}
@@ -1109,7 +1109,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                     <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>{editingProduct ? 'Modifier le produit' : 'Ajouter un nouveau produit'}</DialogTitle>
-                            <DialogDescription className="sr-only">Formulaire de création ou modification de produit</DialogDescription>
+                            <DialogDescription className="sr-only">Formulaire de crÃ©ation ou modification de produit</DialogDescription>
                         </DialogHeader>
                         <form onSubmit={submitProduct} className="grid gap-4 py-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1119,7 +1119,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         value={productForm.data.name.fr}
                                         onChange={(e) => productForm.setData('name', { ...productForm.data.name, fr: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
-                                        placeholder="Nom en français"
+                                        placeholder="Nom en franÃ§ais"
                                         required
                                     />
                                     {productForm.errors['name.fr'] && <p className="text-xs text-red-500">{productForm.errors['name.fr']}</p>}
@@ -1135,7 +1135,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     {productForm.errors['name.ar'] && <p className="text-xs text-red-500">{productForm.errors['name.ar']}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Catégorie</label>
+                                    <label className="text-sm font-medium">CatÃ©gorie</label>
                                     <select
                                         value={productCategoryId}
                                         onChange={(e) => handleProductCategoryChange(e.target.value)}
@@ -1148,14 +1148,14 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Sous-catégorie</label>
+                                    <label className="text-sm font-medium">Sous-catÃ©gorie</label>
                                     <select
                                         value={productForm.data.sub_category_id}
                                         onChange={(e) => handleSubCategoryChange(e.target.value)}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
                                         required
                                     >
-                                        <option value="">Sélectionner...</option>
+                                        <option value="">SÃ©lectionner...</option>
                                         {subCategoriesForProduct.map((subCategory) => (
                                             <option key={subCategory.id} value={subCategory.id}>{getTranslated(subCategory, 'name')}</option>
                                         ))}
@@ -1225,7 +1225,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         value={productForm.data.description.fr}
                                         onChange={(e) => productForm.setData('description', { ...productForm.data.description, fr: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700 min-h-[100px]"
-                                        placeholder="Description en français..."
+                                        placeholder="Description en franÃ§ais..."
                                     />
                                     {productForm.errors['description.fr'] && <p className="text-xs text-red-500">{productForm.errors['description.fr']}</p>}
                                 </div>
@@ -1322,14 +1322,14 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     <div className="space-y-4">
                                         <div className="space-y-4">
                                             <div className="flex items-center gap-2">
-                                                <label className="text-sm font-medium">Spécifications avec Valeurs</label>
+                                                <label className="text-sm font-medium">SpÃ©cifications avec Valeurs</label>
                                                 <TooltipProvider>
                                                     <Tooltip>
                                                         <TooltipTrigger>
                                                             <Info size={16} className="text-gray-400" />
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            <p className="text-xs">Sélectionnez les valeurs de chaque spécification et définissez la quantité pour créer des variantes.</p>
+                                                            <p className="text-xs">SÃ©lectionnez les valeurs de chaque spÃ©cification et dÃ©finissez la quantitÃ© pour crÃ©er des variantes.</p>
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
@@ -1413,7 +1413,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                                                             newSelected[spec.id][value] = parseInt(e.target.value) || 0;
                                                                                             setSelectedSpecificationValues(newSelected);
                                                                                         }}
-                                                                                        placeholder="Qté"
+                                                                                        placeholder="QtÃ©"
                                                                                         className="w-20 h-8 text-sm"
                                                                                         disabled={selectedValues[value] === undefined}
                                                                                     />
@@ -1421,14 +1421,14 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                                             ))}
                                                                         </div>
                                                                     ) : (
-                                                                        <p className="text-sm text-gray-500">Aucune valeur définie pour cette spécification.</p>
+                                                                        <p className="text-sm text-gray-500">Aucune valeur dÃ©finie pour cette spÃ©cification.</p>
                                                                     )
                                                                 }
                                                             </div>
                                                         );
                                                     })
                                                 ) : (
-                                                    <p className="text-sm text-gray-500">Aucune spécification disponible pour cette sous-catégorie.</p>
+                                                    <p className="text-sm text-gray-500">Aucune spÃ©cification disponible pour cette sous-catÃ©gorie.</p>
                                                 );
                                             })()}
                                         </div>
@@ -1438,7 +1438,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
 
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <label className="text-sm font-medium">Variantes Générées</label>
+                                    <label className="text-sm font-medium">Variantes GÃ©nÃ©rÃ©es</label>
                                 </div>
 
                                 {(() => {
@@ -1466,9 +1466,9 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                             <Table>
                                                 <TableHeader>
                                                     <TableRow>
-                                                        <TableHead className="min-w-[200px]">Spécification</TableHead>
+                                                        <TableHead className="min-w-[200px]">SpÃ©cification</TableHead>
                                                         <TableHead className="w-32">Valeur</TableHead>
-                                                        <TableHead className="w-24">Quantité</TableHead>
+                                                        <TableHead className="w-24">QuantitÃ©</TableHead>
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
@@ -1485,7 +1485,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                             </Table>
                                         </div>
                                     ) : (
-                                        <p className="text-sm text-gray-500">Aucune variante générée. Sélectionnez des valeurs et définissez des quantités.</p>
+                                        <p className="text-sm text-gray-500">Aucune variante gÃ©nÃ©rÃ©e. SÃ©lectionnez des valeurs et dÃ©finissez des quantitÃ©s.</p>
                                     );
                                 })()}
                             </div>
@@ -1493,7 +1493,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                             <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsProductModalOpen(false)}>Annuler</Button>
                                 <Button type="submit" className="bg-[#DB8B89] text-white hover:bg-[#C07573]" disabled={productForm.processing}>
-                                    {editingProduct ? 'Mettre à jour' : 'Sauvegarder'}
+                                    {editingProduct ? 'Mettre Ã  jour' : 'Sauvegarder'}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -1504,8 +1504,8 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                 <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
                     <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
-                            <DialogTitle>{editingCategory ? 'Modifier la catégorie' : 'Ajouter une catégorie'}</DialogTitle>
-                            <DialogDescription className="sr-only">Formulaire de gestion des catégories</DialogDescription>
+                            <DialogTitle>{editingCategory ? 'Modifier la catÃ©gorie' : 'Ajouter une catÃ©gorie'}</DialogTitle>
+                            <DialogDescription className="sr-only">Formulaire de gestion des catÃ©gories</DialogDescription>
                         </DialogHeader>
                         <form onSubmit={submitCategory}>
                             <div className="grid gap-4 py-4">
@@ -1516,7 +1516,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         value={categoryForm.data.name.fr}
                                         onChange={(e) => categoryForm.setData('name', { ...categoryForm.data.name, fr: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
-                                        placeholder="Nom en français"
+                                        placeholder="Nom en franÃ§ais"
                                         required
                                     />
                                     {categoryForm.errors['name.fr'] && <p className="text-xs text-red-500">{categoryForm.errors['name.fr']}</p>}
@@ -1572,7 +1572,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     Annuler
                                 </Button>
                                 <Button type="submit" className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
-                                    {editingCategory ? 'Mettre à jour' : 'Sauvegarder'}
+                                    {editingCategory ? 'Mettre Ã  jour' : 'Sauvegarder'}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -1583,20 +1583,20 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                 <Dialog open={isSubCategoryModalOpen} onOpenChange={setIsSubCategoryModalOpen}>
                     <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
-                            <DialogTitle>{editingSubCategory ? 'Modifier la sous-catégorie' : 'Ajouter une sous-catégorie'}</DialogTitle>
-                            <DialogDescription className="sr-only">Formulaire de gestion des sous-catégories</DialogDescription>
+                            <DialogTitle>{editingSubCategory ? 'Modifier la sous-catÃ©gorie' : 'Ajouter une sous-catÃ©gorie'}</DialogTitle>
+                            <DialogDescription className="sr-only">Formulaire de gestion des sous-catÃ©gories</DialogDescription>
                         </DialogHeader>
                         <form onSubmit={submitSubCategory}>
                             <div className="grid gap-4 py-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Catégorie parente</label>
+                                    <label className="text-sm font-medium">CatÃ©gorie parente</label>
                                     <select
                                         value={subCategoryForm.data.category_id}
                                         onChange={(e) => subCategoryForm.setData('category_id', e.target.value)}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
                                         disabled={!!editingSubCategory}
                                     >
-                                        <option value="">Sélectionner...</option>
+                                        <option value="">SÃ©lectionner...</option>
                                         {categories.map((category) => (
                                             <option key={category.id} value={category.id}>{getTranslated(category, 'name')}</option>
                                         ))}
@@ -1610,7 +1610,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         value={subCategoryForm.data.name.fr}
                                         onChange={(e) => subCategoryForm.setData('name', { ...subCategoryForm.data.name, fr: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
-                                        placeholder="Nom en français"
+                                        placeholder="Nom en franÃ§ais"
                                         required
                                     />
                                     {subCategoryForm.errors['name.fr'] && <p className="text-xs text-red-500">{subCategoryForm.errors['name.fr']}</p>}
@@ -1642,7 +1642,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     Annuler
                                 </Button>
                                 <Button type="submit" className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
-                                    {editingSubCategory ? 'Mettre à jour' : 'Sauvegarder'}
+                                    {editingSubCategory ? 'Mettre Ã  jour' : 'Sauvegarder'}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -1653,13 +1653,13 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                 <Dialog open={isSpecificationModalOpen} onOpenChange={setIsSpecificationModalOpen}>
                     <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
-                            <DialogTitle>{editingSpecification ? 'Modifier la spécification' : 'Ajouter une spécification'}</DialogTitle>
-                            <DialogDescription className="sr-only">Formulaire de gestion des spécifications</DialogDescription>
+                            <DialogTitle>{editingSpecification ? 'Modifier la spÃ©cification' : 'Ajouter une spÃ©cification'}</DialogTitle>
+                            <DialogDescription className="sr-only">Formulaire de gestion des spÃ©cifications</DialogDescription>
                         </DialogHeader>
                         <form onSubmit={submitSpecification}>
                             <div className="grid gap-4 py-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Sous-catégorie</label>
+                                    <label className="text-sm font-medium">Sous-catÃ©gorie</label>
                                     <select
                                         value={specificationForm.data.sub_category_id}
                                         onChange={(e) => specificationForm.setData('sub_category_id', e.target.value)}
@@ -1667,7 +1667,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         disabled={!!editingSpecification}
                                         required
                                     >
-                                        <option value="">Sélectionner...</option>
+                                        <option value="">SÃ©lectionner...</option>
                                         {allSubCategories.map((subCategory) => (
                                             <option key={subCategory.id} value={subCategory.id}>{getTranslated(subCategory, 'name')}</option>
                                         ))}
@@ -1681,7 +1681,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         value={specificationForm.data.name.fr}
                                         onChange={(e) => specificationForm.setData('name', { ...specificationForm.data.name, fr: e.target.value })}
                                         className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
-                                        placeholder="Nom en français"
+                                        placeholder="Nom en franÃ§ais"
                                         required
                                     />
                                     {specificationForm.errors['name.fr'] && <p className="text-xs text-red-500">{specificationForm.errors['name.fr']}</p>}
@@ -1750,7 +1750,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     Annuler
                                 </Button>
                                 <Button type="submit" className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
-                                    {editingSpecification ? 'Mettre à jour' : 'Sauvegarder'}
+                                    {editingSpecification ? 'Mettre Ã  jour' : 'Sauvegarder'}
                                 </Button>
                             </DialogFooter>
                         </form>

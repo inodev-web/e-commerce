@@ -32,7 +32,7 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
     };
 
     const clearCart = () => {
-        if (confirm(t('common.confirm_clear_cart', 'Êtes-vous sûr de vouloir vider votre panier ?'))) {
+        if (confirm(t('common.confirm_clear_cart', 'ÃŠtes-vous sÃ»r de vouloir vider votre panier ?'))) {
             router.post(route('cart.clear'));
         }
     };
@@ -66,7 +66,7 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
                     <div className="text-center py-20 bg-white rounded-2xl shadow-sm">
                         <ShoppingBag size={64} className="mx-auto text-gray-300 mb-4" />
                         <h2 className="text-xl font-semibold text-gray-700 mb-2">{t('cart.empty', 'Votre panier est vide')}</h2>
-                        <p className="text-gray-500 mb-6">{t('cart.empty_message', 'Découvrez nos produits et commencez votre shopping !')}</p>
+                        <p className="text-gray-500 mb-6">{t('cart.empty_message', 'DÃ©couvrez nos produits et commencez votre shopping !')}</p>
                         <Link href={route('products.index')} className="bg-[#DB8B89] text-white px-6 py-3 rounded-xl font-medium hover:bg-[#C07573] transition-colors">
                             {t('cart.browse_shop', 'Parcourir la boutique')}
                         </Link>
@@ -209,7 +209,7 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
 
                             <div className="flex justify-between items-center mt-6">
                                 <Link href={route('products.index')} className="text-gray-600 hover:text-[#DB8B89] font-medium flex items-center gap-2">
-                                    ← {t('cart.continue_shopping', 'Continuer vos achats')}
+                                    â† {t('cart.continue_shopping', 'Continuer vos achats')}
                                 </Link>
                                 <button onClick={clearCart} className="text-red-500 hover:text-red-700 text-sm font-medium">
                                     {t('cart.clear', 'Vider le panier')}
@@ -220,7 +220,7 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
                         {/* Summary Card */}
                         <div className="lg:col-span-1">
                             <div className="bg-white p-6 rounded-2xl shadow-sm sticky top-24">
-                                <h3 className="text-xl font-bold mb-6">{t('cart.summary', 'Résumé')}</h3>
+                                <h3 className="text-xl font-bold mb-6">{t('cart.summary', 'RÃ©sumÃ©')}</h3>
 
                                 <div className="space-y-3 mb-6">
                                     <div className="flex justify-between text-gray-600">
@@ -229,7 +229,7 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
                                     </div>
                                     <div className="flex justify-between text-gray-600">
                                         <span>{t('cart.shipping', 'Livraison')}</span>
-                                        <span className="text-xs italic">{t('cart.shipping_calculated_checkout', 'Calculé à l\'étape suivante')}</span>
+                                        <span className="text-xs italic">{t('cart.shipping_calculated_checkout', 'CalculÃ© Ã  l\'Ã©tape suivante')}</span>
                                     </div>
                                     <div className="border-t pt-3 flex justify-between font-bold text-xl text-gray-900">
                                         <span>{t('cart.total', 'Total')}</span>
@@ -245,7 +245,7 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
                                 </Link>
 
                                 <div className="mt-4 flex items-center gap-2 text-xs text-gray-500 justify-center">
-                                    <ShieldCheck size={14} /> {t('common.cash_on_delivery', 'Paiement à la livraison sécurisé')}
+                                    <ShieldCheck size={14} /> {t('common.cash_on_delivery', 'Paiement Ã  la livraison sÃ©curisÃ©')}
                                 </div>
                             </div>
                         </div>

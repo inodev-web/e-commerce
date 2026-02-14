@@ -15,12 +15,12 @@ const Hero = () => {
                 </div>
                 {/* Branding Title */}
                 <h1 className="hero-title !mb-4">
-                    Puréva Pharma
+                    PurÃ©va Pharma
                 </h1>
 
                 {/* Catchphrase */}
                 <p className="text-dark dark:text-white text-xl md:text-2xl lg:text-3xl font-medium tracking-tight !mb-10 max-w-3xl mx-auto opacity-90">
-                    {t('hero.tagline_start', 'Au service de votre')} <span className="text-[#DB8B89]">{t('hero.tagline_highlight', 'beauté & bien être')}</span>
+                    {t('hero.tagline_start', 'Au service de votre')} <span className="text-[#DB8B89]">{t('hero.tagline_highlight', 'beautÃ© & bien Ãªtre')}</span>
                 </p>
 
                 {/* CTA Buttons */}

@@ -118,7 +118,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
             onSuccess: () => {
                 setAddedProduct(product);
                 setModalOpen(true);
-                toast.success(getLabel('product_added_to_cart') || 'Produit ajouté au panier');
+                toast.success(getLabel('product_added_to_cart') || 'Produit ajoutÃ© au panier');
 
                 trackEvent('AddToCart', {
                     content_name: getTranslated(product, 'name'),
@@ -157,7 +157,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                         <Dialog>
                             <DialogTrigger asChild>
                                 <button className="filter-button">
-                                    {getLabel('categories')} <span className="arrow">▼</span>
+                                    {getLabel('categories')} <span className="arrow">â–¼</span>
                                 </button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[425px] p-6 lg:p-10">
@@ -202,7 +202,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                         <Dialog>
                             <DialogTrigger asChild>
                                 <button className="filter-button">
-                                    {getLabel('price')} <span className="arrow">▼</span>
+                                    {getLabel('price')} <span className="arrow">â–¼</span>
                                 </button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[425px] p-10">
@@ -261,25 +261,25 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                         {filters.search && (
                             <span className="filter-tag">
                                 {getLabel('search')}: {filters.search}
-                                <button onClick={() => setSearchTerm('')}>✕</button>
+                                <button onClick={() => setSearchTerm('')}>âœ•</button>
                             </span>
                         )}
                         {filters.category_id && (
                             <span className="filter-tag">
                                 {getLabel('categories')}: {categories.find(c => c.id == filters.category_id)?.name || filters.category_id}
-                                <button onClick={() => handleFilterChange('category_id', null)}>✕</button>
+                                <button onClick={() => handleFilterChange('category_id', null)}>âœ•</button>
                             </span>
                         )}
                         {filters.min_price && (
                             <span className="filter-tag">
                                 Min: {filters.min_price} DA
-                                <button onClick={() => handlePriceChange('min_price', '')}>✕</button>
+                                <button onClick={() => handlePriceChange('min_price', '')}>âœ•</button>
                             </span>
                         )}
                         {filters.max_price && (
                             <span className="filter-tag">
                                 Max: {filters.max_price} DA
-                                <button onClick={() => handlePriceChange('max_price', '')}>✕</button>
+                                <button onClick={() => handlePriceChange('max_price', '')}>âœ•</button>
                             </span>
                         )}
                         <button className="clear-all" onClick={clearFilters}>
@@ -291,7 +291,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                 {/* Results Bar */}
                 <div className="results-bar">
                     <p className="results-count">
-                        <strong>{products.total || products.data.length}</strong> {getLabel('products_found') || 'produits trouvés'}
+                        <strong>{products.total || products.data.length}</strong> {getLabel('products_found') || 'produits trouvÃ©s'}
                     </p>
                 </div>
 
@@ -315,7 +315,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                             </div>
                             <div className="seller-info">
                                 <div className="seller-brand text-xs uppercase tracking-wider font-bold mb-1">
-                                    {product.sub_category ? getTranslated(product.sub_category, 'name') : 'Puréva'}
+                                    {product.sub_category ? getTranslated(product.sub_category, 'name') : 'PurÃ©va'}
                                 </div>
                                 <h3 className="seller-name text-gray-800 dark:text-gray-100 font-semibold line-clamp-2 min-h-[3rem]">
                                     {getTranslated(product, 'name')}
@@ -333,8 +333,8 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                         </Link>
                     )) : (
                         <div className="shop-empty-state">
-                            <div className="empty-icon">🔍</div>
-                            <p>{getLabel('no_products_match') || 'Aucun produit ne correspond à vos critères.'}</p>
+                            <div className="empty-icon">ðŸ”</div>
+                            <p>{getLabel('no_products_match') || 'Aucun produit ne correspond Ã  vos critÃ¨res.'}</p>
                         </div>
                     )}
                 </div>

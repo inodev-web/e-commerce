@@ -74,7 +74,7 @@ const AuthPage = ({ wilayas }) => {
                 <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">
                     <div className="w-4 h-4 bg-white rounded-full"></div>
                 </div>
-                <span className="text-xl font-semibold tracking-wide text-white">Puréva</span>
+                <span className="text-xl font-semibold tracking-wide text-white">PurÃ©va</span>
             </Link>
 
             {/* LEFT COLUMN / BACKGROUND - Image Section */}
@@ -263,7 +263,7 @@ const AuthPage = ({ wilayas }) => {
                                         type={showPassword ? "text" : "password"}
                                         value={data.password}
                                         onChange={(e) => setData('password', e.target.value)}
-                                        placeholder="••••••••"
+                                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                                         className="w-full pl-10 px-4 py-3 border border-white/20 lg:border-gray-300 rounded-xl focus:ring-2 focus:ring-white lg:focus:ring-gray-900 focus:border-transparent outline-none transition-all bg-white/10 lg:bg-white text-white lg:text-gray-900 placeholder-gray-400 pr-10"
                                         required
                                     />
@@ -287,7 +287,7 @@ const AuthPage = ({ wilayas }) => {
                                             type="password"
                                             value={data.password_confirmation}
                                             onChange={(e) => setData('password_confirmation', e.target.value)}
-                                            placeholder="••••••••"
+                                            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                                             className="w-full pl-10 px-4 py-3 border border-white/20 lg:border-gray-300 rounded-xl focus:ring-2 focus:ring-white lg:focus:ring-gray-900 focus:border-transparent outline-none transition-all bg-white/10 lg:bg-white text-white lg:text-gray-900 placeholder-gray-400"
                                             required
                                         />

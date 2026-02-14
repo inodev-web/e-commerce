@@ -87,7 +87,7 @@ const CustomerDetails = ({ auth, client }) => {
                                         {(!client.orders || client.orders.length === 0) && (
                                             <tr>
                                                 <td colSpan="4" className="px-4 py-8 text-center text-gray-500">
-                                                    {t('admin.no_orders', 'Aucune commande trouvée.')}
+                                                    {t('admin.no_orders', 'Aucune commande trouvÃ©e.')}
                                                 </td>
                                             </tr>
                                         )}
@@ -100,7 +100,7 @@ const CustomerDetails = ({ auth, client }) => {
                         <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 p-6 shadow-sm">
                             <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                                 <Gift className="w-4 h-4" />
-                                {t('admin.loyalty_history', 'Historique Fidélité')}
+                                {t('admin.loyalty_history', 'Historique FidÃ©litÃ©')}
                             </h3>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm text-left">

@@ -68,7 +68,7 @@ const AdminDelivery = ({ wilayas, theme, toggleTheme }) => {
         });
 
         if (modifiedWilayas.length === 0) {
-            alert('Aucune modification détectée');
+            alert('Aucune modification dÃ©tectÃ©e');
             return;
         }
 

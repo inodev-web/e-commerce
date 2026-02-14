@@ -41,20 +41,20 @@ export default function UserProfile({ theme, toggleTheme }) {
             setAvailableCommunes(response.data);
         } catch (error) {
             console.error('Error fetching communes:', error);
-            toast.error(t('common.error_fetching_communes', 'Erreur lors de la récupération des communes'));
+            toast.error(t('common.error_fetching_communes', 'Erreur lors de la rÃ©cupÃ©ration des communes'));
         }
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
         patch(route('profile.update'), {
-            onSuccess: () => toast.success(t('profile.updated', 'Profil mis à jour avec succès')),
+            onSuccess: () => toast.success(t('profile.updated', 'Profil mis Ã  jour avec succÃ¨s')),
         });
     };
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
-        toast.success(t('common.copied', 'Copié dans le presse-papier'));
+        toast.success(t('common.copied', 'CopiÃ© dans le presse-papier'));
     };
 
     return (
@@ -78,7 +78,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                         <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-500 px-3 py-1 rounded text-xs font-semibold border border-amber-200 dark:border-amber-800 uppercase">
                             {points > 1000 ? t('loyalty.gold_member', 'GOLD MEMBER') : t('loyalty.member', 'MEMBER')}
                         </span>
-                        <span className="text-gray-500 dark:text-gray-400 text-sm">• {user.phone}</span>
+                        <span className="text-gray-500 dark:text-gray-400 text-sm">â€¢ {user.phone}</span>
                     </div>
                 </div>
 
@@ -101,7 +101,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                                 : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 lg:hover:bg-transparent lg:hover:text-gray-700'
                                 }`}
                         >
-                            {t('profile.loyalty_points', 'Fidélité & Points')}
+                            {t('profile.loyalty_points', 'FidÃ©litÃ© & Points')}
                         </button>
                         <button
                             onClick={() => setActiveTab('orders')}
@@ -135,7 +135,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                                     <User className="text-[#DB8B89]" size={24} />
                                     {t('profile.personal_info', 'Informations Personnelles')}
                                 </h2>
-                                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{t('profile.manage_contact', 'Gérez vos coordonnées.')}</p>
+                                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{t('profile.manage_contact', 'GÃ©rez vos coordonnÃ©es.')}</p>
                             </div>
                             <div className="flex gap-2 w-full sm:w-auto">
                                 <button
@@ -151,7 +151,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                         <div className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('checkout.first_name', 'Prénom')}</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('checkout.first_name', 'PrÃ©nom')}</label>
                                     <input
                                         type="text"
                                         value={data.first_name}
@@ -176,7 +176,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('checkout.phone', 'Numéro de Téléphone')}</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('checkout.phone', 'NumÃ©ro de TÃ©lÃ©phone')}</label>
                                 <div className="relative">
                                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                     <input
@@ -199,7 +199,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                                         className="w-full px-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-colors"
                                         required
                                     >
-                                        <option value="">{t('checkout.select_wilaya', 'Sélectionner la wilaya')}</option>
+                                        <option value="">{t('checkout.select_wilaya', 'SÃ©lectionner la wilaya')}</option>
                                         {wilayas.map(w => (
                                             <option key={w.id} value={w.id}>{w.name}</option>
                                         ))}
@@ -216,7 +216,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                                         required
                                         disabled={!data.wilaya_id}
                                     >
-                                        <option value="">{t('checkout.select_commune', 'Sélectionner la commune')}</option>
+                                        <option value="">{t('checkout.select_commune', 'SÃ©lectionner la commune')}</option>
                                         {availableCommunes.map(c => (
                                             <option key={c.id} value={c.id}>{c.name}</option>
                                         ))}
@@ -234,7 +234,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                                         onChange={e => setData('address', e.target.value)}
                                         rows="3"
                                         className="w-full pl-10 pr-4 py-2 border dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-[#DB8B89]/25 focus:border-[#DB8B89] outline-none transition-colors"
-                                        placeholder={t('checkout.address_placeholder', 'Cité, Bâtiment, N° Appartement...')}
+                                        placeholder={t('checkout.address_placeholder', 'CitÃ©, BÃ¢timent, NÂ° Appartement...')}
                                     ></textarea>
                                 </div>
                                 {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
@@ -251,7 +251,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                                 <div className="flex-1 w-full">
                                     <h2 className="text-xl font-semibold flex items-center gap-2 mb-2 text-gray-900 dark:text-white">
                                         <Award className="text-teal-600 dark:text-teal-400" size={24} />
-                                        {t('loyalty.score', 'Score de Fidélité')}
+                                        {t('loyalty.score', 'Score de FidÃ©litÃ©')}
                                     </h2>
                                     <div className="flex items-baseline gap-2 mb-4">
                                         <span className="text-5xl font-bold text-gray-900 dark:text-white">{points}</span>
@@ -266,17 +266,17 @@ export default function UserProfile({ theme, toggleTheme }) {
                                             <div className="bg-[#DB8B89] h-2 rounded-full transition-all duration-500" style={{ width: `${Math.min(100, points / 10)}%` }}></div>
                                         </div>
                                     </div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">{t('loyalty.earn_rule', 'Gagnez 1 point pour chaque 100 DA dépensé.')}</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">{t('loyalty.earn_rule', 'Gagnez 1 point pour chaque 100 DA dÃ©pensÃ©.')}</p>
                                 </div>
 
                                 {/* Next Reward Card */}
                                 <div className="bg-pink-50 dark:bg-[#DB8B89]/10 rounded-lg p-4 w-full md:w-64 border border-pink-100 dark:border-[#DB8B89]/20">
                                     <div className="flex items-center gap-2 mb-2">
                                         <Gift className="text-[#DB8B89]" size={20} />
-                                        <h3 className="font-semibold text-gray-900 dark:text-white">{t('loyalty.next_reward', 'Prochaine Récompense')}</h3>
+                                        <h3 className="font-semibold text-gray-900 dark:text-white">{t('loyalty.next_reward', 'Prochaine RÃ©compense')}</h3>
                                     </div>
                                     <p className="text-sm text-gray-900 dark:text-gray-200 font-medium mb-1">{t('loyalty.reward_500da', "Bon d'achat de 500 DA")}</p>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{t('loyalty.reach_1000', 'Dès 1000 points atteints.')}</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{t('loyalty.reach_1000', 'DÃ¨s 1000 points atteints.')}</p>
                                 </div>
                             </div>
                         </div>
@@ -322,7 +322,7 @@ export default function UserProfile({ theme, toggleTheme }) {
                                     <Package size={48} className="mx-auto text-gray-300 mb-3" />
                                     <p className="font-medium mb-1">{t('orders.empty', 'Aucune commande')}</p>
                                     <p className="text-sm text-gray-400">
-                                        {t('orders.empty_text', "Vous n'avez pas encore passé de commande.")}
+                                        {t('orders.empty_text', "Vous n'avez pas encore passÃ© de commande.")}
                                     </p>
                                 </div>
                             ) : (
@@ -340,11 +340,11 @@ export default function UserProfile({ theme, toggleTheme }) {
                                                 <div>
                                                     <p className="text-sm font-semibold text-gray-900 dark:text-white">
                                                         {new Date(order.created_at).toLocaleDateString()}
-                                                        <span className="text-gray-400 mx-1">•</span>
+                                                        <span className="text-gray-400 mx-1">â€¢</span>
                                                         {(order.items?.length || 0)} {t('orders.items', 'articles')}
                                                     </p>
                                                     <p className={`text-xs font-medium ${order.status === 'En attente' ? 'text-orange-500' :
-                                                        order.status === 'Livrée' ? 'text-green-600' : 'text-gray-500'
+                                                        order.status === 'LivrÃ©e' ? 'text-green-600' : 'text-gray-500'
                                                         }`}>
                                                         {order.status}
                                                     </p>
@@ -403,7 +403,7 @@ export default function UserProfile({ theme, toggleTheme }) {
 
                             <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                                 <div className="bg-gray-50 dark:bg-white/5 px-8 py-4 rounded-xl text-2xl font-mono tracking-widest font-bold text-gray-800 dark:text-white border-2 border-dashed border-pink-200 dark:border-white/20">
-                                    {(referral_code || user.referral_code) || t('common.generating', 'GÉNÉRATION...')}
+                                    {(referral_code || user.referral_code) || t('common.generating', 'GÃ‰NÃ‰RATION...')}
                                 </div>
                                 <button
                                     type="button"
@@ -421,13 +421,13 @@ export default function UserProfile({ theme, toggleTheme }) {
                             <div className="flex items-center gap-2 mb-4">
                                 <Users className="text-gray-400" size={20} />
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                    {t('referral.friends', 'Vos amis parrainés')} ({referrals.length})
+                                    {t('referral.friends', 'Vos amis parrainÃ©s')} ({referrals.length})
                                 </h3>
                             </div>
 
                             {referrals.length === 0 ? (
                                 <p className="text-sm text-gray-400 italic text-center py-6">
-                                    {t('referral.empty', "Vous n'avez parrainé personne pour le moment.")}
+                                    {t('referral.empty', "Vous n'avez parrainÃ© personne pour le moment.")}
                                 </p>
                             ) : (
                                 <div className="space-y-2">

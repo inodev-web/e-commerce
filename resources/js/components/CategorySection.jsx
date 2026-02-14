@@ -15,7 +15,7 @@ const CategorySection = ({ categories: propCategories }) => {
 
     // Fallback static categories if dynamic ones aren't suitable or needed
     const staticCategories = [
-        { name: t('category.baby', 'Bébé'), image: 'https://i.pinimg.com/736x/da/85/27/da852720586700f5548eb4c50b55c8fe.jpg' },
+        { name: t('category.baby', 'BÃ©bÃ©'), image: 'https://i.pinimg.com/736x/da/85/27/da852720586700f5548eb4c50b55c8fe.jpg' },
         { name: t('category.face', 'Visage'), image: 'https://i.pinimg.com/736x/81/98/dd/8198dd32d94c0c3cc950af3d6643e228.jpg' },
         { name: t('category.hair', 'Cheveux'), image: 'https://i.pinimg.com/1200x/a1/04/40/a10440858e9ea5f6d2bc43e07f4d9505.jpg' },
         { name: t('category.solar', 'Solaire'), image: 'https://i.pinimg.com/736x/c3/7a/8a/c37a8a18216b4e8e5ca5b74d7afff26d.jpg' },
@@ -38,7 +38,7 @@ const CategorySection = ({ categories: propCategories }) => {
             className="category-section py-12"
         >
             <div className="section-container max-w-7xl mx-auto px-4">
-                <h2 className="section-title text-3xl font-bold mb-8 text-center">{t('home.shop_by_category', 'Acheter par catégorie')}</h2>
+                <h2 className="section-title text-3xl font-bold mb-8 text-center">{t('home.shop_by_category', 'Acheter par catÃ©gorie')}</h2>
                 <div className="w-full flex justify-center" dir="ltr">
                     <Carousel
                         opts={{
