@@ -26,6 +26,7 @@ Route::get('/auth', function () {
 Route::get('/shop', [\App\Http\Controllers\ProductController::class, 'index'])->name('products.index');
 Route::get('/product/{product}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
 Route::get('/api/products/search', [\App\Http\Controllers\ProductController::class, 'searchApi'])->name('api.products.search');
+Route::get('/api/search', [\App\Http\Controllers\SearchController::class, 'query'])->name('api.search');
 
 // Profile route is defined under auth middleware (see below).
 
@@ -57,7 +58,7 @@ Route::prefix('cart')->name('cart.')->group(function () {
 
 // Authenticated Routes
 Route::middleware(['auth:sanctum'])->group(function () {
-    
+
     // Dashboard Redirect
     Route::get('/dashboard', function () {
         if (auth()->user()->role === 'admin') {
@@ -108,15 +109,15 @@ Route::get('/debug/loyalty-points', function (Request $request) {
     if (!auth()->check()) {
         return response()->json(['error' => 'Not authenticated'], 401);
     }
-    
+
     $client = auth()->user()->client;
     if (!$client) {
         return response()->json(['error' => 'No client found'], 404);
     }
-    
+
     $points = \App\Models\LoyaltyPoint::where('client_id', $client->id)->get();
     $balance = $points->sum('points');
-    
+
     return response()->json([
         'client_id' => $client->id,
         'balance' => $balance,
@@ -128,7 +129,7 @@ Route::get('/debug/loyalty-points', function (Request $request) {
 // Admin Routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Product Management
     // Promo Codes
     Route::resource('promo-codes', \App\Http\Controllers\Admin\PromoCodeController::class);
@@ -143,9 +144,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('loyalty/adjust', [\App\Http\Controllers\Admin\LoyaltyController::class, 'manualAdjustment'])->name('loyalty.adjust');
     Route::get('loyalty/client/{client}', [\App\Http\Controllers\Admin\LoyaltyController::class, 'clientHistory'])->name('loyalty.client');
     Route::put('loyalty/settings', [\App\Http\Controllers\Admin\LoyaltyController::class, 'updateSettings'])->name('loyalty.settings.update');
-    
+
     Route::get('loyalty/client/{client}', [\App\Http\Controllers\Admin\LoyaltyController::class, 'clientHistory'])->name('loyalty.client');
-    
+
     // Customer Management
     Route::get('customers', [\App\Http\Controllers\Admin\CustomerController::class, 'index'])->name('customers.index');
     Route::get('customers/{client}', [\App\Http\Controllers\Admin\CustomerController::class, 'show'])->name('customers.show');
@@ -173,10 +174,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         try {
             // Fix: Convert to uppercase to match Enum values
             $statusString = strtoupper($request->status);
-            
+
             // Fix: Use tryFrom to avoid ValueError if status is invalid
             $status = \App\Enums\OrderStatus::tryFrom($statusString);
-            
+
             if (!$status) {
                 return back()->with('error', "Statut invalide: {$request->status}");
             }

@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Sun, Moon, Truck, ShieldCheck, CheckCircle, Search, User, ShoppingCart, Menu, X, LogOut } from 'lucide-react';
+import { Sun, Moon, Truck, ShieldCheck, CheckCircle, User, ShoppingCart, Menu, X, LogOut } from 'lucide-react';
 import { Link, usePage, router } from '@inertiajs/react';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
+import SearchBar from '@/Components/SearchBar';
 import { useTranslation } from 'react-i18next';
 
 const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
     const { t } = useTranslation();
     const { auth, cartCount } = usePage().props;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
 
     // Internal state to handle theme if not managed by parent
     const [internalTheme, setInternalTheme] = useState(() => {
@@ -34,42 +34,6 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
             document.documentElement.classList.remove('dark');
         }
     }, [theme]);
-
-    const [searchResults, setSearchResults] = useState([]);
-    const [showDropdown, setShowDropdown] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isFocused, setIsFocused] = useState(false);
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (searchQuery.trim().length >= 2) {
-                setIsLoading(true);
-                fetch(route('api.products.search', { query: searchQuery }))
-                    .then(res => res.json())
-                    .then(data => {
-                        setSearchResults(data);
-                        if (isFocused) setShowDropdown(true);
-                        setIsLoading(false);
-                    })
-                    .catch(() => {
-                        setSearchResults([]);
-                        setIsLoading(false);
-                    });
-            } else {
-                setSearchResults([]);
-                setShowDropdown(false);
-            }
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [searchQuery, isFocused]);
-
-    const handleSearch = (e) => {
-        if (e.key === 'Enter' && searchQuery.trim()) {
-            setShowDropdown(false);
-            router.get(route('products.index'), { search: searchQuery });
-        }
-    };
 
     return (
         <header className="header">
@@ -99,76 +63,8 @@ const Header = ({ theme: propsTheme, toggleTheme: propsToggleTheme }) => {
                 </Link>
 
                 {/* Search Bar (Desktop) */}
-                <div className="header-search relative">
-                    <Search className="search-icon" size={20} />
-                    <input
-                        type="text"
-                        placeholder={t('common.search_placeholder', 'Rechercher des produits... (Entrée)')}
-                        className="search-input"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyDown={handleSearch}
-                        onFocus={() => {
-                            setIsFocused(true);
-                            if (searchQuery.length >= 2) setShowDropdown(true);
-                        }}
-                        onBlur={() => {
-                            // Delay blur to allow clicks on dropdown
-                            setTimeout(() => {
-                                setIsFocused(false);
-                                setShowDropdown(false);
-                            }, 200);
-                        }}
-                    />
-
-                    {/* Search Results Dropdown */}
-                    {showDropdown && (
-                        <div className="absolute top-full left-0 w-full bg-white dark:bg-zinc-900 shadow-2xl rounded-xl border border-gray-200 dark:border-zinc-800 mt-2 max-h-96 overflow-y-auto z-[999]">
-                            {isLoading ? (
-                                <div className="p-4 text-center text-gray-400">
-                                    <div className="flex items-center justify-center gap-2">
-                                        <div className="w-4 h-4 border-2 border-[#DB8B89] border-t-transparent rounded-full animate-spin"></div>
-                                        <span>{t('common.loading', 'Chargement...')}</span>
-                                    </div>
-                                </div>
-                            ) : searchResults.length > 0 ? (
-                                <ul className="py-2">
-                                    {searchResults.map((product) => (
-                                        <li key={product.id}>
-                                            <Link
-                                                href={product.url}
-                                                className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
-                                                onClick={() => {
-                                                    setShowDropdown(false);
-                                                    setSearchQuery('');
-                                                }}
-                                            >
-                                                <div className="flex-shrink-0">
-                                                    <img
-                                                        src={product.image}
-                                                        alt={product.name}
-                                                        className="w-12 h-12 object-cover rounded-full border border-gray-100 dark:border-zinc-700 shadow-sm"
-                                                    />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="font-semibold text-gray-900 dark:text-gray-100 truncate">
-                                                        {product.name}
-                                                    </div>
-                                                    <div className="text-sm font-bold text-[#DB8B89] mt-0.5">
-                                                        {product.formatted_price}
-                                                    </div>
-                                                </div>
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <div className="p-6 text-center text-gray-500 text-sm">
-                                    {t('admin.no_results', 'Aucun résultat trouvé.')}
-                                </div>
-                            )}
-                        </div>
-                    )}
+                <div className="flex-1 px-4">
+                    <SearchBar />
                 </div>
 
                 {/* Navigation */}

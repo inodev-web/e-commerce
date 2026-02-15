@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 const appName = import.meta.env.VITE_APP_NAME || 'Puréva Pharma';
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    title: (title) => title ? title : appName,
     resolve: (name) =>
         resolvePageComponent(
             `./pages/${name}.jsx`,
