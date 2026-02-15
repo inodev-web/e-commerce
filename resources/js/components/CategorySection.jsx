@@ -1,6 +1,7 @@
 import { useRef } from 'react'; // Touch
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { Link } from '@inertiajs/react';
 import { getTranslated } from '@/utils/translation';
 import {
     Carousel,
@@ -49,7 +50,10 @@ const CategorySection = ({ categories: propCategories }) => {
                         <CarouselContent className=''>
                             {displayCategories.map((category, index) => (
                                 <CarouselItem key={index} className="md:basis-1/3 basis-full pl-4">
-                                    <div className="relative h-[300px] w-[95%] justify-self-center overflow-hidden rounded-xl group cursor-pointer shadow-md hover:shadow-xl transition-shadow duration-300">
+                                    <Link
+                                        href={category.id ? route('products.index', { category_id: category.id }) : '#'}
+                                        className="block relative h-[300px] w-[95%] justify-self-center overflow-hidden rounded-xl group cursor-pointer shadow-md hover:shadow-xl transition-shadow duration-300"
+                                    >
                                         {/* Background Image */}
                                         <div
                                             className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
@@ -63,7 +67,7 @@ const CategorySection = ({ categories: propCategories }) => {
                                                 {getTranslated(category, 'name')}
                                             </h3>
                                         </div>
-                                    </div>
+                                    </Link>
                                 </CarouselItem>
                             ))}
                         </CarouselContent>
