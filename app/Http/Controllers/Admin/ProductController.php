@@ -176,22 +176,10 @@ class ProductController extends Controller
                 // Handle images
                 if ($request->hasFile('images')) {
                     foreach ($request->file('images') as $index => $imageFile) {
-                        $path = null;
-
-                        // If Intervention Image is available, convert/resize to webp; otherwise store original.
-                        if (class_exists(\Intervention\Image\Laravel\Facades\Image::class)) {
-                            $filename = uniqid() . '.webp';
-                            $path = 'products/' . $filename;
-
-                            $image = \Intervention\Image\Laravel\Facades\Image::read($imageFile);
-                            $image->cover(800, 800);
-
-                            Storage::disk('public')->put($path, (string) $image->encodeByMediaType('image/webp', quality: 80));
-                        } else {
-                            $ext = strtolower($imageFile->getClientOriginalExtension() ?: 'jpg');
-                            $filename = uniqid() . '.' . $ext;
-                            $path = $imageFile->storeAs('products', $filename, 'public');
-                        }
+                        // Stocker directement sans traitement complexe
+                        $ext = strtolower($imageFile->getClientOriginalExtension() ?: 'jpg');
+                        $filename = uniqid() . '.' . $ext;
+                        $path = $imageFile->storeAs('products', $filename, 'public');
 
                         ProductImage::create([
                             'product_id' => $product->id,
@@ -311,14 +299,16 @@ class ProductController extends Controller
             // Handle new images
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $imageFile) {
-                    $filename = uniqid() . '.webp';
+                    // Générer un nom de fichier unique
+                    $originalName = $imageFile->getClientOriginalName();
+                    $extension = $imageFile->getClientOriginalExtension();
+                    $filename = uniqid() . '.' . $extension;
                     $path = 'products/' . $filename;
 
-                    $image = Image::read($imageFile);
-                    $image->cover(800, 800);
-                    
-                    Storage::disk('public')->put($path, (string) $image->encodeByMediaType('image/webp', quality: 80));
+                    // Stocker le fichier directement
+                    Storage::disk('public')->putFileAs('products', $imageFile, $filename);
 
+                    // Créer l'enregistrement image
                     ProductImage::create([
                         'product_id' => $product->id,
                         'image_path' => $path,
