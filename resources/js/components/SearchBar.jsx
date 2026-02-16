@@ -144,7 +144,7 @@ export default function SearchBar() {
                                                     alt={product.name}
                                                     className="w-full h-full object-cover"
                                                     onError={(e) => {
-                                                        e.target.src = '/images/placeholder.jpg';
+                                                        e.target.src = '/placeholder.svg';
                                                     }}
                                                 />
                                             ) : (

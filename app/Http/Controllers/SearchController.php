@@ -93,15 +93,22 @@ class SearchController extends Controller
 
             // Formater les résultats pour le frontend
             $data = $products->map(function ($product) {
+                // Récupérer la première image
+                $firstImage = $product->images->first();
+                $imageUrl = null;
+
+                if ($firstImage) {
+                    // Utiliser asset() pour gérer correctement le lien symbolique
+                    $imageUrl = asset('storage/' . $firstImage->image_path);
+                }
+
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'name_ar' => $product->name_ar ?? '',
                     'price' => $product->price,
                     'slug' => $product->slug ?? $this->generateSlug($product->name),
-                    'image' => $product->images->first()
-                        ? config('app.url') . '/storage/' . $product->images->first()->image_path
-                        : null,
+                    'image' => $imageUrl,
                     'category' => $product->subCategory?->name ?? 'Parapharmacie',
                     'url' => route('products.show', $product->id),
                 ];

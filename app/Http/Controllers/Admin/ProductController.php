@@ -84,7 +84,7 @@ class ProductController extends Controller
             'default' => config('database.default'),
             'database' => DB::connection()->getDatabaseName(),
         ]);
-        
+
         $rules = [
             'sub_category_id' => 'required|exists:sub_categories,id',
             'name' => 'required|array',
@@ -356,7 +356,7 @@ class ProductController extends Controller
             foreach ($product->images as $image) {
                 Storage::disk('public')->delete($image->image_path);
             }
-            
+
             $product->images()->delete();
             $product->specificationValues()->delete();
             $product->delete();
