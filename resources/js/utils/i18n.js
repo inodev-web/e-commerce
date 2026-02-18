@@ -79,7 +79,7 @@
         'common.max': 'Max',
         'common.products_found': 'produits trouvés',
         'common.no_products_match': 'Aucun produit ne correspond à vos critères.',
-        
+
         // Pagination keys
         'pagination.previous': 'Précédent',
         'pagination.next': 'Suivant',
@@ -164,7 +164,7 @@
         'common.max': 'الحد الأقصى',
         'common.products_found': 'منتج تم العثور عليه',
         'common.no_products_match': 'لا توجد منتجات تطابق معايير البحث الخاصة بك.',
-        
+
         // Pagination keys
         'pagination.previous': 'السابق',
         'pagination.next': 'التالي',
@@ -249,11 +249,12 @@
         'common.max': 'Max',
         'common.products_found': 'products found',
         'common.no_products_match': 'No products match your search criteria.',
-        
+
         // Pagination keys
         'pagination.previous': 'Previous',
         'pagination.next': 'Next',
     }
+};
 
 export const getLabel = (key, locale = null) => {
     // If locale is not provided, try to get from document, default to 'fr'
