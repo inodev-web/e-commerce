@@ -39,12 +39,13 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
 
     const updateSpecValue = (itemId, specId, value) => {
         const item = items.find(i => i.id === itemId);
-        if (!item) return;
+        if (!item || !specId) return;
 
         const currentSpecValues = item.specification_values || {};
-        const newSpecValues = currentSpecValues[specId] === value
-            ? Object.fromEntries(Object.entries(currentSpecValues).filter(([k]) => k !== specId.toString()))
-            : { ...currentSpecValues, [specId]: value };
+        const specIdString = String(specId);
+        const newSpecValues = currentSpecValues[specIdString] === value
+            ? Object.fromEntries(Object.entries(currentSpecValues).filter(([k]) => k !== specIdString))
+            : { ...currentSpecValues, [specIdString]: value };
 
         router.put(route('cart.update', item.id), {
             quantity: item.quantity,
@@ -144,7 +145,7 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
                                                                                     onClick={() => {
                                                                                         if (!isOutOfStock) {
                                                                                             const newSpecValues = currentSpecValues[specId] === psv.value
-                                                                                                ? Object.fromEntries(Object.entries(currentSpecValues).filter(([k]) => k !== specId.toString()))
+                                                                                                ? Object.fromEntries(Object.entries(currentSpecValues).filter(([k]) => k !== String(specId)))
                                                                                                 : { ...currentSpecValues, [specId]: psv.value };
                                                                                             setLocalSpecValues(prev => ({ ...prev, [item.id]: newSpecValues }));
                                                                                             updateSpecValue(item.id, specId, psv.value);

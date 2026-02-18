@@ -1402,7 +1402,8 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                                         // Find the error for this spec if it exists
                                                                         // We need to know which index this spec has in the payload
                                                                         const specIds = Object.keys(selectedSpecificationValues);
-                                                                        const payloadIndex = specIds.indexOf(spec.id.toString());
+                                                                        const specIdString = spec?.id ? String(spec.id) : '';
+                                                                        const payloadIndex = specIdString ? specIds.indexOf(specIdString) : -1;
                                                                         const errorKey = `specifications.${payloadIndex}.selectedQuantities`;
                                                                         const error = productForm.errors[errorKey];
                                                                         return error ? <p className="text-xs text-red-500 mt-1">{error}</p> : null;
