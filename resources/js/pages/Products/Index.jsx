@@ -183,18 +183,18 @@ const Index = ({ products, categories = [], filters = {}, theme, toggleTheme }) 
                                             <div className="flex items-center gap-2 font-bold text-gray-800 dark:text-gray-200">
                                                 <input
                                                     type="checkbox"
-                                                    checked={filters.category_id == cat.id}
-                                                    onChange={() => handleFilterChange('category_id', filters.category_id == cat.id ? null : cat.id)}
+                                                    checked={Number(filters.category_id) === Number(cat.id)}
+                                                    onChange={() => handleFilterChange('category_id', Number(filters.category_id) === Number(cat.id) ? null : Number(cat.id))}
                                                     className="rounded border-gray-300 accent-[#DB8B89]"
                                                 />
                                                 <span>{getTranslated(cat, 'name')}</span>
                                             </div>
-                                            {cat.sub_categories && cat.sub_categories.map(sub => (
+                                            {cat.sub_categories?.map(sub => (
                                                 <div key={sub.id} className="flex items-center gap-2 pl-6">
                                                     <input
                                                         type="checkbox"
-                                                        checked={filters.sub_category_id == sub.id}
-                                                        onChange={() => handleFilterChange('sub_category_id', filters.sub_category_id == sub.id ? null : sub.id)}
+                                                        checked={Number(filters.sub_category_id) === Number(sub.id)}
+                                                        onChange={() => handleFilterChange('sub_category_id', Number(filters.sub_category_id) === Number(sub.id) ? null : Number(sub.id))}
                                                         className="rounded border-gray-300 accent-[#DB8B89]"
                                                     />
                                                     <label className="text-sm dark:text-gray-300">{getTranslated(sub, 'name')}</label>
@@ -279,7 +279,7 @@ const Index = ({ products, categories = [], filters = {}, theme, toggleTheme }) 
                         )}
                         {filters.category_id && (
                             <span className="filter-tag">
-                                {getLabel('common.categories')}: {getTranslated(validCategories.find(c => c.id == filters.category_id), 'name') || filters.category_id}
+                                {getLabel('common.categories')}: {getTranslated(validCategories.find(c => Number(c.id) === Number(filters.category_id)) || {}, 'name') || filters.category_id}
                                 <button onClick={() => handleFilterChange('category_id', null)}><X size={14} /></button>
                             </span>
                         )}
@@ -355,14 +355,27 @@ const Index = ({ products, categories = [], filters = {}, theme, toggleTheme }) 
                 {/* Pagination */}
                 {products.links && products.links.length > 3 && (
                     <div className="pagination flex justify-center items-center gap-2 mt-12">
-                        {products.links.map((link, i) => (
-                            <Link
-                                key={i}
-                                href={link.url}
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                className={`px-4 py-2 rounded-xl border transition-all ${link.active ? 'bg-teal-600 text-white border-teal-600' : 'bg-white/70 text-gray-600 hover:border-[#DB8B89] hover:text-[#DB8B89] dark:bg-white/5 dark:text-gray-400'} ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            />
-                        ))}
+                        {products.links.map((link, i) => {
+                            // Safely handle pagination links
+                            if (!link || !link.label) return null;
+
+                            const labelText = link.label
+                                .replace(/&laquo;\s?/, '')
+                                .replace(/\s?&raquo;/, '')
+                                .replace(/&lt;/, '<')
+                                .replace(/&gt;/, '>')
+                                .trim();
+
+                            return (
+                                <Link
+                                    key={i}
+                                    href={link.url || '#'}
+                                    className={`px-4 py-2 rounded-xl border transition-all ${link.active ? 'bg-teal-600 text-white border-teal-600' : 'bg-white/70 text-gray-600 hover:border-[#DB8B89] hover:text-[#DB8B89] dark:bg-white/5 dark:text-gray-400'} ${!link.url ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+                                >
+                                    {labelText}
+                                </Link>
+                            );
+                        })}
                     </div>
                 )}
             </main>
