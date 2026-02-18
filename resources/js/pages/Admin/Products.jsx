@@ -1,5 +1,6 @@
 ﻿import React, { useMemo, useState } from 'react';
 import { Plus, Search, Edit, Trash2, Filter, Info, X, RefreshCw, ChevronDown, ChevronRight } from 'lucide-react';
+import { getPaginationLabel } from '../../utils/pagination';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/Components/ui/dialog";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
@@ -10,6 +11,7 @@ import AdminLayout from '../../components/AdminLayout';
 import { Link, router, useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { getTranslated } from '@/utils/translation';
+import { getLabel } from '@/utils/i18n';
 
 const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleTheme }) => {
     const { t } = useTranslation();
@@ -861,12 +863,10 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                 {products.links.map((link, index) => {
                                     // Check if this is a "Previous" or "Next" link
                                     const isDisabled = !link.url;
-                                    const labelText = link.label
-                                        .replace(/&laquo;\s?/, '')
-                                        .replace(/\s?&raquo;/, '')
-                                        .replace(/&lt;/, '<')
-                                        .replace(/&gt;/, '>')
-                                        .trim();
+                                    const labelText = getPaginationLabel(link.label, getLabel);
+
+                                    // Skip rendering if no label text
+                                    if (!labelText) return null;
 
                                     return (
                                         <Link
