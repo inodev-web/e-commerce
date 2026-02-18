@@ -1,5 +1,5 @@
 ﻿import React, { useMemo, useState } from 'react';
-import { Plus, Search, Edit, Trash2, Filter, Info, X, RefreshCw } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Filter, Info, X, RefreshCw, ChevronDown, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/Components/ui/dialog";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
@@ -151,8 +151,8 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
             const selected = categories.find((cat) => cat.id == productCategoryId);
             return selected?.sub_categories || [];
         }
-        return allSubCategories;
-    }, [categories, allSubCategories, productCategoryId]);
+        return [];
+    }, [categories, productCategoryId]);
 
     const categoryById = useMemo(() => {
         return categories.reduce((acc, cat) => {
@@ -522,8 +522,8 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                     categoryForm.reset();
                 },
                 onFinish: () => {
-                    // Manual reset of transform is not strictly needed if we reset form, 
-                    // but good practice if form persists. 
+                    // Manual reset of transform is not strictly needed if we reset form,
+                    // but good practice if form persists.
                     // However, relying on re-transform for next request is safer.
                 },
             });
@@ -858,17 +858,31 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
 
                         {products?.links && products.links.length > 3 && (
                             <div className="flex flex-wrap gap-2 justify-center">
-                                {products.links.map((link, index) => (
-                                    <Link
-                                        key={index}
-                                        href={link.url || '#'}
-                                        className={`px-4 py-2 rounded-lg border transition-all ${link.active
-                                            ? 'bg-[#DB8B89] text-white border-[#DB8B89]'
-                                            : 'bg-white text-gray-600 hover:border-[#DB8B89] dark:bg-zinc-900 dark:text-gray-200'} ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        preserveState
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                ))}
+                                {products.links.map((link, index) => {
+                                    // Check if this is a "Previous" or "Next" link
+                                    const isDisabled = !link.url;
+                                    const labelText = link.label
+                                        .replace(/&laquo;\s?/, '')
+                                        .replace(/\s?&raquo;/, '')
+                                        .replace(/&lt;/, '<')
+                                        .replace(/&gt;/, '>')
+                                        .trim();
+
+                                    return (
+                                        <Link
+                                            key={index}
+                                            href={link.url || '#'}
+                                            className={`px-4 py-2 rounded-lg border transition-all ${
+                                                link.active
+                                                    ? 'bg-[#DB8B89] text-white border-[#DB8B89]'
+                                                    : 'bg-white text-gray-600 hover:border-[#DB8B89] dark:bg-zinc-900 dark:text-gray-200'
+                                            } ${isDisabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+                                            preserveState
+                                        >
+                                            {labelText}
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -902,10 +916,10 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                         <div className="flex items-center gap-2">
                                                             <button
                                                                 onClick={() => toggleCategory(category.id)}
-                                                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-transform"
                                                                 type="button"
                                                             >
-                                                                {expandedCategories.has(category.id) ? '?' : '?'}
+                                                                {expandedCategories.has(category.id) ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                                                             </button>
                                                             <div className="w-10 h-10 rounded-md overflow-hidden border border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800 shadow-sm flex-shrink-0">
                                                                 <img
@@ -954,7 +968,10 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                 {expandedCategories.has(category.id) && category.sub_categories?.map((subCategory) => (
                                                     <tr key={subCategory.id} className="bg-gray-50/50 dark:bg-zinc-800/20">
                                                         <td className="px-6 py-3 pl-16 text-sm text-gray-600 dark:text-gray-400">
-                                                            ? {getTranslated(subCategory, 'name')}
+                                                            <div className="flex items-center gap-2">
+                                                                <ChevronRight size={16} className="flex-shrink-0" />
+                                                                <span>{getTranslated(subCategory, 'name')}</span>
+                                                            </div>
                                                         </td>
                                                         <td className="px-6 py-3 text-gray-400 text-sm">—</td>
                                                         <td className="px-6 py-3">

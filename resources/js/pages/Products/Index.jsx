@@ -11,7 +11,20 @@ import CartConfirmationModal from '../../components/CartConfirmationModal';
 import { trackEvent } from '@/utils/analytics';
 import '../../../css/shopPage.css';
 
-const Index = ({ products, categories, filters, theme, toggleTheme }) => {
+const Index = ({ products, categories = [], filters = {}, theme, toggleTheme }) => {
+    // Ensure categories is an array and filter out null/invalid items
+    // name is a multilingual array {fr, ar, en}, so check that it exists and has at least one non-empty value
+    const validCategories = Array.isArray(categories)
+        ? categories.filter(cat => {
+            if (!cat || !cat.id) return false;
+            // Check if name exists and has at least one non-empty language value
+            if (!cat.name) return false;
+            if (typeof cat.name === 'object') {
+                return Object.values(cat.name).some(v => v && typeof v === 'string' && v.trim());
+            }
+            return false;
+        })
+        : [];
     const handleFilterChange = (key, value) => {
         const newFilters = { ...filters, [key]: value };
         Object.keys(newFilters).forEach(k => {
@@ -165,7 +178,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                                     <DialogTitle>{getLabel('categories')}</DialogTitle>
                                 </DialogHeader>
                                 <div className="grid gap-4 mt-2 max-h-60 overflow-y-auto">
-                                    {categories.map((cat) => (
+                                    {validCategories.map((cat) => (
                                         <div key={cat.id} className="space-y-2">
                                             <div className="flex items-center gap-2 font-bold text-gray-800 dark:text-gray-200">
                                                 <input
@@ -266,7 +279,7 @@ const Index = ({ products, categories, filters, theme, toggleTheme }) => {
                         )}
                         {filters.category_id && (
                             <span className="filter-tag">
-                                {getLabel('common.categories')}: {getTranslated(categories.find(c => c.id == filters.category_id), 'name') || filters.category_id}
+                                {getLabel('common.categories')}: {getTranslated(validCategories.find(c => c.id == filters.category_id), 'name') || filters.category_id}
                                 <button onClick={() => handleFilterChange('category_id', null)}><X size={14} /></button>
                             </span>
                         )}

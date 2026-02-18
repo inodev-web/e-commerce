@@ -1,31 +1,86 @@
-﻿/**
- * Get translated field from a model
- * @param {Object} model - The model with translatable fields
- * @param {string} field - The field name (e.g., 'name', 'description')
- * @param {string} locale - The locale (defaults to current i18n language)
- * @returns {string} The translated value or empty string
- */
-export function getTranslated(model, field, locale = null) {
+﻿export function getTranslated(model, field, locale = null) {
+    // Handle null/undefined model or field
     if (!model || !field) return '';
 
-    const value = model[field];
+    try {
+        // Get the value safely with optional chaining
+        const value = model?.[field];
 
-    // If not an object, return as is
-    if (typeof value !== 'object' || value === null) {
-        return value || '';
+        // If value is explicitly null or undefined, return empty string
+        if (value === null || value === undefined) {
+            return '';
+        }
+
+        // If it's an object (including arrays and plain objects)
+        if (typeof value === 'object') {
+            // If it's an empty array, return empty string
+            if (Array.isArray(value) && value.length === 0) {
+                return '';
+            }
+
+            // If it's an object but all values are null/empty, handle gracefully
+            const objectKeys = Object.keys(value).filter(k => value[k] !== null && value[k] !== undefined && value[k] !== '');
+            if (objectKeys.length === 0) {
+                return '';
+            }
+
+            // Get current locale from document or use provided
+            const currentLocale = locale || document.documentElement.lang || 'fr';
+
+            // Return the translated value or fallback to 'fr' or first non-empty available
+            let result = value[currentLocale];
+
+            // If not found in current locale, try 'fr'
+            if (!result) {
+                result = value['fr'];
+            }
+
+            // If still not found, find the first non-empty value
+            if (!result) {
+                result = Object.values(value).find(v => v !== null && v !== undefined && v !== '');
+            }
+
+            // If we still have nothing, return empty string
+            if (!result) {
+                return '';
+            }
+
+            // Handle the result
+            if (typeof result === 'object') {
+                try {
+                    return JSON.stringify(result) || '';
+                } catch (e) {
+                    console.error(`Error stringifying result for field: ${field}`, e);
+                    return '';
+                }
+            }
+
+            // Final safeguard: convert to string safely
+            try {
+                const stringResult = String(result).trim();
+                return stringResult === 'null' || stringResult === 'undefined' || stringResult === '' ? '' : stringResult;
+            } catch (e) {
+                console.error(`Error converting result to string for field: ${field}`, e);
+                return '';
+            }
+        }
+
+        // If not an object (simple string, number, boolean, etc.)
+        if (Array.isArray(value) && value.length === 0) {
+            return '';
+        }
+
+        try {
+            const stringResult = String(value).trim();
+            return stringResult === 'null' || stringResult === 'undefined' || stringResult === '' ? '' : stringResult;
+        } catch (e) {
+            console.error(`Error converting value to string for field: ${field}`, e);
+            return '';
+        }
+    } catch (e) {
+        console.error(`Error in getTranslated for field: ${field}`, e);
+        return '';
     }
-
-    // Get current locale from document or use provided
-    const currentLocale = locale || document.documentElement.lang || 'fr';
-
-    // Return the translated value or fallback to 'fr' or first available
-    const result = value[currentLocale] || value['fr'] || Object.values(value)[0] || '';
-
-    if (typeof result === 'object') {
-        return JSON.stringify(result);
-    }
-
-    return result;
 }
 
 /**

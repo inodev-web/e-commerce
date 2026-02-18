@@ -21,14 +21,18 @@ class HomeController extends Controller
             ->orderBy('created_at', 'desc')
             ->limit(8)
             ->get();
-        
+
         $topSellers = Product::active()
             ->with(['images', 'subCategory'])
             ->orderBy('stock', 'asc') // Simulation de top sellers par faible stock (vente rapide)
             ->limit(4)
             ->get();
-            
-        $categories = Category::active()->limit(6)->get();
+
+        $categories = Category::active()
+            ->limit(6)
+            ->get()
+            ->filter(fn($cat) => $cat->id && $cat->name) // Filter out categories with null id or name
+            ->values(); // Reindex the collection
 
         return Inertia::render('HomePage', [
             'featuredProducts' => $featuredProducts,

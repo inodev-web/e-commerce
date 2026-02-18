@@ -22,7 +22,9 @@ const CategorySection = ({ categories: propCategories }) => {
         { name: t('category.solar', 'Solaire'), image: 'https://i.pinimg.com/736x/c3/7a/8a/c37a8a18216b4e8e5ca5b74d7afff26d.jpg' },
     ];
 
-    const displayCategories = propCategories && propCategories.length > 0 ? propCategories : staticCategories;
+    // Filter out categories with null or invalid id/name to prevent errors
+    const filteredCategories = propCategories?.filter(cat => cat && cat.id && (cat.name || cat.image_path)) || [];
+    const displayCategories = filteredCategories.length > 0 ? filteredCategories : staticCategories;
     const getCategoryImage = (category) => {
         if (category?.image_path) {
             return `/storage/${category.image_path}`;
