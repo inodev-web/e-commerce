@@ -1,15 +1,51 @@
-﻿import { Star, ShoppingCart } from 'lucide-react';
+﻿import { Star, ShoppingCart, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { getTranslated } from '@/utils/translation';
+import { pickMainImage } from '@/utils/productImage';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { trackEvent } from '@/utils/analytics';
 
 const TopSellers = ({ products = [] }) => {
     const { t } = useTranslation();
+    const [addingToCartId, setAddingToCartId] = useState(null);
 
     const truncateName = (name) => {
         if (!name) return '';
         return name.length > 25 ? name.substring(0, 22) + '...' : name;
+    };
+
+    const handleAddToCart = (e, product) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        setAddingToCartId(product.id);
+
+        router.post(route('cart.add'), {
+            product_id: product.id,
+            quantity: 1
+        }, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                toast.success('Produit ajouté au panier');
+                setAddingToCartId(null);
+
+                trackEvent('AddToCart', {
+                    content_name: getTranslated(product, 'name'),
+                    content_ids: [product.id],
+                    content_type: 'product',
+                    value: product.price,
+                    currency: 'DZD'
+                });
+            },
+            onError: () => {
+                setAddingToCartId(null);
+                toast.error('Erreur lors de l\'ajout au panier');
+            }
+        });
     };
 
     return (
@@ -36,11 +72,16 @@ const TopSellers = ({ products = [] }) => {
                                     <span>{(Math.random() * (5 - 4) + 4).toFixed(1)}</span>
                                 </div>
                                 <div className="seller-image aspect-square w-full bg-gray-50 overflow-hidden">
-                                    <img
-                                        src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.svg'}
-                                        alt={getTranslated(product, 'name')}
-                                        className="seller-image-img w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                                    />
+                                    {(() => {
+                                        const img = pickMainImage(product.images);
+                                        return (
+                                            <img
+                                                src={img ? `/storage/${img.image_path}` : '/placeholder.svg'}
+                                                alt={getTranslated(product, 'name')}
+                                                className="seller-image-img w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                                            />
+                                        );
+                                    })()}
                                 </div>
                                 <div className="seller-info">
                                     <div className="seller-brand text-xs uppercase tracking-wider text-teal-600 font-bold mb-1">
@@ -51,8 +92,8 @@ const TopSellers = ({ products = [] }) => {
                                     </h3>
                                     <div className="seller-price mt-auto flex items-center justify-between font-bold text-lg text-gray-900">
                                         {product.price.toLocaleString()} {t('currency.symbol', 'DA')}
-                                        <button className="add-to-cart-btn" aria-label={t('product.add_to_cart')} onClick={(e) => e.preventDefault()}>
-                                            <ShoppingCart size={18} />
+                                        <button className="add-to-cart-btn transition-all hover:scale-110 disabled:opacity-50" aria-label={t('product.add_to_cart')} onClick={(e) => handleAddToCart(e, product)} disabled={addingToCartId === product.id} type="button">
+                                            {addingToCartId === product.id ? <Loader2 size={18} className="animate-spin" /> : <ShoppingCart size={18} />}
                                         </button>
                                     </div>
                                 </div>

@@ -37,10 +37,19 @@ class ProductController extends Controller
         
         $products = $this->productService->list($filterDTO, 20);
         
-        $categories = Category::active()
-            ->with('subCategories')
-            ->orderByName('asc')
-            ->get();
+        // ⚡️ PERF: categories/subcategories are mostly static; make them LAZY to improve first load.
+        // name is JSON (translatable) so we only select 'name' (no name_ar column here).
+        $categories = Inertia::lazy(fn () => \Illuminate\Support\Facades\Cache::remember(
+            'shop_categories_with_subcategories_v2',
+            now()->addMinutes(30),
+            fn () => Category::active()
+                ->select('id', 'name', 'image_path', 'active')
+                ->with(['subCategories' => function ($q) {
+                    $q->select('id', 'category_id', 'name', 'active');
+                }])
+                ->orderByName('asc')
+                ->get()
+        ));
         
         return Inertia::render('Products/Index', [
             'products' => $products,

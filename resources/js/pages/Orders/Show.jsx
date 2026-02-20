@@ -5,6 +5,7 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { getTranslated } from '@/utils/translation';
 import { useTranslation } from 'react-i18next';
+import { pickMainImage } from '@/utils/productImage';
 
 const Show = ({ order }) => {
     const { t, i18n } = useTranslation();
@@ -102,7 +103,10 @@ const Show = ({ order }) => {
                                     <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded md-1 flex-shrink-0">
                                         {/* Assuming product relationship is loaded via 'product' in item, or snapshot data */}
                                         <img
-                                            src={item.product && item.product.images && item.product.images.length > 0 ? `/storage/${item.product.images[0].image_path}` : '/placeholder.svg'}
+                                            src={(() => {
+                                                const img = pickMainImage(item.product?.images);
+                                                return img ? `/storage/${img.image_path}` : '/placeholder.svg';
+                                            })()}
                                             className="w-full h-full object-cover rounded"
                                             alt="Product"
                                         />

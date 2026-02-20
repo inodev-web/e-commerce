@@ -100,6 +100,8 @@ class ProductController extends Controller
             'images' => 'nullable|array',
             // 5MB per image (Laravel uses KB)
             'images.*' => 'nullable|image|max:5120',
+            // Main image selection (0-based index in uploaded images[])
+            'main_new_image_index' => 'nullable|integer|min:0',
             'specifications' => 'nullable|array',
             'specifications.*.id' => 'required|exists:specifications,id',
             'specifications.*.value' => 'nullable|string',
@@ -175,6 +177,9 @@ class ProductController extends Controller
 
                 // Handle images
                 if ($request->hasFile('images')) {
+                    $mainNewIndex = $request->input('main_new_image_index');
+                    $mainNewIndex = is_numeric($mainNewIndex) ? (int) $mainNewIndex : 0;
+
                     foreach ($request->file('images') as $index => $imageFile) {
                         // Stocker directement sans traitement complexe
                         $ext = strtolower($imageFile->getClientOriginalExtension() ?: 'jpg');
@@ -184,7 +189,9 @@ class ProductController extends Controller
                         ProductImage::create([
                             'product_id' => $product->id,
                             'image_path' => $path,
-                            'is_primary' => $index === 0,
+                            // Canonical flag: is_main. Keep is_primary in sync for backward compatibility.
+                            'is_main' => $index === $mainNewIndex,
+                            'is_primary' => $index === $mainNewIndex,
                         ]);
                     }
                 }
@@ -241,7 +248,14 @@ class ProductController extends Controller
             'stock' => 'required|integer|min:0',
             'status' => ['required', Rule::enum(ProductStatus::class)],
             'free_shipping' => 'nullable|boolean',
+            'images' => 'nullable|array',
             'images.*' => 'nullable|image|max:2048',
+            // Existing images management
+            'images_to_delete' => 'nullable|array',
+            'images_to_delete.*' => 'integer',
+            // Main image selection
+            'main_image_id' => 'nullable|integer',
+            'main_new_image_index' => 'nullable|integer|min:0',
             'specifications' => 'nullable|array',
             'specifications.*.id' => 'required|exists:specifications,id',
             'specifications.*.value' => 'nullable|string',
@@ -296,25 +310,63 @@ class ProductController extends Controller
         DB::transaction(function () use ($validated, $request, $product) {
             $product->update($validated);
 
+            // 1) Delete selected existing images
+            $deleteIds = $request->input('images_to_delete', []);
+            if (is_array($deleteIds) && count($deleteIds) > 0) {
+                $imagesToDelete = $product->images()->whereIn('id', $deleteIds)->get();
+                foreach ($imagesToDelete as $img) {
+                    // url stores relative path in public disk (e.g. products/xxx.webp)
+                    Storage::disk('public')->delete($img->url);
+                    $img->delete();
+                }
+            }
+
             // Handle new images
+            $createdImageIds = [];
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $imageFile) {
-                    // Générer un nom de fichier unique
-                    $originalName = $imageFile->getClientOriginalName();
-                    $extension = $imageFile->getClientOriginalExtension();
+                    $extension = strtolower($imageFile->getClientOriginalExtension() ?: 'jpg');
                     $filename = uniqid() . '.' . $extension;
                     $path = 'products/' . $filename;
 
-                    // Stocker le fichier directement
                     Storage::disk('public')->putFileAs('products', $imageFile, $filename);
 
-                    // Créer l'enregistrement image
-                    ProductImage::create([
+                    $created = ProductImage::create([
                         'product_id' => $product->id,
                         'image_path' => $path,
+                        'is_main' => false,
                         'is_primary' => false,
                     ]);
+                    $createdImageIds[] = $created->id;
                 }
+            }
+
+            // 2) Main image: ensure a single is_main/is_primary
+            // Reset all first
+            $product->images()->update(['is_main' => false, 'is_primary' => false]);
+
+            $chosenImage = null;
+            $mainImageId = $request->input('main_image_id');
+            if (is_numeric($mainImageId)) {
+                $chosenImage = $product->images()->whereKey((int) $mainImageId)->first();
+            }
+
+            if (!$chosenImage) {
+                $mainNewIndex = $request->input('main_new_image_index');
+                if (is_numeric($mainNewIndex)) {
+                    $mainNewIndex = (int) $mainNewIndex;
+                    if ($mainNewIndex >= 0 && $mainNewIndex < count($createdImageIds)) {
+                        $chosenImage = $product->images()->whereKey($createdImageIds[$mainNewIndex])->first();
+                    }
+                }
+            }
+
+            if (!$chosenImage) {
+                $chosenImage = $product->images()->orderBy('id')->first();
+            }
+
+            if ($chosenImage) {
+                $chosenImage->update(['is_main' => true, 'is_primary' => true]);
             }
 
             // Update specifications

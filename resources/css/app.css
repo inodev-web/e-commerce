@@ -1260,32 +1260,36 @@ body {
 }
 
 .top-seller-card .add-to-cart-btn {
-    position: absolute;
-    bottom: 1rem;
-    right: 1rem;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--primary-blue);
+    background: linear-gradient(135deg, #DB8B89, #C07573);
     border: none;
-    color: var(--white);
+    color: white;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 12px rgba(219, 139, 137, 0.3);
+    padding: 0.35rem;
+    border-radius: 8px;
+    min-width: 36px;
+    height: 36px;
+    flex-shrink-0;
 }
 
 html[dir="rtl"] .top-seller-card .add-to-cart-btn {
     right: auto;
-    left: 1rem;
+    left: auto;
 }
 
 .top-seller-card .add-to-cart-btn:hover {
-    background: var(--primary-blue-dark);
-    transform: scale(1.1);
+    background: linear-gradient(135deg, #C07573, #A85D57);
+    transform: scale(1.15);
     box-shadow: 0 6px 16px rgba(219, 139, 137, 0.4);
+}
+
+.top-seller-card .add-to-cart-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 
 .old-price {

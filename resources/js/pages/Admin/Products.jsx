@@ -12,6 +12,7 @@ import { Link, router, useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { getTranslated } from '@/utils/translation';
 import { getLabel } from '@/utils/i18n';
+import { pickMainImage } from '@/utils/productImage';
 
 const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleTheme }) => {
     const { t } = useTranslation();
@@ -182,6 +183,11 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         status: 'ACTIF',
         free_shipping: false,
         images: [],
+        // Existing images management
+        images_to_delete: [],
+        // Main image selection
+        main_image_id: null,
+        main_new_image_index: null,
         specifications: [],
         has_variants: false,
         variants: [],
@@ -315,6 +321,11 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
             imageFile: null
         })) || [];
 
+        const detectedMainId =
+            product?.images?.find((img) => img?.is_main || img?.is_primary)?.id
+            ?? product?.images?.[0]?.id
+            ?? null;
+
         productForm.setData({
             sub_category_id: subCategoryId,
             name: ensureBilingual(product.name),
@@ -324,6 +335,9 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
             status: product.status || 'ACTIF',
             free_shipping: !!product.free_shipping,
             images: [],
+            images_to_delete: [],
+            main_image_id: detectedMainId,
+            main_new_image_index: null,
             specifications: buildSpecValues(subCategory, product),
             has_variants: !!product.has_variants,
             variants: variants,
@@ -416,6 +430,30 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     const submitProduct = (e) => {
         e.preventDefault();
 
+        const withMainDefaults = (data) => {
+            // If nothing selected as main, default to first remaining existing image, otherwise first new upload.
+            if (!data.main_image_id && (data.main_new_image_index === null || data.main_new_image_index === undefined)) {
+                const remainingExisting = (editingProduct?.images || []).filter(
+                    (img) => !((data.images_to_delete || []).includes(img.id))
+                );
+                if (remainingExisting.length > 0) {
+                    return { ...data, main_image_id: remainingExisting[0].id, main_new_image_index: null };
+                }
+                if (Array.isArray(data.images) && data.images.length > 0) {
+                    return { ...data, main_new_image_index: 0 };
+                }
+            }
+
+            // For create, if index not specified, default to first uploaded image.
+            if (!editingProduct && (data.main_new_image_index === null || data.main_new_image_index === undefined)) {
+                if (Array.isArray(data.images) && data.images.length > 0) {
+                    return { ...data, main_new_image_index: 0 };
+                }
+            }
+
+            return data;
+        };
+
         const prepareData = (data) => {
             const specs = [];
             Object.entries(selectedSpecificationValues).forEach(([specId, values]) => {
@@ -433,7 +471,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
 
         if (editingProduct) {
             productForm.transform((data) => ({
-                ...prepareData(data),
+                ...prepareData(withMainDefaults(data)),
                 _method: 'put',
             }));
 
@@ -450,7 +488,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         }
 
         productForm.transform((data) => {
-            const prepared = prepareData(data);
+            const prepared = prepareData(withMainDefaults(data));
             const { _method, ...rest } = prepared;
             return rest;
         });
@@ -811,11 +849,16 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                             <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
                                                 <td className="px-6 py-4">
                                                     <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800 shadow-sm transition-transform hover:scale-105">
-                                                        <img
-                                                            src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.svg'}
-                                                            alt={getTranslated(product, 'name')}
-                                                            className="w-full h-full object-cover"
-                                                        />
+                                                        {(() => {
+                                                            const img = pickMainImage(product.images);
+                                                            return (
+                                                                <img
+                                                                    src={img ? `/storage/${img.image_path}` : '/placeholder.svg'}
+                                                                    alt={getTranslated(product, 'name')}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            );
+                                                        })()}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">{getTranslated(product, 'name')}</td>
@@ -1293,10 +1336,25 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     }}
                                     className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-[#DB8B89] file:text-white hover:file:bg-[#C07573]"
                                 />
+                                <p className="text-xs text-gray-500">
+                                    {t('admin.images_hint', 'Vous pouvez supprimer des images existantes et choisir une image principale. Les changements sont appliqués à l’enregistrement.')}
+                                </p>
                                 {Array.isArray(productForm.data.images) && productForm.data.images.length > 0 && (
                                     <div className="flex flex-wrap gap-2 mt-2">
                                         {productForm.data.images.map((file, index) => (
                                             <div key={`${file.name}-${index}`} className="relative group w-20 h-20 rounded-md overflow-hidden border border-gray-200 dark:border-zinc-700">
+                                                <label className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[10px] px-1 py-0.5 flex items-center gap-1">
+                                                    <input
+                                                        type="radio"
+                                                        name="main_new_image"
+                                                        checked={productForm.data.main_new_image_index === index}
+                                                        onChange={() => {
+                                                            productForm.setData('main_new_image_index', index);
+                                                            productForm.setData('main_image_id', null);
+                                                        }}
+                                                    />
+                                                    {t('admin.main_image', 'Principale')}
+                                                </label>
                                                 <img
                                                     src={URL.createObjectURL(file)}
                                                     alt={file.name}
@@ -1309,6 +1367,12 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                         const newImages = [...productForm.data.images];
                                                         newImages.splice(index, 1);
                                                         productForm.setData('images', newImages);
+                                                        const mainIdx = productForm.data.main_new_image_index;
+                                                        if (mainIdx === index) {
+                                                            productForm.setData('main_new_image_index', null);
+                                                        } else if (typeof mainIdx === 'number' && mainIdx > index) {
+                                                            productForm.setData('main_new_image_index', mainIdx - 1);
+                                                        }
                                                     }}
                                                     className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
                                                 >
@@ -1331,12 +1395,48 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     </div>
                                 )}
                                 {editingProduct?.images?.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                        {editingProduct.images.map((img) => (
-                                            <div key={img.id} className="w-16 h-16 rounded-md overflow-hidden border border-gray-200 dark:border-zinc-700">
-                                                <img src={`/storage/${img.image_path}`} alt="" className="w-full h-full object-cover" />
-                                            </div>
-                                        ))}
+                                    <div className="mt-3">
+                                        <div className="text-xs font-medium text-gray-600 mb-2">
+                                            {t('admin.existing_images', 'Images existantes')}
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {editingProduct.images
+                                                .filter((img) => !((productForm.data.images_to_delete || []).includes(img.id)))
+                                                .map((img) => (
+                                                    <div key={img.id} className="relative group w-20 h-20 rounded-md overflow-hidden border border-gray-200 dark:border-zinc-700">
+                                                        <label className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[10px] px-1 py-0.5 flex items-center gap-1">
+                                                            <input
+                                                                type="radio"
+                                                                name="main_existing_image"
+                                                                checked={productForm.data.main_image_id === img.id}
+                                                                onChange={() => {
+                                                                    productForm.setData('main_image_id', img.id);
+                                                                    productForm.setData('main_new_image_index', null);
+                                                                }}
+                                                            />
+                                                            {t('admin.main_image', 'Principale')}
+                                                        </label>
+                                                        <img src={`/storage/${img.image_path}`} alt="" className="w-full h-full object-cover" />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const next = Array.isArray(productForm.data.images_to_delete)
+                                                                    ? [...productForm.data.images_to_delete]
+                                                                    : [];
+                                                                if (!next.includes(img.id)) next.push(img.id);
+                                                                productForm.setData('images_to_delete', next);
+                                                                if (productForm.data.main_image_id === img.id) {
+                                                                    productForm.setData('main_image_id', null);
+                                                                }
+                                                            }}
+                                                            className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            title={t('common.delete', 'Supprimer')}
+                                                        >
+                                                            <Trash2 size={12} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                        </div>
                                     </div>
                                 )}
                             </div>

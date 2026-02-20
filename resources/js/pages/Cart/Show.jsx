@@ -5,6 +5,7 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { useTranslation } from 'react-i18next';
 import { getTranslated } from '@/utils/translation';
+import { pickMainImage } from '@/utils/productImage';
 
 const Show = ({ cart, items, total, itemCount, auth }) => {
     const { t } = useTranslation();
@@ -81,7 +82,10 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
                                 const displayImage = variant?.image
                                     ? `/storage/${variant.image}`
                                     : (item.product && item.product.images && item.product.images.length > 0
-                                        ? `/storage/${item.product.images[0].image_path}`
+                                        ? (() => {
+                                            const img = pickMainImage(item.product.images);
+                                            return img ? `/storage/${img.image_path}` : '/placeholder.svg';
+                                        })()
                                         : '/placeholder.svg');
                                 const variantSpecs = variant?.specifications || [];
 

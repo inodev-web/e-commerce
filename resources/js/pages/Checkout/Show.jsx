@@ -5,6 +5,7 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { useTranslation } from 'react-i18next';
 import { getTranslated, isRTL } from '@/utils/translation';
+import { pickMainImage } from '@/utils/productImage';
 import { getLocalizedName } from '@/utils/localization';
 import { trackEvent } from '@/utils/analytics';
 
@@ -402,7 +403,10 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                     <div key={item.id} className="flex gap-3 text-sm">
                                         <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded md-1 flex-shrink-0 relative">
                                             <img
-                                                src={item.product && item.product.images[0] ? `/storage/${item.product.images[0].image_path}` : '/placeholder.svg'}
+                                                src={(() => {
+                                                    const img = pickMainImage(item.product?.images);
+                                                    return img ? `/storage/${img.image_path}` : '/placeholder.svg';
+                                                })()}
                                                 className="w-full h-full object-cover rounded"
                                             />
                                             <span className="absolute -top-2 -right-2 bg-gray-900 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full">

@@ -16,11 +16,27 @@ class ProductService
     public function list(ProductFilterDTO $filter, int $perPage = 20): LengthAwarePaginator
     {
         $query = Product::query()
+            ->select([
+                'id',
+                'sub_category_id',
+                'name',
+                'price',
+                'stock',
+                'status',
+                'free_shipping',
+                'created_at',
+            ])
             ->with([
-                'subCategory.category', 
+                // Minimal fields to reduce payload/time
+                // name is JSON (translatable)
+                'subCategory:id,category_id,name,active',
+                'subCategory.category:id,name,active,image_path',
                 'images' => function ($q) {
-                    $q->orderBy('is_main', 'desc');
-                }
+                    $q->select('id', 'product_id', 'url', 'is_main', 'is_primary')
+                        ->orderBy('is_main', 'desc')
+                        ->orderBy('is_primary', 'desc')
+                        ->orderBy('id', 'asc');
+                },
             ]);
         
         // Filtrer par catégorie (via la sous-catégorie)

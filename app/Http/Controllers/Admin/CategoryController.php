@@ -69,6 +69,7 @@ class CategoryController extends Controller
             'name.ar' => 'nullable|string|max:255',
             'active' => 'boolean',
             'image' => 'nullable|image|max:4096',
+            'remove_image' => 'boolean',
         ]);
 
         $name = is_array($validated['name'] ?? null)
@@ -76,7 +77,16 @@ class CategoryController extends Controller
             : ['fr' => (string) ($validated['name'] ?? ''), 'ar' => ''];
 
         $imagePath = $category->image_path;
-        if ($request->hasFile('image')) {
+        
+        // Si on demande la suppression de l'image
+        if ($validated['remove_image'] ?? false) {
+            if ($imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
+            $imagePath = null;
+        }
+        // Si une nouvelle image est fournie
+        elseif ($request->hasFile('image')) {
             if ($imagePath) {
                 Storage::disk('public')->delete($imagePath);
             }

@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Link } from '@inertiajs/react';
 import { CheckCircle, ShoppingCart, ArrowRight } from 'lucide-react';
 import { getTranslated } from '@/utils/translation';
+import { pickMainImage } from '@/utils/productImage';
 
 const CartConfirmationModal = ({ isOpen, onClose, product }) => {
     if (!product) return null;
@@ -16,11 +17,16 @@ const CartConfirmationModal = ({ isOpen, onClose, product }) => {
                 </DialogHeader>
 
                 <div className="flex items-start gap-4 py-4">
-                    <img
-                        src={product.images && product.images.length > 0 ? `/storage/${product.images[0].image_path}` : '/placeholder.svg'}
-                        alt={getTranslated(product, 'name')}
-                        className="w-20 h-20 object-cover rounded-md bg-[#F8E4E0]"
-                    />
+                    {(() => {
+                        const img = pickMainImage(product.images);
+                        return (
+                            <img
+                                src={img ? `/storage/${img.image_path}` : '/placeholder.svg'}
+                                alt={getTranslated(product, 'name')}
+                                className="w-20 h-20 object-cover rounded-md bg-[#F8E4E0]"
+                            />
+                        );
+                    })()}
                     <div>
                         <h4 className="font-semibold text-gray-900">{getTranslated(product, 'name')}</h4>
                         <p className="text-[#DB8B89] font-semibold">{product.price.toLocaleString()} DA</p>

@@ -17,6 +17,7 @@ import {
 import AdminLayout from '../../components/AdminLayout';
 import { Button } from "@/Components/ui/button";
 import { getTranslated } from '@/utils/translation';
+import { pickMainImage } from '@/utils/productImage';
 
 const AdminOrderDetails = ({ auth, order }) => {
     const { t } = useTranslation();
@@ -154,9 +155,9 @@ const AdminOrderDetails = ({ auth, order }) => {
                                 {order.items.map((item) => (
                                     <div key={item.id} className="px-6 py-4 flex items-center gap-4">
                                         <div className="w-16 h-16 rounded-lg bg-gray-50 dark:bg-zinc-800 flex-shrink-0 overflow-hidden border border-gray-100 dark:border-zinc-800">
-                                            {item.product?.images?.[0] ? (
+                                            {pickMainImage(item.product?.images) ? (
                                                 <img
-                                                    src={`/storage/${item.product.images[0].image_path}`}
+                                                    src={`/storage/${pickMainImage(item.product?.images).image_path}`}
                                                     alt={resolveItemName(item)}
                                                     className="w-full h-full object-cover"
                                                 />

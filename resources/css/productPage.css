@@ -315,35 +315,51 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.6rem 1rem;
-    background: rgba(255, 193, 7, 0.06);
-    border-radius: 12px;
+    padding: 0.8rem 1.25rem;
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.08) 0%, rgba(255, 193, 7, 0.04) 100%);
+    border-radius: 14px;
     width: fit-content;
-    border: 1px solid rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.15);
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.06);
 }
 
 .dark .product-rating-section {
-    background: rgba(255, 193, 7, 0.08);
-    border-color: rgba(255, 193, 7, 0.12);
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.12) 0%, rgba(255, 193, 7, 0.06) 100%);
+    border-color: rgba(255, 193, 7, 0.18);
+    box-shadow: 0 2px 12px rgba(255, 193, 7, 0.08);
 }
 
 .rating-stars {
     display: flex;
-    gap: 0.15rem;
+    gap: 0.2rem;
+    align-items: center;
+}
+
+.rating-stars svg {
+    transition: transform 0.3s ease;
 }
 
 .rating-text {
-    color: #9ca3af;
-    font-size: 0.88rem;
-    font-weight: 500;
+    color: #6b7280;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
 }
 
-/* ---------- Price ---------- */
+.dark .rating-text {
+    color: #d1d5db;
+}
+
+/* ---------- Price and Stock Combined ---------- */
 .product-price-section {
     display: flex;
-    align-items: baseline;
-    gap: 1rem;
+    align-items: center;
+    gap: 1.5rem;
     flex-wrap: wrap;
+    padding: 1.25rem;
+    background: linear-gradient(135deg, rgba(219, 139, 137, 0.06) 0%, rgba(219, 139, 137, 0.02) 100%);
+    border-radius: 16px;
+    border: 1px solid rgba(219, 139, 137, 0.1);
 }
 
 .current-price {
@@ -354,6 +370,15 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: -0.02em;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.currency-symbol {
+    font-size: 0.6em;
+    font-weight: 700;
+    opacity: 0.9;
 }
 
 .old-price {

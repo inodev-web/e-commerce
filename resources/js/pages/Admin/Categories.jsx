@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Edit, Trash2, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/Components/ui/dialog";
 import { Button } from "@/Components/ui/button";
 import AdminLayout from '../../components/AdminLayout';
@@ -10,14 +10,24 @@ import { getTranslated } from '@/utils/translation';
 const AdminCategories = ({ categories, theme, toggleTheme }) => {
     const { t } = useTranslation();
     const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+    const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
     const [isAddSubCategoryOpen, setIsAddSubCategoryOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [expandedCategories, setExpandedCategories] = useState(new Set());
+    const [categoryImagePreview, setCategoryImagePreview] = useState(null);
+    const [editCategoryImagePreview, setEditCategoryImagePreview] = useState(null);
 
     const categoryForm = useForm({
         name: '',
         active: true,
         image: null,
+    });
+
+    const editCategoryForm = useForm({
+        name: '',
+        active: true,
+        image: null,
+        remove_image: false,
     });
 
     const subCategoryForm = useForm({
@@ -50,11 +60,52 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                 setIsAddCategoryOpen(false);
                 categoryForm.reset();
                 categoryForm.setData('image', null);
+                setCategoryImagePreview(null);
             },
             onFinish: () => {
                 categoryForm.transform((data) => data);
             },
         });
+    };
+
+    const handleEditCategory = (category) => {
+        editCategoryForm.setData({
+            name: category.name || '',
+            active: category.active,
+            image: null,
+            remove_image: false,
+        });
+        setSelectedCategory(category);
+        setEditCategoryImagePreview(category.image_path ? `/storage/${category.image_path}` : null);
+        setIsEditCategoryOpen(true);
+    };
+
+    const handleUpdateCategory = (e) => {
+        e.preventDefault();
+        editCategoryForm.transform((data) => {
+            const payload = { ...data };
+            if (!payload.image) {
+                delete payload.image;
+            }
+            return payload;
+        });
+        editCategoryForm.post(route('admin.categories.update', selectedCategory.id), {
+            forceFormData: true,
+            onSuccess: () => {
+                setIsEditCategoryOpen(false);
+                editCategoryForm.reset();
+                setSelectedCategory(null);
+                setEditCategoryImagePreview(null);
+            },
+            onFinish: () => {
+                editCategoryForm.transform((data) => data);
+            },
+        });
+    };
+
+    const handleRemoveCategoryImage = () => {
+        editCategoryForm.setData('remove_image', true);
+        setEditCategoryImagePreview(null);
     };
 
     const handleAddSubCategory = (e) => {
@@ -158,7 +209,10 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                                     >
                                                         + {t('admin.sub_category', 'Sous-catégorie')}
                                                     </button>
-                                                    <button className="p-2 text-gray-400 hover:text-[#DB8B89] dark:hover:text-[#DB8B89] transition-colors">
+                                                    <button
+                                                        onClick={() => handleEditCategory(category)}
+                                                        className="p-2 text-gray-400 hover:text-[#DB8B89] dark:hover:text-[#DB8B89] transition-colors"
+                                                    >
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button
@@ -246,9 +300,19 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                         onChange={(e) => {
                                             const file = e.target.files?.[0] || null;
                                             categoryForm.setData('image', file);
+                                            if (file) {
+                                                const reader = new FileReader();
+                                                reader.onload = (e) => setCategoryImagePreview(e.target.result);
+                                                reader.readAsDataURL(file);
+                                            }
                                         }}
                                         className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-[#DB8B89] file:text-white hover:file:bg-[#C07573]"
                                     />
+                                    {categoryImagePreview && (
+                                        <div className="mt-2 relative inline-block">
+                                            <img src={categoryImagePreview} alt="Preview" className="h-24 w-24 object-cover rounded-md" />
+                                        </div>
+                                    )}
                                     {categoryForm.errors.image && (
                                         <p className="text-xs text-red-500">{categoryForm.errors.image}</p>
                                     )}
@@ -302,6 +366,84 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                 </Button>
                                 <Button type="submit" className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
                                     Sauvegarder
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Edit Category Dialog */}
+                <Dialog open={isEditCategoryOpen} onOpenChange={setIsEditCategoryOpen}>
+                    <DialogContent className="sm:max-w-[500px]">
+                        <DialogHeader>
+                            <DialogTitle>Modifier la catégorie</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleUpdateCategory}>
+                            <div className="grid gap-4 py-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Nom de la catégorie</label>
+                                    <input
+                                        type="text"
+                                        value={editCategoryForm.data.name}
+                                        onChange={e => editCategoryForm.setData('name', e.target.value)}
+                                        className="w-full px-3 py-2 border rounded-md dark:bg-zinc-800 dark:border-zinc-700"
+                                        placeholder="Ex: Vêtements"
+                                        required
+                                    />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        id="edit-active"
+                                        checked={editCategoryForm.data.active}
+                                        onChange={e => editCategoryForm.setData('active', e.target.checked)}
+                                        className="rounded"
+                                    />
+                                    <label htmlFor="edit-active" className="text-sm font-medium">Active</label>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Image</label>
+                                    {editCategoryImagePreview && (
+                                        <div className="relative inline-block">
+                                            <img src={editCategoryImagePreview} alt="Current" className="h-32 w-32 object-cover rounded-md border border-gray-200 dark:border-gray-700" />
+                                            <button
+                                                type="button"
+                                                onClick={handleRemoveCategoryImage}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
+                                    {!editCategoryImagePreview && (
+                                        <div className="text-sm text-gray-500">Aucune image</div>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0] || null;
+                                            editCategoryForm.setData('image', file);
+                                            editCategoryForm.setData('remove_image', false);
+                                            if (file) {
+                                                const reader = new FileReader();
+                                                reader.onload = (e) => setEditCategoryImagePreview(e.target.result);
+                                                reader.readAsDataURL(file);
+                                            }
+                                        }}
+                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-[#DB8B89] file:text-white hover:file:bg-[#C07573]"
+                                    />
+                                    {editCategoryForm.errors.image && (
+                                        <p className="text-xs text-red-500">{editCategoryForm.errors.image}</p>
+                                    )}
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button type="button" variant="outline" onClick={() => setIsEditCategoryOpen(false)}>
+                                    Annuler
+                                </Button>
+                                <Button type="submit" className="bg-[#DB8B89] text-white hover:bg-[#C07573]">
+                                    {t('admin.save', 'Sauvegarder')}
                                 </Button>
                             </DialogFooter>
                         </form>

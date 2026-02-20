@@ -390,18 +390,25 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         </div>
 
                         <div className="product-price-section">
-                            <span className="current-price">{(selectedVariant?.price || currentProduct?.price || 0).toLocaleString()} {t('currency.symbol', 'DA')}</span>
-                        </div>
-
-                        <div className="stock-status">
-                            {(selectedVariant?.stock || currentProduct?.stock || 0) > 0 ? (
-                                <span className="in-stock flex items-center gap-1">
-                                    <CheckCircle size={16} /> {t('product.in_stock', 'En stock')} ({selectedVariant?.stock || currentProduct?.stock || 0} {t('product.available', 'disponibles')})
+                            <div className="flex items-center gap-2">
+                                <span className="current-price">
+                                    {(selectedVariant?.price || currentProduct?.price || 0).toLocaleString()}
+                                    <span className="currency-symbol">{t('currency.symbol', 'DA')}</span>
                                 </span>
-                            ) : (
-                                <span className="out-of-stock">{t('product.out_of_stock', 'En rupture de stock')}</span>
-                            )
-                            }</div>
+                            </div>
+                            <div>
+                                {(selectedVariant?.stock || currentProduct?.stock || 0) > 0 ? (
+                                    <span className="in-stock flex items-center gap-1.5 px-3 py-2 rounded-lg border border-green-200 dark:border-green-900/30 bg-green-50 dark:bg-green-900/10">
+                                        <CheckCircle size={16} className="flex-shrink-0" /> 
+                                        <span className="text-sm font-semibold">{t('product.in_stock', 'En stock')} ({selectedVariant?.stock || currentProduct?.stock || 0})</span>
+                                    </span>
+                                ) : (
+                                    <span className="out-of-stock flex items-center gap-1.5 px-3 py-2 rounded-lg border border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10">
+                                        <span className="text-sm font-semibold">{t('product.out_of_stock', 'En rupture de stock')}</span>
+                                    </span>
+                                )}
+                            </div>
+                        </div>
 
                         {/* Product Variants */}
                         {currentProduct?.variants && currentProduct.variants.length > 0 && (
@@ -454,14 +461,14 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         )}
 
                         <div className="quantity-section">
-                            <label>{t('cart.quantity', 'Quantité')}:</label>
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('cart.quantity', 'Quantité')}:</label>
                             <div className="quantity-selector">
-                                <button onClick={() => setData('quantity', Math.max(1, data.quantity - 1))} className="qty-btn">
-                                    <Minus size={16} />
+                                <button onClick={() => setData('quantity', Math.max(1, data.quantity - 1))} className="qty-btn" type="button">
+                                    <Minus size={18} />
                                 </button>
                                 <span className="qty-value">{data.quantity}</span>
-                                <button onClick={() => setData('quantity', Math.min(currentProduct?.stock || 0, data.quantity + 1))} className="qty-btn">
-                                    <Plus size={16} />
+                                <button onClick={() => setData('quantity', Math.min(currentProduct?.stock || 0, data.quantity + 1))} className="qty-btn" type="button">
+                                    <Plus size={18} />
                                 </button>
                             </div>
                         </div>
