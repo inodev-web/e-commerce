@@ -124,8 +124,8 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
 
     // --- TABS RENDERING ---
     const renderStats = () => (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="space-y-6 animate-in fade-in flex flex-col items-center sm:items-stretch duration-500">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
                 <StatCard
                     title={t('admin.loyalty_debt', 'Dette Fidélité')}
                     value={`${stats.debt} DA`}
@@ -156,7 +156,7 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
                 />
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 w-full">
                 {/* Visualizing small logic breakdown */}
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 p-6 shadow-sm overflow-hidden relative">
                     <div className="absolute top-0 right-0 p-8 opacity-5">
@@ -215,15 +215,15 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
 
     const renderPromoCodes = () => (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('admin.active_promos', 'Codes Promotionnels')}</h3>
-                <Button onClick={openPromoCreate} className="bg-[#DB8B89] hover:bg-[#C07573] text-white">
+                <Button onClick={openPromoCreate} className="bg-[#DB8B89] hover:bg-[#C07573] text-white w-full sm:w-auto">
                     <Plus className="w-4 h-4 mr-2" />
                     {t('admin.new_promo', 'Nouveau Code')}
                 </Button>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {promoCodes.data.map((promo) => (
                     <div key={promo.id} className="group bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden">
                         {/* Dynamic Background Indicator */}
@@ -315,7 +315,7 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
     );
 
     const renderConfiguration = () => (
-        <div className="grid gap-6 md:grid-cols-2 animate-in fade-in slide-in-from-right-4 duration-500">
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 animate-in fade-in slide-in-from-right-4 duration-500">
             {/* Loyalty Rules Card */}
             <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 p-8 shadow-sm">
                 <div className="flex items-center gap-4 mb-8">
@@ -474,11 +474,12 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
                         </p>
                     </div>
 
-                    {/* Custom Nav Tabs */}
-                    <div className="flex bg-gray-100 dark:bg-zinc-800/50 p-1.5 rounded-2xl border border-gray-200 dark:border-zinc-800 self-start">
-                        <TabItem active={activeTab === 'stats'} onClick={() => setActiveTab('stats')} icon={<TrendingUp className="w-4 h-4" />} label={t('admin.overview', 'Vue d\'Ensemble')} />
-                        <TabItem active={activeTab === 'promos'} onClick={() => setActiveTab('promos')} icon={<Tag className="w-4 h-4" />} label={t('admin.promos', 'Promotions')} />
-                        <TabItem active={activeTab === 'config'} onClick={() => setActiveTab('config')} icon={<Gift className="w-4 h-4" />} label={t('admin.config', 'Configuration')} />
+                    <div className="flex flex-col gap-4 overflow-x-auto w-full no-scrollbar">
+                        <div className="flex bg-gray-100 dark:bg-zinc-800/50 p-1.5 rounded-2xl border border-gray-200 dark:border-zinc-800 self-start w-max whitespace-nowrap">
+                            <TabItem active={activeTab === 'stats'} onClick={() => setActiveTab('stats')} icon={<TrendingUp className="w-4 h-4 shrink-0" />} label={t('admin.overview', 'Vue d\'Ensemble')} />
+                            <TabItem active={activeTab === 'promos'} onClick={() => setActiveTab('promos')} icon={<Tag className="w-4 h-4 shrink-0" />} label={t('admin.promos', 'Promotions')} />
+                            <TabItem active={activeTab === 'config'} onClick={() => setActiveTab('config')} icon={<Gift className="w-4 h-4 shrink-0" />} label={t('admin.config', 'Configuration')} />
+                        </div>
                     </div>
                 </div>
 
@@ -501,7 +502,7 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
                     </DialogHeader>
 
                     <form onSubmit={submitPromo} className="p-6 space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="col-span-2">
                                 <InputField
                                     label={t('admin.code', 'Code')}
@@ -527,7 +528,7 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
                             </div>
 
                             {promoData.type !== 'FREE_SHIPPING' && (
-                                <div className="col-span-2">
+                                <div className="col-span-1 sm:col-span-2">
                                     <InputField
                                         label={t('admin.value', 'Valeur')}
                                         type="number"
@@ -585,12 +586,11 @@ const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
     );
 };
 
-// --- HELPER COMPONENTS ---
-
 const TabItem = ({ active, onClick, icon, label }) => (
     <button
+        type="button"
         onClick={onClick}
-        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${active
+        className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${active
             ? 'bg-white dark:bg-zinc-700 text-[#DB8B89] shadow-sm'
             : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
