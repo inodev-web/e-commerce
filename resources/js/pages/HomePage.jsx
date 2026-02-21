@@ -61,22 +61,24 @@ const HomePage = ({ featuredProducts, topSellers, categories, theme, toggleTheme
     return (
         <>
             <Header theme={theme} toggleTheme={toggleTheme} />
-            <Hero />
-            <CategorySection categories={categories} />
-            <LogoLoop
-                logos={pharmaLogos}
-                speed={100}
-                direction="left"
-                logoHeight={80}
-                gap={50}
-                hoverSpeed={0}
-                scaleOnHover
-                fadeOut
-                fadeOutColor="#ffffff"
-                ariaLabel={t('home.partner_brands', 'Marques partenaires')}
-            />
+            <div id="home"><Hero /></div>
+            <div id="categories-section"><CategorySection categories={categories} /></div>
+            <div id="brands-section">
+                <LogoLoop
+                    logos={pharmaLogos}
+                    speed={100}
+                    direction="left"
+                    logoHeight={80}
+                    gap={50}
+                    hoverSpeed={0}
+                    scaleOnHover
+                    fadeOut
+                    fadeOutColor="#ffffff"
+                    ariaLabel={t('home.partner_brands', 'Marques partenaires')}
+                />
+            </div>
             {featuredProducts && featuredProducts.length > 0 && (
-                <div className="product-section">
+                <div className="product-section" id="recommended-section">
                     <div className="section-container">
                         <h2 className="section-title">{t('home.recommended', 'Recommandé pour vous')}</h2>
                         <div className="product-grid">
@@ -92,11 +94,11 @@ const HomePage = ({ featuredProducts, topSellers, categories, theme, toggleTheme
                                             {(() => {
                                                 const img = pickMainImage(product.images);
                                                 return (
-                                            <img
-                                                src={img ? `/storage/${img.image_path}` : '/placeholder.svg'}
-                                                alt={getTranslated(product, 'name')}
-                                                className="seller-image-img w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                                            />
+                                                    <img
+                                                        src={img ? `/storage/${img.image_path}` : '/placeholder.svg'}
+                                                        alt={getTranslated(product, 'name')}
+                                                        className="seller-image-img w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                                                    />
                                                 );
                                             })()}
                                         </div>

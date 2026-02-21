@@ -1273,7 +1273,7 @@ body {
     border-radius: 8px;
     min-width: 36px;
     height: 36px;
-    flex-shrink-0;
+    flex-shrink: 0;
 }
 
 html[dir="rtl"] .top-seller-card .add-to-cart-btn {

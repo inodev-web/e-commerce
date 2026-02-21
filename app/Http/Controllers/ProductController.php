@@ -39,7 +39,7 @@ class ProductController extends Controller
         
         // ⚡️ PERF: categories/subcategories are mostly static; make them LAZY to improve first load.
         // name is JSON (translatable) so we only select 'name' (no name_ar column here).
-        $categories = Inertia::lazy(fn () => \Illuminate\Support\Facades\Cache::remember(
+        $categories = \Illuminate\Support\Facades\Cache::remember(
             'shop_categories_with_subcategories_v2',
             now()->addMinutes(30),
             fn () => Category::active()
@@ -49,7 +49,7 @@ class ProductController extends Controller
                 }])
                 ->orderByName('asc')
                 ->get()
-        ));
+        );
         
         return Inertia::render('Products/Index', [
             'products' => $products,

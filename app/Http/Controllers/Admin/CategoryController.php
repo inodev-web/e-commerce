@@ -37,7 +37,7 @@ class CategoryController extends Controller
             'name.fr' => 'nullable|string|max:255',
             'name.ar' => 'nullable|string|max:255',
             'active' => 'boolean',
-            'image' => 'nullable|image|max:4096',
+            'image' => 'nullable|image|max:4096', // Limits to 0 or 1 image max
         ]);
 
         $name = is_array($validated['name'] ?? null)

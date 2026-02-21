@@ -35,6 +35,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
     const [editingSubCategory, setEditingSubCategory] = useState(null);
     const [isSpecificationModalOpen, setIsSpecificationModalOpen] = useState(false);
     const [editingSpecification, setEditingSpecification] = useState(null);
+    const [categoryImagePreview, setCategoryImagePreview] = useState(null);
 
     // Variant management state
     const [showVariantManager, setShowVariantManager] = useState(false);
@@ -198,6 +199,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         name: { fr: '', ar: '' },
         active: true,
         image: null,
+        remove_image: false,
     });
 
     const subCategoryForm = useForm({
@@ -524,17 +526,19 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
         categoryForm.reset();
         categoryForm.setData('image', null);
         categoryForm.clearErrors();
+        setCategoryImagePreview(null);
         setIsCategoryModalOpen(true);
     };
 
-    const openEditCategory = (category) => {
+    const handleEditCategory = (category) => {
         setEditingCategory(category);
         categoryForm.setData({
             name: ensureBilingual(category.name),
             active: !!category.active,
             image: null,
+            remove_image: false,
         });
-        categoryForm.clearErrors();
+        setCategoryImagePreview(null);
         setIsCategoryModalOpen(true);
     };
 
@@ -545,39 +549,23 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
             if (!payload.image) {
                 delete payload.image;
             }
+            if (editingCategory) {
+                payload._method = 'put';
+            }
             return payload;
         });
 
-        if (editingCategory) {
-            categoryForm.transform((data) => ({
-                ...data,
-                _method: 'put',
-            }));
+        const url = editingCategory
+            ? route('admin.categories.update', editingCategory.id)
+            : route('admin.categories.store');
 
-            categoryForm.post(route('admin.categories.update', editingCategory.id), {
-                forceFormData: true,
-                onSuccess: () => {
-                    setIsCategoryModalOpen(false);
-                    setEditingCategory(null);
-                    categoryForm.reset();
-                },
-                onFinish: () => {
-                    // Manual reset of transform is not strictly needed if we reset form,
-                    // but good practice if form persists.
-                    // However, relying on re-transform for next request is safer.
-                },
-            });
-            return;
-        }
-
-        categoryForm.post(route('admin.categories.store'), {
+        categoryForm.post(url, {
             forceFormData: true,
             onSuccess: () => {
                 setIsCategoryModalOpen(false);
+                setEditingCategory(null);
+                setCategoryImagePreview(null);
                 categoryForm.reset();
-            },
-            onFinish: () => {
-                categoryForm.transform((data) => data);
             },
         });
     };
@@ -915,11 +903,10 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                         <Link
                                             key={index}
                                             href={link.url || '#'}
-                                            className={`px-4 py-2 rounded-lg border transition-all ${
-                                                link.active
-                                                    ? 'bg-[#DB8B89] text-white border-[#DB8B89]'
-                                                    : 'bg-white text-gray-600 hover:border-[#DB8B89] dark:bg-zinc-900 dark:text-gray-200'
-                                            } ${isDisabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+                                            className={`px-4 py-2 rounded-lg border transition-all ${link.active
+                                                ? 'bg-[#DB8B89] text-white border-[#DB8B89]'
+                                                : 'bg-white text-gray-600 hover:border-[#DB8B89] dark:bg-zinc-900 dark:text-gray-200'
+                                                } ${isDisabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
                                             preserveState
                                         >
                                             {labelText}
@@ -994,7 +981,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                                 + {t('admin.sub_category', 'Sous-catégorie')}
                                                             </button>
                                                             <button
-                                                                onClick={() => openEditCategory(category)}
+                                                                onClick={() => handleEditCategory(category)}
                                                                 className="p-2 text-gray-400 hover:text-[#DB8B89] dark:hover:text-[#DB8B89] transition-colors"
                                                             >
                                                                 <Edit className="w-4 h-4" />
@@ -1374,7 +1361,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                             productForm.setData('main_new_image_index', mainIdx - 1);
                                                         }
                                                     }}
-                                                    className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
                                                 >
                                                     <Trash2 size={12} />
                                                 </button>
@@ -1429,7 +1416,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                                     productForm.setData('main_image_id', null);
                                                                 }
                                                             }}
-                                                            className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
                                                             title={t('common.delete', 'Supprimer')}
                                                         >
                                                             <Trash2 size={12} />
@@ -1684,22 +1671,66 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     <input
                                         type="file"
                                         accept="image/*"
+                                        id="category-image-input"
                                         onChange={(e) => {
                                             const file = e.target.files?.[0] || null;
                                             categoryForm.setData('image', file);
+                                            categoryForm.setData('remove_image', false);
+                                            if (file) {
+                                                const reader = new FileReader();
+                                                reader.onload = (e) => setCategoryImagePreview(e.target.result);
+                                                reader.readAsDataURL(file);
+                                            }
                                         }}
                                         className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-[#DB8B89] file:text-white hover:file:bg-[#C07573]"
                                     />
                                     {categoryForm.errors.image && (
                                         <p className="text-xs text-red-500">{categoryForm.errors.image}</p>
                                     )}
-                                    {editingCategory?.image_path && (
-                                        <div className="mt-2 w-24 h-24 rounded-md overflow-hidden border border-gray-200 dark:border-zinc-700">
-                                            <img
-                                                src={`/storage/${editingCategory.image_path}`}
-                                                alt={getTranslated(editingCategory, 'name')}
-                                                className="w-full h-full object-cover"
-                                            />
+
+                                    {/* Edit preview (from server) */}
+                                    {editingCategory?.image_path && !categoryForm.data.remove_image && !categoryImagePreview && (
+                                        <div className="mt-2 relative inline-block group">
+                                            <div className="w-24 h-24 rounded-md overflow-hidden border border-gray-200 dark:border-zinc-700">
+                                                <img
+                                                    src={`/storage/${editingCategory.image_path}`}
+                                                    alt={getTranslated(editingCategory, 'name')}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => categoryForm.setData('remove_image', true)}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* New upload preview */}
+                                    {categoryImagePreview && (
+                                        <div className="mt-2 relative inline-block group">
+                                            <div className="w-24 h-24 rounded-md overflow-hidden border border-gray-200 dark:border-zinc-700">
+                                                <img
+                                                    src={categoryImagePreview}
+                                                    alt="Preview"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    categoryForm.setData('image', null);
+                                                    setCategoryImagePreview(null);
+                                                    // Reset input value
+                                                    const input = document.getElementById('category-image-input');
+                                                    if (input) input.value = '';
+                                                }}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
                                         </div>
                                     )}
                                 </div>

@@ -74,6 +74,11 @@ class HandleInertiaRequests extends Middleware
                 'error' => session('error'),
             ],
             'order' => session('order'),
+            'footerCategories' => function () {
+                return \Illuminate\Support\Facades\Cache::remember('footer_categories_v1', 3600, function () {
+                    return \App\Models\Category::active()->limit(4)->get(['id', 'name']);
+                });
+            },
         ];
     }
 }

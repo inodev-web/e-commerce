@@ -309,8 +309,18 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                         className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-[#DB8B89] file:text-white hover:file:bg-[#C07573]"
                                     />
                                     {categoryImagePreview && (
-                                        <div className="mt-2 relative inline-block">
+                                        <div className="mt-2 relative inline-block group">
                                             <img src={categoryImagePreview} alt="Preview" className="h-24 w-24 object-cover rounded-md" />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    categoryForm.setData('image', null);
+                                                    setCategoryImagePreview(null);
+                                                }}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
                                         </div>
                                     )}
                                     {categoryForm.errors.image && (
@@ -404,12 +414,12 @@ const AdminCategories = ({ categories, theme, toggleTheme }) => {
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Image</label>
                                     {editCategoryImagePreview && (
-                                        <div className="relative inline-block">
+                                        <div className="relative inline-block group">
                                             <img src={editCategoryImagePreview} alt="Current" className="h-32 w-32 object-cover rounded-md border border-gray-200 dark:border-gray-700" />
                                             <button
                                                 type="button"
                                                 onClick={handleRemoveCategoryImage}
-                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors"
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity hover:bg-red-600"
                                             >
                                                 <X className="w-4 h-4" />
                                             </button>

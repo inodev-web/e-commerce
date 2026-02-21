@@ -13,21 +13,8 @@ import { trackEvent } from '@/utils/analytics';
 import '../../../css/shopPage.css';
 
 const Index = ({ products, categories = [], filters = {}, theme, toggleTheme }) => {
-    const pageCategories = usePage().props.categories;
-    const categoriesSource = pageCategories ?? categories;
-    const didRequestCategories = useRef(false);
-
-    // If categories are lazy, fetch them after first paint (once).
-    useEffect(() => {
-        if (pageCategories === undefined && !didRequestCategories.current) {
-            didRequestCategories.current = true;
-            router.reload({
-                only: ['categories'],
-                preserveState: true,
-                preserveScroll: true,
-            });
-        }
-    }, [pageCategories]);
+    // Categories are now always provided by the controller
+    const categoriesSource = categories;
 
     // Ensure categories is an array and filter out null/invalid items
     // name is a multilingual array {fr, ar, en}, so check that it exists and has at least one non-empty value
