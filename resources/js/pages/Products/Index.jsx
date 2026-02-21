@@ -383,12 +383,18 @@ const Index = ({ products, categories = [], filters = {}, theme, toggleTheme }) 
                             // Safely handle pagination links
                             if (!link || !link.label) return null;
 
-                            const labelText = link.label
+                            let labelText = link.label
                                 .replace(/&laquo;\s?/, '')
                                 .replace(/\s?&raquo;/, '')
                                 .replace(/&lt;/, '<')
                                 .replace(/&gt;/, '>')
                                 .trim();
+
+                            if (labelText === 'pagination.previous') {
+                                labelText = getLabel('pagination.previous') || 'Précédent';
+                            } else if (labelText === 'pagination.next') {
+                                labelText = getLabel('pagination.next') || 'Suivant';
+                            }
 
                             return (
                                 <Link

@@ -211,6 +211,14 @@ const resources = {
             'footer.baby_care': 'Soins Bébé',
             'footer.vitamins': 'Vitamines',
             'footer.copyright_start': '© 2024 Puréva. Tous droits réservés. Développé par',
+            'footer.home': 'Accueil',
+            'footer.shop': 'Boutique',
+            'footer.brands': 'Nos Marques',
+            'footer.recommended': 'Recommandé pour vous',
+
+            // Pagination
+            'pagination.previous': 'Précédent',
+            'pagination.next': 'Suivant',
 
             // Categories
             'category.baby': 'Bébé',
@@ -655,6 +663,14 @@ const resources = {
             'footer.baby_care': 'العناية بالطفل',
             'footer.vitamins': 'فيتامينات',
             'footer.copyright_start': '© 2024 Puréva. كل الحقوق محفوظة. تم التطوير بواسطة',
+            'footer.home': 'الرئيسية',
+            'footer.shop': 'المتجر',
+            'footer.brands': 'علاماتنا التجارية',
+            'footer.recommended': 'مقترح لك',
+
+            // Pagination
+            'pagination.previous': 'السابق',
+            'pagination.next': 'التالي',
 
             // Categories
             'category.baby': 'طفل',
