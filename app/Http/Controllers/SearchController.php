@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * SearchController - API de recherche en temps réel pour produits
+ * SearchController - API de recherche en temps réel pour produits et catégories
  *
  * Endpoint: GET /api/search?q=query
- * Retourne: JSON avec produits correspondants (max 4 résultats)
+ * Retourne: JSON avec produits et catégories correspondants
  */
 class SearchController extends Controller
 {
     /**
-     * Recherche les produits par nom ou description
+     * Recherche les produits et catégories par nom ou description
      *
      * @param Request $request
      * @return JsonResponse
@@ -32,6 +33,7 @@ class SearchController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => [],
+                'categories' => [],
                 'count' => 0,
                 'message' => 'Veuillez entrer au moins 2 caractères'
             ]);
@@ -40,7 +42,34 @@ class SearchController extends Controller
         try {
             $lowerQuery = strtolower($searchQuery);
 
-            // Récupérer tous les produits actifs avec leurs images
+            // ── Search Categories ──
+            $allCategories = Category::active()->get();
+
+            $matchedCategories = $allCategories->filter(function ($category) use ($lowerQuery) {
+                $nameValue = $category->getAttributes()['name'] ?? null;
+                if (!$nameValue) return false;
+
+                $decoded = is_string($nameValue) ? json_decode($nameValue, true) : $nameValue;
+                if (!is_array($decoded)) return false;
+
+                foreach ($decoded as $locale => $text) {
+                    if ($text && str_contains(strtolower($text), $lowerQuery)) {
+                        return true;
+                    }
+                }
+                return false;
+            })->take(4)->values();
+
+            $categoryData = $matchedCategories->map(function ($category) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'image' => $category->image_path ? asset('storage/' . $category->image_path) : null,
+                    'url' => route('products.index', ['category_id' => $category->id]),
+                ];
+            });
+
+            // ── Search Products ──
             $allProducts = Product::active()
                 ->with('images', 'subCategory')
                 ->get();
@@ -69,11 +98,9 @@ class SearchController extends Controller
             $sorted = $filtered->sort(function ($a, $b) use ($lowerQuery) {
                 $aName = strtolower($a->name ?? '');
                 $aNameAr = strtolower($a->name_ar ?? '');
-                $aDesc = strtolower(is_array($a->description) ? json_encode($a->description) : ($a->description ?? ''));
 
                 $bName = strtolower($b->name ?? '');
                 $bNameAr = strtolower($b->name_ar ?? '');
-                $bDesc = strtolower(is_array($b->description) ? json_encode($b->description) : ($b->description ?? ''));
 
                 // Score pour produit A
                 $aScore = 3;
@@ -117,6 +144,7 @@ class SearchController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $data,
+                'categories' => $categoryData,
                 'count' => $data->count(),
                 'query' => $searchQuery
             ]);
@@ -131,6 +159,7 @@ class SearchController extends Controller
             return response()->json([
                 'success' => false,
                 'data' => [],
+                'categories' => [],
                 'count' => 0,
                 'message' => 'Erreur lors de la recherche'
             ], 500);
