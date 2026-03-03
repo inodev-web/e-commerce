@@ -195,16 +195,33 @@ class OrderService
                         : $product->name;
                     throw new \Exception("Stock insuffisant pour {$productName}. Disponible: {$availableStock}");
                 }
+
+                // Determine price: check if selected spec value has a custom price
+                $itemPrice = $product->price;
+                $selectedSpecValues = $item['specification_values'] ?? [];
+                if (!empty($selectedSpecValues)) {
+                    foreach ($selectedSpecValues as $specId => $value) {
+                        $specValue = \App\Models\ProductSpecificationValue::where('product_id', $productId)
+                            ->where('specification_id', $specId)
+                            ->where('value', $value)
+                            ->whereNotNull('price')
+                            ->first();
+                        if ($specValue) {
+                            $itemPrice = $specValue->price;
+                            break;
+                        }
+                    }
+                }
                 
-                $subtotal = $product->price * $item['quantity'];
+                $subtotal = $itemPrice * $item['quantity'];
                 $productsTotal += $subtotal;
                 
                 $validatedItems[$productId] = [
                     'product' => $product,
                     'quantity' => $item['quantity'],
-                    'price' => $product->price,
+                    'price' => $itemPrice,
                     'subtotal' => $subtotal,
-                    'specification_values' => $item['specification_values'] ?? [],
+                    'specification_values' => $selectedSpecValues,
                 ];
             }
             
@@ -357,11 +374,24 @@ class OrderService
                     
                     foreach ($selectedSpecValues as $specId => $value) {
                         if (isset($specifications[$specId])) {
-                            $specificationDetails[] = [
+                            // Look up the spec value price for the metadata snapshot
+                            $svPrice = null;
+                            $psv = \App\Models\ProductSpecificationValue::where('product_id', $productId)
+                                ->where('specification_id', $specId)
+                                ->where('value', $value)
+                                ->first();
+                            if ($psv && $psv->price !== null) {
+                                $svPrice = (float) $psv->price;
+                            }
+
+                            $detail = [
                                 'n' => $specifications[$specId]->name,
                                 'v' => $value,
                             ];
-
+                            if ($svPrice !== null) {
+                                $detail['p'] = $svPrice;
+                            }
+                            $specificationDetails[] = $detail;
                         }
                     }
                 }

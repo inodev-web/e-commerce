@@ -107,6 +107,8 @@ class ProductController extends Controller
             'specifications.*.value' => 'nullable|string',
             'specifications.*.selectedQuantities' => 'nullable|array',
             'specifications.*.selectedQuantities.*' => 'nullable|integer|min:0',
+            'specifications.*.selectedPrices' => 'nullable|array',
+            'specifications.*.selectedPrices.*' => 'nullable|numeric|min:0',
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -199,14 +201,19 @@ class ProductController extends Controller
                 // Handle specifications
                 if (!empty($validated['specifications'])) {
                     foreach ($validated['specifications'] as $spec) {
+                        $selectedPrices = $spec['selectedPrices'] ?? [];
                         if (!empty($spec['selectedQuantities']) && is_array($spec['selectedQuantities'])) {
                             foreach ($spec['selectedQuantities'] as $value => $quantity) {
                                 if ($quantity > 0) {
+                                    $specPrice = isset($selectedPrices[$value]) && $selectedPrices[$value] !== '' && $selectedPrices[$value] !== null
+                                        ? (float) $selectedPrices[$value]
+                                        : null;
                                     ProductSpecificationValue::create([
                                         'product_id' => $product->id,
                                         'specification_id' => $spec['id'],
                                         'value' => $value,
                                         'quantity' => $quantity,
+                                        'price' => $specPrice,
                                     ]);
                                 }
                             }
@@ -261,6 +268,8 @@ class ProductController extends Controller
             'specifications.*.value' => 'nullable|string',
             'specifications.*.selectedQuantities' => 'nullable|array',
             'specifications.*.selectedQuantities.*' => 'nullable|integer|min:0',
+            'specifications.*.selectedPrices' => 'nullable|array',
+            'specifications.*.selectedPrices.*' => 'nullable|numeric|min:0',
         ]);
 
         $validator->after(function ($validator) use ($request) {
@@ -373,14 +382,19 @@ class ProductController extends Controller
             if (isset($validated['specifications'])) {
                 $product->specificationValues()->delete();
                 foreach ($validated['specifications'] as $spec) {
+                    $selectedPrices = $spec['selectedPrices'] ?? [];
                     if (!empty($spec['selectedQuantities']) && is_array($spec['selectedQuantities'])) {
                         foreach ($spec['selectedQuantities'] as $value => $quantity) {
                             if ($quantity > 0) {
+                                $specPrice = isset($selectedPrices[$value]) && $selectedPrices[$value] !== '' && $selectedPrices[$value] !== null
+                                    ? (float) $selectedPrices[$value]
+                                    : null;
                                 ProductSpecificationValue::create([
                                     'product_id' => $product->id,
                                     'specification_id' => $spec['id'],
                                     'value' => $value,
                                     'quantity' => $quantity,
+                                    'price' => $specPrice,
                                 ]);
                             }
                         }

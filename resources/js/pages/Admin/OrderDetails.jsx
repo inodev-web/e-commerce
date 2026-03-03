@@ -46,6 +46,11 @@ const AdminOrderDetails = ({ auth, order }) => {
                     return (
                         <div key={index} className="text-xs text-gray-500 dark:text-gray-400">
                             <span className="font-medium">{specName}:</span> {spec.v}
+                            {spec.p !== undefined && spec.p !== null && (
+                                <span className="ml-1 font-semibold text-[#DB8B89]">
+                                    ({Number(spec.p).toLocaleString()} DA)
+                                </span>
+                            )}
                         </div>
                     );
                 })}

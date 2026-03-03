@@ -63,6 +63,25 @@ class CartService
         // Déterminer le prix et le stock à utiliser
         $price = $variant ? $variant->price : $product->price;
         $stock = $variant ? $variant->stock : $product->stock;
+
+        // Check if a selected specification value has a custom price
+        if (!$variant && !empty($dto->specificationValues)) {
+            $specPrice = \App\Models\ProductSpecificationValue::where('product_id', $product->id)
+                ->where(function ($q) use ($dto) {
+                    foreach ($dto->specificationValues as $specId => $value) {
+                        $q->orWhere(function ($sub) use ($specId, $value) {
+                            $sub->where('specification_id', $specId)
+                                ->where('value', $value)
+                                ->whereNotNull('price');
+                        });
+                    }
+                })
+                ->whereNotNull('price')
+                ->first();
+            if ($specPrice) {
+                $price = $specPrice->price;
+            }
+        }
         
         // Vérifier stock
         $existingItemQuery = $cart->items()->where('product_id', $dto->productId);
@@ -118,6 +137,28 @@ class CartService
         $updateData = ['quantity' => $quantity];
         if ($specificationValues !== null) {
             $updateData['specification_values'] = $specificationValues;
+
+            // Recalculate price_snapshot based on the new spec values
+            if (!$item->product_variant_id && !empty($specificationValues)) {
+                $specPrice = \App\Models\ProductSpecificationValue::where('product_id', $item->product_id)
+                    ->where(function ($q) use ($specificationValues) {
+                        foreach ($specificationValues as $specId => $value) {
+                            $q->orWhere(function ($sub) use ($specId, $value) {
+                                $sub->where('specification_id', $specId)
+                                    ->where('value', $value)
+                                    ->whereNotNull('price');
+                            });
+                        }
+                    })
+                    ->whereNotNull('price')
+                    ->first();
+                if ($specPrice) {
+                    $updateData['price_snapshot'] = $specPrice->price;
+                } else {
+                    // Revert to base product price when no spec value has a custom price
+                    $updateData['price_snapshot'] = $item->product->price;
+                }
+            }
         }
         
         $item->update($updateData);

@@ -222,7 +222,10 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
             if (!acc[item.specification_id]) {
                 acc[item.specification_id] = {};
             }
-            acc[item.specification_id][item.value] = item.quantity ?? 0;
+            acc[item.specification_id][item.value] = {
+                quantity: item.quantity ?? 0,
+                price: item.price ?? '',
+            };
             return acc;
         }, {});
         const existingValues = new Map(
@@ -303,7 +306,10 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
             if (!acc[item.specification_id]) {
                 acc[item.specification_id] = {};
             }
-            acc[item.specification_id][item.value] = item.quantity ?? 0;
+            acc[item.specification_id][item.value] = {
+                quantity: item.quantity ?? 0,
+                price: item.price ?? '',
+            };
             return acc;
         }, {});
         setSelectedSpecificationValues(selectedValues);
@@ -458,10 +464,24 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
 
         const prepareData = (data) => {
             const specs = [];
-            Object.entries(selectedSpecificationValues).forEach(([specId, values]) => {
+            Object.entries(selectedSpecificationValues).forEach(([specId, valuesObj]) => {
+                const quantities = {};
+                const prices = {};
+                Object.entries(valuesObj).forEach(([value, meta]) => {
+                    if (typeof meta === 'object' && meta !== null) {
+                        quantities[value] = meta.quantity ?? 0;
+                        if (meta.price !== '' && meta.price !== null && meta.price !== undefined) {
+                            prices[value] = meta.price;
+                        }
+                    } else {
+                        // Backward compat: plain number = quantity only
+                        quantities[value] = meta ?? 0;
+                    }
+                });
                 specs.push({
                     id: parseInt(specId),
-                    selectedQuantities: values
+                    selectedQuantities: quantities,
+                    selectedPrices: prices,
                 });
             });
 
@@ -1474,7 +1494,10 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                                         {getTranslated(spec, 'name')}
                                                                     </label>
                                                                     {(() => {
-                                                                        const sum = Object.values(selectedValues).reduce((a, b) => a + (parseInt(b) || 0), 0);
+                                                                        const sum = Object.values(selectedValues).reduce((a, b) => {
+                                                                            const qty = typeof b === 'object' ? (b.quantity || 0) : (parseInt(b) || 0);
+                                                                            return a + qty;
+                                                                        }, 0);
                                                                         const totalStock = parseInt(productForm.data.stock) || 0;
                                                                         const isOver = sum > totalStock;
                                                                         return (
@@ -1486,8 +1509,6 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                                 </div>
                                                                 {
                                                                     (() => {
-                                                                        // Find the error for this spec if it exists
-                                                                        // We need to know which index this spec has in the payload
                                                                         const specIds = Object.keys(selectedSpecificationValues);
                                                                         const specIdString = spec?.id ? String(spec.id) : '';
                                                                         const payloadIndex = specIdString ? specIds.indexOf(specIdString) : -1;
@@ -1498,51 +1519,77 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                                 }
                                                                 {
                                                                     specValues.length > 0 ? (
-                                                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                                                                            {specValues.map((value, valIndex) => (
-                                                                                <div key={valIndex} className="flex items-center gap-2">
-                                                                                    <input
-                                                                                        type="checkbox"
-                                                                                        id={`spec-${spec.id}-val-${valIndex}`}
-                                                                                        checked={selectedValues[value] !== undefined}
-                                                                                        onChange={(e) => {
-                                                                                            const newSelected = { ...selectedSpecificationValues };
-                                                                                            if (!newSelected[spec.id]) {
-                                                                                                newSelected[spec.id] = {};
-                                                                                            }
-                                                                                            if (e.target.checked) {
-                                                                                                newSelected[spec.id][value] = newSelected[spec.id][value] || 0;
-                                                                                            } else {
-                                                                                                delete newSelected[spec.id][value];
-                                                                                            }
-                                                                                            setSelectedSpecificationValues(newSelected);
-                                                                                        }}
-                                                                                        className="rounded"
-                                                                                    />
-                                                                                    <label
-                                                                                        htmlFor={`spec-${spec.id}-val-${valIndex}`}
-                                                                                        className="text-sm flex-1"
-                                                                                    >
-                                                                                        {value}
-                                                                                    </label>
-                                                                                    <Input
-                                                                                        type="number"
-                                                                                        min="0"
-                                                                                        value={selectedValues[value] || ''}
-                                                                                        onChange={(e) => {
-                                                                                            const newSelected = { ...selectedSpecificationValues };
-                                                                                            if (!newSelected[spec.id]) {
-                                                                                                newSelected[spec.id] = {};
-                                                                                            }
-                                                                                            newSelected[spec.id][value] = parseInt(e.target.value) || 0;
-                                                                                            setSelectedSpecificationValues(newSelected);
-                                                                                        }}
-                                                                                        placeholder={t('admin.quantity_short', 'Qté')}
-                                                                                        className="w-20 h-8 text-sm"
-                                                                                        disabled={selectedValues[value] === undefined}
-                                                                                    />
-                                                                                </div>
-                                                                            ))}
+                                                                        <div className="space-y-2">
+                                                                            {specValues.map((value, valIndex) => {
+                                                                                const meta = selectedValues[value];
+                                                                                const isChecked = meta !== undefined;
+                                                                                const qtyVal = isChecked ? (typeof meta === 'object' ? (meta.quantity || '') : (meta || '')) : '';
+                                                                                const priceVal = isChecked && typeof meta === 'object' ? (meta.price ?? '') : '';
+
+                                                                                return (
+                                                                                    <div key={valIndex} className="flex items-center gap-2">
+                                                                                        <input
+                                                                                            type="checkbox"
+                                                                                            id={`spec-${spec.id}-val-${valIndex}`}
+                                                                                            checked={isChecked}
+                                                                                            onChange={(e) => {
+                                                                                                const newSelected = { ...selectedSpecificationValues };
+                                                                                                if (!newSelected[spec.id]) {
+                                                                                                    newSelected[spec.id] = {};
+                                                                                                }
+                                                                                                if (e.target.checked) {
+                                                                                                    newSelected[spec.id][value] = newSelected[spec.id][value] || { quantity: 0, price: '' };
+                                                                                                } else {
+                                                                                                    delete newSelected[spec.id][value];
+                                                                                                }
+                                                                                                setSelectedSpecificationValues(newSelected);
+                                                                                            }}
+                                                                                            className="rounded"
+                                                                                        />
+                                                                                        <label
+                                                                                            htmlFor={`spec-${spec.id}-val-${valIndex}`}
+                                                                                            className="text-sm min-w-[60px]"
+                                                                                        >
+                                                                                            {value}
+                                                                                        </label>
+                                                                                        <Input
+                                                                                            type="number"
+                                                                                            min="0"
+                                                                                            value={qtyVal}
+                                                                                            onChange={(e) => {
+                                                                                                const newSelected = { ...selectedSpecificationValues };
+                                                                                                if (!newSelected[spec.id]) {
+                                                                                                    newSelected[spec.id] = {};
+                                                                                                }
+                                                                                                const prev = typeof newSelected[spec.id][value] === 'object' ? newSelected[spec.id][value] : { quantity: 0, price: '' };
+                                                                                                newSelected[spec.id][value] = { ...prev, quantity: parseInt(e.target.value) || 0 };
+                                                                                                setSelectedSpecificationValues(newSelected);
+                                                                                            }}
+                                                                                            placeholder={t('admin.quantity_short', 'Qté')}
+                                                                                            className="w-20 h-8 text-sm"
+                                                                                            disabled={!isChecked}
+                                                                                        />
+                                                                                        <Input
+                                                                                            type="number"
+                                                                                            min="0"
+                                                                                            step="0.01"
+                                                                                            value={priceVal}
+                                                                                            onChange={(e) => {
+                                                                                                const newSelected = { ...selectedSpecificationValues };
+                                                                                                if (!newSelected[spec.id]) {
+                                                                                                    newSelected[spec.id] = {};
+                                                                                                }
+                                                                                                const prev = typeof newSelected[spec.id][value] === 'object' ? newSelected[spec.id][value] : { quantity: 0, price: '' };
+                                                                                                newSelected[spec.id][value] = { ...prev, price: e.target.value === '' ? '' : parseFloat(e.target.value) };
+                                                                                                setSelectedSpecificationValues(newSelected);
+                                                                                            }}
+                                                                                            placeholder={t('admin.price', 'Prix (DA)')}
+                                                                                            className="w-28 h-8 text-sm"
+                                                                                            disabled={!isChecked}
+                                                                                        />
+                                                                                    </div>
+                                                                                );
+                                                                            })}
                                                                         </div>
                                                                     ) : (
                                                                         <p className="text-sm text-gray-500">{t('admin.no_values_defined', 'Aucune valeur définie pour cette spécification.')}</p>
@@ -1574,12 +1621,16 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                     specs.forEach((spec) => {
                                         const selected = selectedSpecificationValues[spec.id] || {};
                                         Object.keys(selected).forEach(value => {
-                                            if (selected[value] > 0) {
+                                            const meta = selected[value];
+                                            const qty = typeof meta === 'object' ? (meta.quantity || 0) : (parseInt(meta) || 0);
+                                            const price = typeof meta === 'object' ? (meta.price ?? '') : '';
+                                            if (qty > 0) {
                                                 combinations.push({
                                                     specId: spec.id,
                                                     specName: getTranslated(spec, 'name'),
                                                     value: value,
-                                                    quantity: selected[value]
+                                                    quantity: qty,
+                                                    price: price,
                                                 });
                                             }
                                         });
@@ -1593,6 +1644,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                         <TableHead className="min-w-[200px]">{t('admin.specification', 'Spécification')}</TableHead>
                                                         <TableHead className="w-32">{t('admin.value', 'Valeur')}</TableHead>
                                                         <TableHead className="w-24">{t('admin.quantity', 'Quantité')}</TableHead>
+                                                        <TableHead className="w-28">{t('admin.price', 'Prix (DA)')}</TableHead>
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
@@ -1603,6 +1655,7 @@ const AdminProducts = ({ products, categories = [], filters = {}, theme, toggleT
                                                                 <Badge variant="outline">{combo.value}</Badge>
                                                             </TableCell>
                                                             <TableCell>{combo.quantity}</TableCell>
+                                                            <TableCell>{combo.price !== '' && combo.price !== null ? `${Number(combo.price).toLocaleString()} DA` : '—'}</TableCell>
                                                         </TableRow>
                                                     ))}
                                                 </TableBody>

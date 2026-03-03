@@ -121,7 +121,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
             product_id: currentProduct?.id || 0,
             product_variant_id: selectedVariant?.id || null,
             quantity: data.quantity,
-            price: selectedVariant?.price || currentProduct?.price || 0,
+            price: effectivePrice,
             stock: selectedVariant?.stock || currentProduct?.stock || 0,
             specification_values: selectedSpecValues
         }, {
@@ -137,7 +137,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                     content_name: getTranslated(currentProduct, 'name'),
                     content_ids: [currentProduct.id],
                     content_type: 'product',
-                    value: selectedVariant?.price || currentProduct?.price || 0,
+                    value: effectivePrice,
                     currency: 'DZD'
                 });
             },
@@ -216,7 +216,24 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
 
 
-    const productsTotal = (currentProduct?.price || 0) * data.quantity;
+    // Derive effective price from selected spec value (if it has a custom price)
+    const effectivePrice = (() => {
+        if (selectedVariant) return selectedVariant.price;
+        if (currentProduct?.specification_values && Object.keys(selectedSpecValues).length > 0) {
+            for (const [specId, selectedValue] of Object.entries(selectedSpecValues)) {
+                if (!selectedValue) continue;
+                const psv = currentProduct.specification_values.find(
+                    sv => String(sv.specification_id) === String(specId) && sv.value === selectedValue
+                );
+                if (psv && psv.price !== null && psv.price !== undefined && psv.price !== '') {
+                    return parseFloat(psv.price);
+                }
+            }
+        }
+        return currentProduct?.price || 0;
+    })();
+
+    const productsTotal = effectivePrice * data.quantity;
     // š¡ï¸ Calcul du montant maximum convertible en points (Total + Livraison - Remise Promo)
     const activeShippingPrice = isFreeShipping ? 0 : shippingPrice;
     const maxReducibleAmount = Math.max(0, productsTotal + activeShippingPrice - promoDiscount);
@@ -230,7 +247,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
 
 
     const calculateTotal = () => {
-        const subtotal = (currentProduct?.price || 0) * data.quantity;
+        const subtotal = effectivePrice * data.quantity;
         const activeShipping = isFreeShipping ? 0 : shippingPrice;
         const total = subtotal + activeShipping - promoDiscount;
         return Math.max(0, total);
@@ -245,7 +262,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
         try {
             const response = await axios.post(route('checkout.validate-promo'), {
                 code: promoInput,
-                amount: (currentProduct?.price || 0) * data.quantity,
+                amount: effectivePrice * data.quantity,
             });
 
             setPromoDiscount(response.data.discount);
@@ -392,14 +409,14 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                         <div className="product-price-section">
                             <div className="flex items-center gap-2">
                                 <span className="current-price">
-                                    {(selectedVariant?.price || currentProduct?.price || 0).toLocaleString()}
+                                    {effectivePrice.toLocaleString()}
                                     <span className="currency-symbol">{t('currency.symbol', 'DA')}</span>
                                 </span>
                             </div>
                             <div>
                                 {(selectedVariant?.stock || currentProduct?.stock || 0) > 0 ? (
                                     <span className="in-stock flex items-center gap-1.5 px-3 py-2 rounded-lg border border-green-200 dark:border-green-900/30 bg-green-50 dark:bg-green-900/10">
-                                        <CheckCircle size={16} className="flex-shrink-0" /> 
+                                        <CheckCircle size={16} className="flex-shrink-0" />
                                         <span className="text-sm font-semibold">{t('product.in_stock', 'En stock')} ({selectedVariant?.stock || currentProduct?.stock || 0})</span>
                                     </span>
                                 ) : (
@@ -522,6 +539,11 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                                                     disabled={isOutOfStock}
                                                                 >
                                                                     {psv.value}
+                                                                    {psv.price !== null && psv.price !== undefined && psv.price !== '' && (
+                                                                        <span className="ml-1 text-xs font-bold text-[#DB8B89]">
+                                                                            {parseFloat(psv.price).toLocaleString()} DA
+                                                                        </span>
+                                                                    )}
                                                                     {psv.quantity !== undefined && psv.quantity !== null && (
                                                                         <span className={`ml-2 text-xs ${isOutOfStock ? 'text-red-500' : 'text-green-600'}`}>
                                                                             ({psv.quantity})
@@ -706,7 +728,7 @@ const Show = ({ product, relatedProducts, theme, toggleTheme }) => {
                                     >
                                         <div className="summary-row flex justify-between">
                                             <span>{t('cart.subtotal', 'Sous-total')}</span>
-                                            <span>{((currentProduct?.price || 0) * data.quantity).toLocaleString()} {t('currency.symbol', 'DA')}</span>
+                                            <span>{(effectivePrice * data.quantity).toLocaleString()} {t('currency.symbol', 'DA')}</span>
                                         </div>
                                         {promoDiscount > 0 && (
                                             <div className="summary-row flex justify-between text-green-600 text-sm">

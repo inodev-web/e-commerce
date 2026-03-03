@@ -17,7 +17,16 @@ class ProductSpecificationValue extends Model
         'specification_id',
         'value',
         'quantity',
+        'price',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'integer',
+            'price' => 'decimal:2',
+        ];
+    }
 
     // Relationships
 

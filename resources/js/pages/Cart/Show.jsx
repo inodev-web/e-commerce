@@ -164,6 +164,11 @@ const Show = ({ cart, items, total, itemCount, auth }) => {
                                                                                     disabled={isOutOfStock}
                                                                                 >
                                                                                     {psv.value}
+                                                                                    {psv.price !== null && psv.price !== undefined && psv.price !== '' && (
+                                                                                        <span className="ml-1 text-xs font-bold text-[#DB8B89]">
+                                                                                            {parseFloat(psv.price).toLocaleString()} DA
+                                                                                        </span>
+                                                                                    )}
                                                                                     {psv.quantity !== undefined && psv.quantity !== null && (
                                                                                         <span className={`ml-1 text-xs ${isOutOfStock ? 'text-red-500' : 'text-green-600'}`}>
                                                                                             ({psv.quantity})

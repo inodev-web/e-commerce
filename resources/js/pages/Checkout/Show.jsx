@@ -425,6 +425,31 @@ const Show = ({ cart, items, productsTotal, wilayas, deliveryTypes, loyaltyBalan
                                                     ))}
                                                 </div>
                                             )}
+                                            {item.specification_values && item.product?.specification_values && (() => {
+                                                const selectedSpecs = item.specification_values;
+                                                if (!selectedSpecs || Object.keys(selectedSpecs).length === 0) return null;
+                                                return (
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                                        {Object.entries(selectedSpecs).map(([specId, value], idx) => {
+                                                            const psv = item.product.specification_values.find(
+                                                                sv => String(sv.specification_id) === String(specId) && sv.value === value
+                                                            );
+                                                            const specName = psv?.specification ? getTranslated(psv.specification, 'name') : `Spec`;
+                                                            return (
+                                                                <span key={specId}>
+                                                                    {idx > 0 && ' / '}
+                                                                    {specName}: {value}
+                                                                    {psv?.price && (
+                                                                        <span className="ml-1 font-semibold text-[#DB8B89]">
+                                                                            ({parseFloat(psv.price).toLocaleString()} DA)
+                                                                        </span>
+                                                                    )}
+                                                                </span>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                );
+                                            })()}
                                             <p className="text-gray-500 dark:text-gray-400">{item.price_snapshot.toLocaleString()} DA</p>
                                         </div>
                                     </div>
