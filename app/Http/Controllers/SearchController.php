@@ -61,12 +61,18 @@ class SearchController extends Controller
             })->take(20)->values();
 
             $categoryData = $matchedCategories->map(function ($category) {
+                // Count products via subCategories since Product is linked to SubCategory
+                $productsCount = \App\Models\Product::active()
+                    ->whereIn('sub_category_id', $category->subCategories()->pluck('id'))
+                    ->count();
+
                 return [
                     'id' => 'cat_' . $category->id,
                     'name' => $category->name,
                     'image' => $category->image_path ? asset('storage/' . $category->image_path) : null,
                     'url' => route('products.index', ['category_id' => $category->id]),
                     'is_sub' => false,
+                    'products_count' => $productsCount,
                 ];
             });
 
