@@ -58,6 +58,19 @@ class SearchController extends Controller
                     }
                 }
                 return false;
+            })->sortBy(function ($category) use ($lowerQuery) {
+                $nameValue = $category->getAttributes()['name'] ?? '';
+                $decoded = is_string($nameValue) ? json_decode($nameValue, true) : $nameValue;
+                if (!is_array($decoded)) return 3;
+                
+                $score = 3;
+                foreach ($decoded as $locale => $text) {
+                    $lowerText = strtolower($text);
+                    if ($lowerText === $lowerQuery) return 0;
+                    if (str_starts_with($lowerText, $lowerQuery)) $score = min($score, 1);
+                    if (str_contains($lowerText, $lowerQuery)) $score = min($score, 2);
+                }
+                return $score;
             })->take(20)->values();
 
             $categoryData = $matchedCategories->map(function ($category) {
@@ -94,6 +107,19 @@ class SearchController extends Controller
                     }
                 }
                 return false;
+            })->sortBy(function ($subCategory) use ($lowerQuery) {
+                $nameValue = $subCategory->getAttributes()['name'] ?? '';
+                $decoded = is_string($nameValue) ? json_decode($nameValue, true) : $nameValue;
+                if (!is_array($decoded)) return 3;
+                
+                $score = 3;
+                foreach ($decoded as $locale => $text) {
+                    $lowerText = strtolower($text);
+                    if ($lowerText === $lowerQuery) return 0;
+                    if (str_starts_with($lowerText, $lowerQuery)) $score = min($score, 1);
+                    if (str_contains($lowerText, $lowerQuery)) $score = min($score, 2);
+                }
+                return $score;
             })->take(20)->values();
 
             $subCategoryData = $matchedSubCategories->map(function ($subCategory) {
@@ -144,19 +170,25 @@ class SearchController extends Controller
                 $bNameAr = strtolower($b->name_ar ?? '');
 
                 // Score pour produit A
-                $aScore = 3;
-                if (str_contains($aName, $lowerQuery)) $aScore = 1;
-                elseif (str_contains($aNameAr, $lowerQuery)) $aScore = 2;
+                $aScore = 5;
+                if ($aName === $lowerQuery || $aNameAr === $lowerQuery) $aScore = 0;
+                elseif (str_starts_with($aName, $lowerQuery) || str_starts_with($aNameAr, $lowerQuery)) $aScore = 1;
+                elseif (str_contains($aName, $lowerQuery)) $aScore = 2;
+                elseif (str_contains($aNameAr, $lowerQuery)) $aScore = 3;
+                else $aScore = 4;
 
                 // Score pour produit B
-                $bScore = 3;
-                if (str_contains($bName, $lowerQuery)) $bScore = 1;
-                elseif (str_contains($bNameAr, $lowerQuery)) $bScore = 2;
+                $bScore = 5;
+                if ($bName === $lowerQuery || $bNameAr === $lowerQuery) $bScore = 0;
+                elseif (str_starts_with($bName, $lowerQuery) || str_starts_with($bNameAr, $lowerQuery)) $bScore = 1;
+                elseif (str_contains($bName, $lowerQuery)) $bScore = 2;
+                elseif (str_contains($bNameAr, $lowerQuery)) $bScore = 3;
+                else $bScore = 4;
 
                 return $aScore <=> $bScore;
             });
 
-            // Prendre les 4 premiers
+            // Prendre les 20 premiers
             $products = $sorted->take(20)->values();
 
             // Formater les résultats pour le frontend
