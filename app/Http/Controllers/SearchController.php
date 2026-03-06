@@ -58,7 +58,7 @@ class SearchController extends Controller
                     }
                 }
                 return false;
-            })->take(4)->values();
+            })->take(20)->values();
 
             $categoryData = $matchedCategories->map(function ($category) {
                 return [
@@ -116,7 +116,7 @@ class SearchController extends Controller
             });
 
             // Prendre les 4 premiers
-            $products = $sorted->take(4)->values();
+            $products = $sorted->take(20)->values();
 
             // Formater les résultats pour le frontend
             $data = $products->map(function ($product) {
