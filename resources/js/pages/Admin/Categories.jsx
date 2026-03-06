@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, ChevronDown, ChevronRight, X } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/Components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/Components/ui/Dialog";
 import { Button } from "@/Components/ui/button";
 import AdminLayout from '../../components/AdminLayout';
 import { useForm } from '@inertiajs/react';

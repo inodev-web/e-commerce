@@ -1,7 +1,7 @@
 ﻿import React, { useMemo, useState } from 'react';
 import { Plus, Search, Edit, Trash2, Filter, Info, X, RefreshCw, ChevronDown, ChevronRight } from 'lucide-react';
 import { getPaginationLabel } from '../../utils/pagination';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/Components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/Components/ui/Dialog";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Badge } from "@/Components/ui/badge";

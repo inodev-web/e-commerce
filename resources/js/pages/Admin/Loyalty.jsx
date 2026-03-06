@@ -11,7 +11,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogFooter,
-} from "@/Components/ui/dialog";
+} from "@/Components/ui/Dialog";
 
 const AdminLoyalty = ({ auth, stats, settings, promoCodes }) => {
     const { t } = useTranslation();

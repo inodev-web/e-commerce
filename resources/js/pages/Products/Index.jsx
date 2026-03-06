@@ -5,10 +5,10 @@ import { router, Link, usePage } from '@inertiajs/react';
 import { getTranslated } from '@/utils/translation';
 import { getLabel } from '../../utils/i18n';
 import { pickMainImage } from '@/utils/productImage';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '../../components/ui/dialog';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
-import CartConfirmationModal from '../../components/CartConfirmationModal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/Components/ui/Dialog';
+import Header from '@/Components/Header';
+import Footer from '@/Components/Footer';
+import CartConfirmationModal from '@/Components/CartConfirmationModal';
 import { trackEvent } from '@/utils/analytics';
 import '../../../css/shopPage.css';
 
