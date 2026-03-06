@@ -98,6 +98,7 @@ class SearchController extends Controller
                     'image' => $subCategory->category->image_path ? asset('storage/' . $subCategory->category->image_path) : null,
                     'url' => route('products.index', ['sub_category_id' => $subCategory->id]),
                     'is_sub' => true,
+                    'products_count' => \App\Models\Product::active()->where('sub_category_id', $subCategory->id)->count(),
                 ];
             });
 
