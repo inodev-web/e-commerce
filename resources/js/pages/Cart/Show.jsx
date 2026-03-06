@@ -1,8 +1,8 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Link, router } from '@inertiajs/react';
 import { Trash2, Plus, Minus, ArrowRight, ArrowLeft, ShoppingBag, ShieldCheck } from 'lucide-react';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
+import Header from '@/Components/Header';
+import Footer from '@/Components/Footer';
 import { useTranslation } from 'react-i18next';
 import { getTranslated } from '@/utils/translation';
 import { pickMainImage } from '@/utils/productImage';

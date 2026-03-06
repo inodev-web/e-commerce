@@ -1,9 +1,9 @@
 ﻿import Hero from './Hero';
-import CategorySection from '../components/CategorySection';
-import LogoLoop from '../components/LogoLoop';
-import TopSellers from '../components/TopSellers';
-import Footer from '../components/Footer';
-import Header from '../components/Header';
+import CategorySection from '@/Components/CategorySection';
+import LogoLoop from '@/Components/LogoLoop';
+import TopSellers from '@/Components/TopSellers';
+import Footer from '@/Components/Footer';
+import Header from '@/Components/Header';
 import { Link, router } from '@inertiajs/react';
 import { Star, ShoppingCart, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';

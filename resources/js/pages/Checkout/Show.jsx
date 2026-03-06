@@ -1,8 +1,8 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
 import { useForm, usePage, Link, router } from '@inertiajs/react';
 import { Truck, MapPin, Phone, CreditCard, ShoppingBag, Loader2, X, CheckCircle, Star } from 'lucide-react';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
+import Header from '@/Components/Header';
+import Footer from '@/Components/Footer';
 import { useTranslation } from 'react-i18next';
 import { getTranslated, isRTL } from '@/utils/translation';
 import { pickMainImage } from '@/utils/productImage';

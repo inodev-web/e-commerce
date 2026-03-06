@@ -4,9 +4,9 @@ import { Star, ShoppingCart, Minus, Plus, ChevronLeft, Loader2, CreditCard, Chec
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
-import CartConfirmationModal from '../../components/CartConfirmationModal';
+import Header from '@/Components/Header';
+import Footer from '@/Components/Footer';
+import CartConfirmationModal from '@/Components/CartConfirmationModal';
 import '../../../css/productPage.css';
 import { useTranslation } from 'react-i18next';
 import { getTranslated, isRTL } from '@/utils/translation';

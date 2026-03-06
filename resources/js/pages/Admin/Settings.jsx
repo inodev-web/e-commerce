@@ -1,7 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { Save, Globe, Plus, Trash2, CheckCircle2, XCircle } from 'lucide-react';
-import { Button } from "@/Components/ui/button";
-import AdminLayout from '../../components/AdminLayout';
+import { Button } from "@/Components/ui/Button";
+import AdminLayout from '@/Components/AdminLayout';
 import { Head, useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';

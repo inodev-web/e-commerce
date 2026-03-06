@@ -1,6 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { Search, MoreVertical, Ban, Gift, Eye } from 'lucide-react';
-import AdminLayout from '../../components/AdminLayout';
+import AdminLayout from '@/Components/AdminLayout';
 import { Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 

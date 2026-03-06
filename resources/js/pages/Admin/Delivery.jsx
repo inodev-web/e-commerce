@@ -1,7 +1,7 @@
 ﻿import React, { useState, useRef } from 'react';
 import { Search, Save, MapPin } from 'lucide-react';
-import { Button } from "@/Components/ui/button";
-import AdminLayout from '../../components/AdminLayout';
+import { Button } from "@/Components/ui/Button";
+import AdminLayout from '@/Components/AdminLayout';
 import { router } from '@inertiajs/react';
 import { useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';

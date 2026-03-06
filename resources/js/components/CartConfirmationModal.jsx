@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/Dialog';
 import { Link } from '@inertiajs/react';
 import { CheckCircle, ShoppingCart, ArrowRight } from 'lucide-react';
 import { getTranslated } from '@/utils/translation';

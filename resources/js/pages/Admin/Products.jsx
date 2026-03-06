@@ -2,12 +2,12 @@
 import { Plus, Search, Edit, Trash2, Filter, Info, X, RefreshCw, ChevronDown, ChevronRight } from 'lucide-react';
 import { getPaginationLabel } from '../../utils/pagination';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/Components/ui/Dialog";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
-import { Badge } from "@/Components/ui/badge";
-import { Table, TableHeader, TableBody, TableRow, TableCell, TableHead } from "@/Components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/Components/ui/tooltip";
-import AdminLayout from '../../components/AdminLayout';
+import { Button } from "@/Components/ui/Button";
+import { Input } from "@/Components/ui/Input";
+import { Badge } from "@/Components/ui/Badge";
+import { Table, TableHeader, TableBody, TableRow, TableCell, TableHead } from "@/Components/ui/Table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/Components/ui/Tooltip";
+import AdminLayout from '@/Components/AdminLayout';
 import { Link, router, useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { getTranslated } from '@/utils/translation';

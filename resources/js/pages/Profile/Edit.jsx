@@ -2,8 +2,8 @@
 import { ShoppingCart, User, Gift, Award, Package, Copy, Loader2, Users, ChevronRight, MapPin, Phone, Home } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePage, useForm, Head, router, Link } from '@inertiajs/react';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
+import Header from '@/Components/Header';
+import Footer from '@/Components/Footer';
 import { getLocalizedName } from '@/utils/localization';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';

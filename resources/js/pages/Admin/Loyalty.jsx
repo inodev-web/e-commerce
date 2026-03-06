@@ -1,8 +1,8 @@
 ﻿import React, { useState } from 'react';
 import { Save, Gift, Tag, Zap, TrendingUp, ShieldAlert, Plus, Trash2, Edit, Check, X, Search, Coins, Users } from 'lucide-react';
-import { Button } from "@/Components/ui/button";
-import { Badge } from "@/Components/ui/badge";
-import AdminLayout from '../../components/AdminLayout';
+import { Button } from "@/Components/ui/Button";
+import { Badge } from "@/Components/ui/Badge";
+import AdminLayout from '@/Components/AdminLayout';
 import { Head, useForm, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import {

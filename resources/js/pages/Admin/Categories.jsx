@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/Components/ui/Dialog";
-import { Button } from "@/Components/ui/button";
-import AdminLayout from '../../components/AdminLayout';
+import { Button } from "@/Components/ui/Button";
+import AdminLayout from '@/Components/AdminLayout';
 import { useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { getTranslated } from '@/utils/translation';

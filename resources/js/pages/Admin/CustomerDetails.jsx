@@ -1,7 +1,7 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Gift, ShoppingBag, MapPin, Phone, Mail } from 'lucide-react';
-import AdminLayout from '../../components/AdminLayout';
+import AdminLayout from '@/Components/AdminLayout';
 import { useTranslation } from 'react-i18next';
 import { getTranslated } from '@/utils/translation';
 

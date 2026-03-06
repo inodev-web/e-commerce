@@ -1,8 +1,8 @@
 ﻿import React from 'react';
 import { Link, router } from '@inertiajs/react';
 import { Package, ArrowLeft, ArrowRight, MapPin, Phone, CreditCard, XCircle } from 'lucide-react';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
+import Header from '@/Components/Header';
+import Footer from '@/Components/Footer';
 import { getTranslated } from '@/utils/translation';
 import { useTranslation } from 'react-i18next';
 import { pickMainImage } from '@/utils/productImage';

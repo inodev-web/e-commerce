@@ -1,8 +1,8 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { CheckCircle, ShoppingBag, ArrowRight, Star } from 'lucide-react';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
+import Header from '@/Components/Header';
+import Footer from '@/Components/Footer';
 import confetti from 'canvas-confetti';
 import { trackEvent } from '@/utils/analytics';
 import { useTranslation } from 'react-i18next';
