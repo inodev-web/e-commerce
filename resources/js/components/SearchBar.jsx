@@ -186,14 +186,40 @@ export default function SearchBar() {
                                                         )}
                                                     </div>
 
-                                                    {/* Category details */}
-                                                    <div className="flex-1 min-w-0 text-left">
-                                                        <h4 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">
-                                                            {getTranslated(category, 'name')}
-                                                        </h4>
-                                                        <p className="text-xs text-blue-500 dark:text-blue-400">
-                                                            {t('common.view_category', 'Voir la catégorie')} →
-                                                        </p>
+                                                    {/* Category / Subcategory details */}
+                                                    <div className="flex-1 min-w-0 text-left flex justify-between items-center gap-2">
+                                                        <div>
+                                                            {category.is_sub ? (
+                                                                <>
+                                                                    <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 mb-0.5">
+                                                                        <span className="truncate max-w-[120px] sm:max-w-xs">{getTranslated(category, 'category_name')}</span>
+                                                                        <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                                        </svg>
+                                                                    </div>
+                                                                    <h4 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">
+                                                                        {getTranslated(category, 'name')}
+                                                                    </h4>
+                                                                    <p className="text-xs text-blue-500 dark:text-blue-400 mt-0.5">
+                                                                        {t('common.view_sub_category', 'Voir la sous-catégorie')} →
+                                                                    </p>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <h4 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">
+                                                                        {getTranslated(category, 'name')}
+                                                                    </h4>
+                                                                    <p className="text-xs text-blue-500 dark:text-blue-400 mt-0.5">
+                                                                        {t('common.view_category', 'Voir la catégorie')} →
+                                                                    </p>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                        {category.products_count !== undefined && (
+                                                            <div className="flex-shrink-0 text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full font-medium shadow-sm border border-gray-200 dark:border-gray-700">
+                                                                {category.products_count} {category.products_count > 1 ? t('common.products_count_plural', 'produits') : t('common.products_count_singular', 'produit')}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </button>
                                             </li>
