@@ -62,12 +62,46 @@ class SearchController extends Controller
 
             $categoryData = $matchedCategories->map(function ($category) {
                 return [
-                    'id' => $category->id,
+                    'id' => 'cat_' . $category->id,
                     'name' => $category->name,
                     'image' => $category->image_path ? asset('storage/' . $category->image_path) : null,
                     'url' => route('products.index', ['category_id' => $category->id]),
+                    'is_sub' => false,
                 ];
             });
+
+            // ── Search SubCategories ──
+            $allSubCategories = \App\Models\SubCategory::active()->with('category')->get();
+
+            $matchedSubCategories = $allSubCategories->filter(function ($subCategory) use ($lowerQuery) {
+                if (!$subCategory->category) return false;
+                
+                $nameValue = $subCategory->getAttributes()['name'] ?? null;
+                if (!$nameValue) return false;
+
+                $decoded = is_string($nameValue) ? json_decode($nameValue, true) : $nameValue;
+                if (!is_array($decoded)) return false;
+
+                foreach ($decoded as $locale => $text) {
+                    if ($text && str_contains(strtolower($text), $lowerQuery)) {
+                        return true;
+                    }
+                }
+                return false;
+            })->take(20)->values();
+
+            $subCategoryData = $matchedSubCategories->map(function ($subCategory) {
+                return [
+                    'id' => 'subcat_' . $subCategory->id,
+                    'name' => $subCategory->name,
+                    'category_name' => $subCategory->category->name,
+                    'image' => $subCategory->category->image_path ? asset('storage/' . $subCategory->category->image_path) : null,
+                    'url' => route('products.index', ['sub_category_id' => $subCategory->id]),
+                    'is_sub' => true,
+                ];
+            });
+
+            $categoryData = $categoryData->concat($subCategoryData);
 
             // ── Search Products ──
             $allProducts = Product::active()
